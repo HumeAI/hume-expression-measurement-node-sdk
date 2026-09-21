@@ -95,9 +95,9 @@ export class FaceSocket {
         this.sendJson(message);
     }
 
-    public sendImageFrame(message: ExpressionMeasurement.ImageFrame): void {
+    public sendImageFrame(message: ArrayBuffer | Blob | ArrayBufferView): void {
         this.assertSocketIsOpen();
-        this.sendJson(message);
+        this.sendBinary(message);
     }
 
     /** Connect to the websocket and register event handlers. */
@@ -159,10 +159,7 @@ export class FaceSocket {
 
     /** Send a JSON payload to the websocket. */
     protected sendJson(
-        payload:
-            | ExpressionMeasurement.FaceSessionUpdate
-            | ExpressionMeasurement.SessionClose
-            | ExpressionMeasurement.ImageFrame,
+        payload: ExpressionMeasurement.FaceSessionUpdate | ExpressionMeasurement.SessionClose | string,
     ): void {
         const jsonPayload = toJson(payload);
         this.socket.send(jsonPayload);
