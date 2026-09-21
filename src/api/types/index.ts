@@ -1,6 +1,5 @@
 export * from "./AudioConfig.js";
 export * from "./AudioConfigUpdate.js";
-export * from "./AudioFrame.js";
 export * from "./BoundingBox.js";
 export * from "./CloseReason.js";
 export * from "./Error_.js";
@@ -21,7 +20,6 @@ export * from "./FaceSessionUpdate.js";
 export * from "./FaceSessionUpdated.js";
 export * from "./ImageConfig.js";
 export * from "./ImageConfigUpdate.js";
-export * from "./ImageFrame.js";
 export * from "./MeasurementTimerMs.js";
 export * from "./MeasurementTrigger.js";
 export * from "./SessionClose.js";

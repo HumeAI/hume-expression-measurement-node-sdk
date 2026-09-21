@@ -97,9 +97,9 @@ export class VoiceSocket {
         this.sendJson(message);
     }
 
-    public sendAudioFrame(message: ExpressionMeasurement.AudioFrame): void {
+    public sendAudioFrame(message: ArrayBuffer | Blob | ArrayBufferView): void {
         this.assertSocketIsOpen();
-        this.sendJson(message);
+        this.sendBinary(message);
     }
 
     /** Connect to the websocket and register event handlers. */
@@ -161,10 +161,7 @@ export class VoiceSocket {
 
     /** Send a JSON payload to the websocket. */
     protected sendJson(
-        payload:
-            | ExpressionMeasurement.VoiceSessionUpdate
-            | ExpressionMeasurement.SessionClose
-            | ExpressionMeasurement.AudioFrame,
+        payload: ExpressionMeasurement.VoiceSessionUpdate | ExpressionMeasurement.SessionClose | string,
     ): void {
         const jsonPayload = toJson(payload);
         this.socket.send(jsonPayload);
