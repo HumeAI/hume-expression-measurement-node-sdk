@@ -1,0 +1,193 @@
+# Hume Expression Measurement Node SDK
+
+The official Node.js client for the [Hume Expression Measurement API](https://hume-expression-measurement.docs.buildwithfern.com). The API measures emotional expression in speech and faces: stream audio or JPEG images over a WebSocket and receive scored measurements while the stream is still arriving.
+
+The SDK provides clients for both realtime endpoints, TypeScript types for every message, and API key authentication. It ships CommonJS and ES module builds.
+
+1. [Documentation](https://hume-expression-measurement.docs.buildwithfern.com)
+2. [Voice realtime guide](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/voice/realtime)
+3. [Face realtime guide](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/face/realtime)
+4. [API reference](https://hume-expression-measurement.docs.buildwithfern.com/reference/expression-measurement)
+
+## Requirements
+
+Node.js 18 or later.
+
+## Installation
+
+```bash
+npm install @humeai/expression-measurement-node
+```
+
+## Authentication
+
+Every connection carries your API key in the `X-Hume-Api-Key` header. Pass the key to the client, or set the `HUME_API_KEY` environment variable and construct the client without arguments.
+
+```typescript
+import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
+
+const client = new ExpressionMeasurementClient({ apiKey: "YOUR_API_KEY" });
+```
+
+This package is for server-side use. Keep API keys on a server, and see [Authentication](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/authentication) for connecting from a browser with an access token.
+
+## Quickstart: voice
+
+The voice endpoint accepts raw audio as signed 16-bit little-endian PCM, mono, at 16 kHz, with no header. Convert a recording with ffmpeg:
+
+```bash
+ffmpeg -i recording.wav -f s16le -ac 1 -ar 16000 speech.pcm
+```
+
+Open a session, register a message handler, stream the file in frames, and close.
+
+```typescript
+import { readFile } from "node:fs/promises";
+import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
+
+const client = new ExpressionMeasurementClient();
+
+// A session cannot be resumed, so a reconnect would start a new one with the default configuration.
+const socket = await client.voice.connect({ reconnectAttempts: 0 });
+
+socket.on("message", (message) => {
+    switch (message.type) {
+        case "measurement.result": {
+            const top = message.expressions
+                .slice(0, 3)
+                .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
+                .join(", ");
+            console.log(`utterance ${message.utterance_id}, ${message.audio_start_ms} to ${message.audio_end_ms} ms: ${top}`);
+            break;
+        }
+        case "error":
+            console.error(`${message.code}: ${message.message}`);
+            break;
+        case "session.closed":
+            console.log(`closed after ${message.produced.measurements} measurements`);
+            socket.close();
+            break;
+    }
+});
+
+await socket.waitForOpen();
+
+// 3200 bytes is 100 ms of audio at 16 kHz, 16-bit, mono.
+const FRAME_SIZE = 3200;
+const audio = await readFile("speech.pcm");
+for (let offset = 0; offset < audio.length; offset += FRAME_SIZE) {
+    socket.sendAudioFrame(audio.subarray(offset, offset + FRAME_SIZE));
+}
+socket.sendVoiceSessionClose({ type: "session.close" });
+```
+
+The server detects speech, groups it into utterances, and sends a `measurement.result` every 3 seconds of speech while an utterance continues. It accepts the first 30 seconds of audio immediately and then twice real time, so a long recording must be paced. The [voice guide](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/voice/realtime) covers the send rate, utterances, and the message flow.
+
+## Quickstart: face
+
+The face endpoint accepts one complete JPEG image per frame and answers each accepted frame with one `measurement.result` listing every face it detected.
+
+```typescript
+import { readFile } from "node:fs/promises";
+import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
+
+const client = new ExpressionMeasurementClient();
+
+const socket = await client.face.connect({ reconnectAttempts: 0 });
+
+socket.on("message", (message) => {
+    switch (message.type) {
+        case "measurement.result":
+            for (const face of message.faces) {
+                const top = face.expressions
+                    .slice(0, 3)
+                    .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
+                    .join(", ");
+                console.log(`face ${face.face_id} at [${face.bbox.join(", ")}]: ${top}`);
+            }
+            break;
+        case "error":
+            console.error(`${message.code}: ${message.message}`);
+            break;
+        case "session.closed":
+            socket.close();
+            break;
+    }
+});
+
+await socket.waitForOpen();
+socket.sendImageFrame(await readFile("photo.jpg"));
+socket.sendFaceSessionClose({ type: "session.close" });
+```
+
+`bbox` is `[x0, y0, x1, y1]` in pixels of the submitted image. `face_id` links the same face across frames within a session. The [face guide](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/face/realtime) covers frame limits, the send rate, and face tracking.
+
+## Handling messages
+
+The `message` handler receives one typed object per message, and each has a `type` field that narrows the union in a `switch`. The `open`, `close`, and `error` events report the state of the connection itself. Message types are exported under the `ExpressionMeasurement` namespace.
+
+```typescript
+import type { ExpressionMeasurement } from "@humeai/expression-measurement-node";
+
+function topExpression(result: ExpressionMeasurement.VoiceMeasurementResult): string | undefined {
+    return result.expressions[0]?.name;
+}
+```
+
+| Message | Voice | Face | Meaning |
+|---|---|---|---|
+| `session.created` | yes | yes | Sent on connect with the session ID and the default configuration. |
+| `session.updated` | yes | yes | Confirms a `session.update` and states the configuration in force. |
+| `utterance.start`, `utterance.end` | yes | no | Bracket one continuous stretch of speech. |
+| `measurement.result` | yes | yes | Scores for one window of speech, or for the faces in one image. |
+| `error` | yes | yes | A rejected frame or a failed session, with a `code` and whether it is `retryable`. |
+| `session.closed` | yes | yes | The last message. States why the session ended and totals what was received and produced. |
+
+Every measurement is a list of scores, each pairing a `name` with a `probability` from 0 to 1. Only scores above 0.1 are returned, sorted by descending probability, so arrays vary in length and may be empty. Voice results carry `expressions` and `voice_attributes`. Face results carry `expressions` and `descriptions` for each face. [Scores](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/scores) explains how to read them.
+
+## Configuration
+
+To change a setting, send `session.update` before the first frame. The server replies with `session.updated`. The configuration locks once the first frame is accepted, and a field omitted from `session.update` returns to its default.
+
+```typescript
+socket.sendVoiceSessionUpdate({ type: "session.update", measurement_timer_ms: 5000 });
+```
+
+```typescript
+socket.sendFaceSessionUpdate({ type: "session.update", face: { threshold: 0.8, min_size: 40 } });
+```
+
+| Setting | Endpoint | Default | Range |
+|---|---|---|---|
+| `measurement_timer_ms` | Voice | 3000 | 3000 to 10000 ms of speech between measurements |
+| `face.threshold` | Face | 0.9 | 0 to 1, the minimum detection confidence for a face to be measured |
+| `face.min_size` | Face | 60 | 1 or more, the shortest side of a face's bounding box in pixels |
+
+## Connection options
+
+`connect()` accepts options for the WebSocket itself.
+
+| Option | Default | Purpose |
+|---|---|---|
+| `reconnectAttempts` | 30 | Automatic reconnects after an unexpected close. Set to 0 for session-based streaming, since a new connection is a new session. |
+| `connectionTimeoutInSeconds` | none | Fails the handshake after this long. |
+| `headers`, `queryParams` | none | Extra values sent with the handshake. |
+| `abortSignal` | none | Aborts the connection from outside. |
+
+`connect()` resolves before the handshake completes. Call `waitForOpen()` before sending, or send from the `open` handler. Sending on a socket that is not open throws.
+
+## Errors
+
+Problems during a session arrive as `error` messages rather than exceptions. A rejected frame, such as `invalid_audio_frame`, `invalid_image_frame`, or `rate_limited`, is discarded and the session continues. `config_invalid`, `message_too_large`, and a voice `internal_error` end the session, and `session.closed` follows with `reason` set to `error`.
+
+A rejected API key fails the handshake, which surfaces through the socket's `error` and `close` events rather than as a message.
+
+[Errors](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/errors) lists every code and whether the session continues.
+
+## Contributing
+
+Most of this SDK is generated by [Fern](https://buildwithfern.com) from the API definition, and edits to generated files are overwritten on the next generation. [CONTRIBUTING.md](CONTRIBUTING.md) explains how to build and test the project and how to add code that persists across regenerations. To report a problem, open an issue in this repository.
+
+## License
+
+[MIT](LICENSE)
