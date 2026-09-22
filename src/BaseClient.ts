@@ -12,7 +12,9 @@ export type AuthOption =
     | HeaderAuthProvider.AuthOptions;
 
 export type BaseClientOptions = {
-    environment?: core.Supplier<environments.ExpressionMeasurementEnvironment | string>;
+    environment?: core.Supplier<
+        environments.ExpressionMeasurementEnvironment | environments.ExpressionMeasurementEnvironmentUrls
+    >;
     /** Specify a custom URL to connect the client to. */
     baseUrl?: core.Supplier<string>;
     /** Additional headers to include in requests. */
@@ -65,8 +67,8 @@ export function normalizeClientOptions<T extends BaseClientOptions = BaseClientO
         {
             "X-Fern-Language": "JavaScript",
             "X-Fern-SDK-Name": "@humeai/expression-measurement-node",
-            "X-Fern-SDK-Version": "0.0.89",
-            "User-Agent": "@humeai/expression-measurement-node/0.0.89",
+            "X-Fern-SDK-Version": "0.0.90",
+            "User-Agent": "@humeai/expression-measurement-node/0.0.90",
             "X-Fern-Runtime": core.RUNTIME.type,
             "X-Fern-Runtime-Version": core.RUNTIME.version,
         },

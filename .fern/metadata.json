@@ -1,14 +1,14 @@
 {
-    "cliVersion": "5.129.0",
+    "cliVersion": "5.131.2",
     "generatorName": "fernapi/fern-typescript-sdk",
     "generatorVersion": "3.95.1",
     "generatorConfig": {
         "namespaceExport": "ExpressionMeasurement",
         "generateWebSocketClients": true
     },
-    "originGitCommit": "77e63873f7377515fedccb08dab590411e64d9bb",
+    "originGitCommit": "ca9d5201f7063f38eb8ca510b0a9e39422abc337",
     "originGitCommitIsDirty": false,
     "invokedBy": "ci",
     "ciProvider": "github",
-    "sdkVersion": "0.0.89"
+    "sdkVersion": "0.0.90"
 }
