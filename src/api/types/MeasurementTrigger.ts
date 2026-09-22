@@ -4,9 +4,9 @@
  * Why the measurement was produced.
  *
  * - `interval`: the measurement interval (`measurement_timer_ms`) elapsed while speech continued.
- * - `speech_ended`: the utterance ended, or the session was closed while speech was in progress.
+ * - `speech_ended`: the utterance ended, or the audio ended while speech was in progress.
  *
- * A final measurement is skipped when the previous one ended less than one second earlier, so the last measurement of an utterance may carry the trigger `interval`. Use `utterance.end` to detect the end of an utterance.
+ * A final measurement is skipped when the previous one ended less than one second earlier, so the last measurement of an utterance may carry the trigger `interval`. Where an utterance ended is reported separately: as an `utterance.end` message in a realtime session, and in `utterances` in a voice file response.
  */
 export const MeasurementTrigger = {
     Interval: "interval",

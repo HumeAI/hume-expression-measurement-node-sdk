@@ -3,10 +3,10 @@
 import type * as ExpressionMeasurement from "../index.js";
 
 /**
- * A face detected in the frame, with its expression measurements.
+ * A face detected in the image, with its expression measurements.
  */
 export interface Face {
-    /** Tracks this face across frames within the session. IDs are assigned from 0 in the order faces first appear, and a face normally keeps its ID while it stays in view; a face that leaves the view and returns may receive a new ID. IDs restart in every session and do not identify a person. */
+    /** Tracks this face across the images of a realtime session or a file request. IDs are assigned from 0 in the order faces first appear, and a face normally keeps its ID while it stays in view; a face that leaves the view and returns may receive a new ID. IDs restart in every session and every file request, unless a file request continues them with a `face_state`, and do not identify a person. */
     face_id: number;
     bbox: ExpressionMeasurement.BoundingBox;
     /** Confidence that the bounding box contains a face. Always at or above the configured `threshold`. Unrelated to the expression scores. */
