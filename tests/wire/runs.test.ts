@@ -83,7 +83,7 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = { message: "message" };
 
         server.mockEndpoint().get("/v1/expression/run").respondWith().statusCode(401).jsonBody(rawResponseBody).build();
 
@@ -176,7 +176,7 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = { message: "message" };
 
         server
             .mockEndpoint()
@@ -297,7 +297,7 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = { message: "message" };
 
         server
             .mockEndpoint()
@@ -485,7 +485,7 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = { message: "message" };
 
         server
             .mockEndpoint()

@@ -149,7 +149,7 @@ export class FaceClient {
                     );
                 case 401:
                     throw new ExpressionMeasurement.UnauthorizedError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        _response.error.body as ExpressionMeasurement.AuthenticationError,
                         _response.rawResponse,
                     );
                 case 413:

@@ -1,5 +1,6 @@
 export * from "./AudioConfig.js";
 export * from "./AudioConfigUpdate.js";
+export * from "./AuthenticationError.js";
 export * from "./BoundingBox.js";
 export * from "./CloseReason.js";
 export * from "./Error_.js";

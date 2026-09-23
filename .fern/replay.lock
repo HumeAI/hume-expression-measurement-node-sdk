@@ -30,5 +30,11 @@ generations:
     cli_version: unknown
     generator_versions:
       fernapi/fern-typescript-sdk: 3.95.1
-current_generation: cb5cd3538880ae78a816820a2d6582a60e3c9040
+  - commit_sha: 075a0a6453324c2ae4e562bde46c7f79d96307aa
+    tree_hash: ce9dc6be1958af02787595e0079e433ffc4bd8cd
+    timestamp: 2026-09-23T17:23:38.908Z
+    cli_version: unknown
+    generator_versions:
+      fernapi/fern-typescript-sdk: 3.95.1
+current_generation: 075a0a6453324c2ae4e562bde46c7f79d96307aa
 patches: []
