@@ -3,14 +3,14 @@
 import type * as ExpressionMeasurement from "../index.js";
 
 /**
- * The body of every error response. `type` is always `error`; the HTTP status says how the request failed and `code` says why.
+ * The body of every error response other than a `401`. `type` is always `error`; the HTTP status says how the request failed and `code` says why.
  */
 export interface ErrorBody {
     type: ErrorBody.Type;
     code: ExpressionMeasurement.RequestErrorCode;
     /** What went wrong, for a person. Its wording may change; switch on `code`. */
     message: string;
-    /** Identifies the request in Hume's records. Quote it when contacting support. Absent on a `401`, which is answered before the request reaches the service. */
+    /** Identifies the request in Hume's records. Quote it when contacting support. */
     request_id?: string | undefined;
 }
 

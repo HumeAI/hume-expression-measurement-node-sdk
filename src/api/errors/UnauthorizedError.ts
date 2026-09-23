@@ -5,9 +5,9 @@ import * as errors from "../../errors/index.js";
 import type * as ExpressionMeasurement from "../index.js";
 
 export class UnauthorizedError extends errors.ExpressionMeasurementError {
-    public declare readonly body: ExpressionMeasurement.ErrorBody;
+    public declare readonly body: ExpressionMeasurement.AuthenticationError;
 
-    constructor(body: ExpressionMeasurement.ErrorBody, rawResponse?: core.RawResponse) {
+    constructor(body: ExpressionMeasurement.AuthenticationError, rawResponse?: core.RawResponse) {
         super({
             message: "UnauthorizedError",
             statusCode: 401,

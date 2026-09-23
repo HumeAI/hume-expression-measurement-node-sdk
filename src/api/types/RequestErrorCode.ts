@@ -13,10 +13,6 @@
  * - `image_decode_failed`: an image could not be decoded. Face only.
  * - `invalid_request`: a query parameter has a value the endpoint does not accept, or `cursor` is not one the endpoint issued. Run endpoints only.
  *
- * **`401 Unauthorized`**
- *
- * - `unauthorized`: the request carried no valid API key or access token.
- *
  * **`404 Not Found`**
  *
  * - `not_found`: no run with this ID exists in your organization. Run endpoints only.
@@ -48,7 +44,6 @@ export const RequestErrorCode = {
     AudioDecodeFailed: "audio_decode_failed",
     ImageDecodeFailed: "image_decode_failed",
     InvalidRequest: "invalid_request",
-    Unauthorized: "unauthorized",
     NotFound: "not_found",
     Conflict: "conflict",
     AudioTooLarge: "audio_too_large",
