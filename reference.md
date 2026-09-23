@@ -424,7 +424,7 @@ await client.runs.listEvents({
 </dl>
 </details>
 
-<details><summary><code>client.runs.<a href="/src/api/resources/runs/client/Client.ts">getResults</a>({ ...params }) -> string</code></summary>
+<details><summary><code>client.runs.<a href="/src/api/resources/runs/client/Client.ts">getResults</a>({ ...params }) -> core.Stream&lt;Record&lt;string, unknown&gt;&gt;</code></summary>
 <dl>
 <dd>
 
@@ -451,9 +451,12 @@ The results the run produced, as newline-delimited JSON rather than a JSON array
 <dd>
 
 ```typescript
-await client.runs.getResults({
+const response = await client.runs.getResults({
     run_id: "01926f3c-d33c-7c9f-9c91-4502d80834d5"
 });
+for await (const item of response) {
+    console.log(item);
+}
 
 ```
 </dd>
