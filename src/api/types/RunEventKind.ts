@@ -9,7 +9,7 @@
  * - `overloaded`: the server was at capacity and a frame was rejected. Face only.
  * - `inference_failed`: a frame was skipped because its measurement failed. Face only.
  * - `message_too_large`: a message exceeded the size limit and the session ended. Face only.
- * - `video_recording_abandoned`: the server stopped storing the session's frames; results were still delivered and stored.
+ * - `video_recording_abandoned`: the server stopped storing the session's frames; results were still delivered.
  *
  * Only realtime sessions record events. A file request that hits a problem fails as a whole and reports it in the response instead.
  */
