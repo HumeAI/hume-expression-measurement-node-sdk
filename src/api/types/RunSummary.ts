@@ -21,6 +21,6 @@ export interface RunSummary {
     ended_at: string | null;
     /** Bytes of media the server accepted. Null until the run ends, and for a run whose end was never recorded. */
     bytes_received: number | null;
-    /** Bytes of media stored for the run. Null when none was stored. */
+    /** How far the server got in storing the run's media, in bytes. Media that could not be stored is included, so this can exceed what was kept. Null when the run's media was not being stored. */
     bytes_recorded: number | null;
 }
