@@ -25,6 +25,7 @@ describe("RunsClient", () => {
                     ended_at: "2024-10-09T03:06:42Z",
                     bytes_received: 418302,
                     bytes_recorded: 418302,
+                    metered_seconds: 0.666666666,
                 },
                 {
                     run_id: "01926f3c-d33c-7c9f-9c91-4502d80834d5",
@@ -36,6 +37,7 @@ describe("RunsClient", () => {
                     ended_at: "2024-10-09T03:05:11Z",
                     bytes_received: 160000,
                     bytes_recorded: 160000,
+                    metered_seconds: 5,
                 },
                 {
                     run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
@@ -47,6 +49,7 @@ describe("RunsClient", () => {
                     ended_at: "2024-10-09T03:02:55Z",
                     bytes_received: 832000,
                     bytes_recorded: 832000,
+                    metered_seconds: 26,
                 },
             ],
             next_cursor: "2024-10-09T03:02:28.380000Z|01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
@@ -147,6 +150,7 @@ describe("RunsClient", () => {
             close_reason: "client_request",
             bytes_received: 832000,
             bytes_recorded: 832000,
+            metered_seconds: 26,
             config: {
                 schema: "v4",
                 audio: { type: "audio/pcm", encoding: "s16le", sample_rate: 16000, channels: 1 },

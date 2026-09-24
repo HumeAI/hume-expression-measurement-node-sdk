@@ -16,7 +16,7 @@ export declare namespace RunsClient {
 }
 
 /**
- * The record of past runs: their status, configuration, results and problems.
+ * The record of past runs: their status, configuration and problems.
  */
 export class RunsClient {
     protected readonly _options: NormalizedClientOptionsWithAuth<RunsClient.Options>;
@@ -231,7 +231,7 @@ export class RunsClient {
     }
 
     /**
-     * Removes the run and everything stored for it: its results, its event log and its media. The deletion is permanent. A run that is still in progress cannot be deleted; a run whose connection was lost becomes deletable five minutes after the server last heard from it. A run that has already been deleted answers `404`.
+     * Removes the run and everything stored for it, including its event log. The deletion is permanent. A run that is still in progress cannot be deleted; a run whose connection was lost becomes deletable five minutes after the server last heard from it. A run that has already been deleted answers `404`.
      *
      * @param {ExpressionMeasurement.DeleteRunsRequest} request
      * @param {RunsClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -441,100 +441,6 @@ export class RunsClient {
             _response.rawResponse,
             "GET",
             "/v1/expression/run/{run_id}/events",
-        );
-    }
-
-    /**
-     * The results the run produced, as newline-delimited JSON rather than a JSON array. The first line identifies the run, as `{"type": "voice.realtime"}`, `{"type": "face.file"}` and so on; every line after it is a `measurement.result` as the run delivered it, and a voice run also carries its `utterance.end` events. The lines are the realtime API's `measurement.result` and `utterance.end` messages: for a realtime run they are the messages the session sent, and for a file run they are the response's elements with `type` added. If the stored results are missing a piece from their start or middle, the request fails with `internal_error` before any of the body is sent. Results missing from the end cannot be detected, so the body ends early instead, as described for `200`. If a stored part cannot be read once the body has started, the response ends short of the length its `Content-Length` header declares; treat a body shorter than that as a failed request.
-     */
-    public getResults(
-        request: ExpressionMeasurement.GetResultsRunsRequest,
-        requestOptions?: RunsClient.RequestOptions,
-    ): core.HttpResponsePromise<core.Stream<Record<string, unknown>>> {
-        return core.HttpResponsePromise.fromPromise(this.__getResults(request, requestOptions));
-    }
-
-    private async __getResults(
-        request: ExpressionMeasurement.GetResultsRunsRequest,
-        requestOptions?: RunsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<core.Stream<Record<string, unknown>>>> {
-        const { run_id: runId } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher<ReadableStream>({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (
-                        (await core.Supplier.get(this._options.environment)) ??
-                        environments.ExpressionMeasurementEnvironment.Production
-                    ).base,
-                `v1/expression/run/${core.url.encodePathParam(runId)}/results`,
-            ),
-            method: "GET",
-            headers: _headers,
-            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
-            responseType: "streaming",
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return {
-                data: new core.Stream({
-                    stream: _response.body,
-                    parse: (data) => data as any,
-                    signal: requestOptions?.abortSignal,
-                    eventShape: {
-                        type: "json",
-                        messageTerminator: "\n",
-                    },
-                }),
-                rawResponse: _response.rawResponse,
-            };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 401:
-                    throw new ExpressionMeasurement.UnauthorizedError(
-                        _response.error.body as ExpressionMeasurement.AuthenticationError,
-                        _response.rawResponse,
-                    );
-                case 404:
-                    throw new ExpressionMeasurement.NotFoundError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
-                        _response.rawResponse,
-                    );
-                case 500:
-                    throw new ExpressionMeasurement.InternalServerError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
-                        _response.rawResponse,
-                    );
-                case 503:
-                    throw new ExpressionMeasurement.ServiceUnavailableError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
-                        _response.rawResponse,
-                    );
-                default:
-                    throw new errors.ExpressionMeasurementError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "GET",
-            "/v1/expression/run/{run_id}/results",
         );
     }
 }
