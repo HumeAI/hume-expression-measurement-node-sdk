@@ -7,6 +7,6 @@ import type * as ExpressionMeasurement from "../index.js";
  */
 export interface FaceDescriptionScore {
     name: ExpressionMeasurement.FaceDescriptionName;
-    /** The strength of the action, rounded to four decimal places. Not a calibrated probability: compare description scores with each other rather than with expression scores. */
+    /** The probability that this action is present, rounded to four decimal places. */
     probability: number;
 }
