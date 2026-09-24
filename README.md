@@ -1,13 +1,17 @@
 # Hume Expression Measurement Node SDK
 
-The official Node.js client for the [Hume Expression Measurement API](https://hume-expression-measurement.docs.buildwithfern.com). The API measures emotional expression in speech and faces: stream audio or JPEG images over a WebSocket and receive scored measurements while the stream is still arriving.
+The official Node.js client for the [Hume Expression Measurement API](https://dev.hume.ai/docs/expression-measurement/overview). The API measures emotional expression in audio and images. Upload a file to receive every measurement in one response, or stream audio or JPEG images over a WebSocket to receive measurements while the media is still arriving.
 
-The SDK provides clients for both realtime endpoints, TypeScript types for every message, and API key authentication. It ships CommonJS and ES module builds.
+The SDK provides clients for the upload, realtime, and run endpoints, TypeScript types for every request, response, and message, and API key authentication. It ships CommonJS and ES module builds.
 
-1. [Documentation](https://hume-expression-measurement.docs.buildwithfern.com)
-2. [Voice realtime guide](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/voice/realtime)
-3. [Face realtime guide](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/face/realtime)
-4. [API reference](https://hume-expression-measurement.docs.buildwithfern.com/reference/expression-measurement)
+1. [Documentation](https://dev.hume.ai/docs/expression-measurement/overview)
+2. [Node.js quickstart](https://dev.hume.ai/docs/expression-measurement/quickstart/nodejs)
+3. [Voice upload guide](https://dev.hume.ai/docs/expression-measurement/voice/upload)
+4. [Face upload guide](https://dev.hume.ai/docs/expression-measurement/face/upload)
+5. [Voice realtime guide](https://dev.hume.ai/docs/expression-measurement/voice/realtime)
+6. [Face realtime guide](https://dev.hume.ai/docs/expression-measurement/face/realtime)
+7. [Runs guide](https://dev.hume.ai/docs/expression-measurement/runs)
+8. [API reference](https://dev.hume.ai/reference/expression-measurement)
 
 ## Requirements
 
@@ -21,7 +25,7 @@ npm install @humeai/expression-measurement-node
 
 ## Authentication
 
-Every connection carries your API key in the `X-Hume-Api-Key` header. Pass the key to the client, or set the `HUME_API_KEY` environment variable and construct the client without arguments.
+Every request and every WebSocket connection carries your API key in the `X-Hume-Api-Key` header. Pass the key to the client, or set the `HUME_API_KEY` environment variable and construct the client without arguments.
 
 ```typescript
 import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
@@ -29,15 +33,71 @@ import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node
 const client = new ExpressionMeasurementClient({ apiKey: "YOUR_API_KEY" });
 ```
 
-This package is for server-side use. Keep API keys on a server, and see [Authentication](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/authentication) for connecting from a browser with an access token.
+This package is for server-side use. Keep API keys on a server, and to use the API from a web page, relay through your server. See [Authentication](https://dev.hume.ai/docs/expression-measurement/authentication).
 
-## Quickstart: voice
+## Preparing audio
 
-The voice endpoint accepts raw audio as signed 16-bit little-endian PCM, mono, at 16 kHz, with no header. Convert a recording with ffmpeg:
+The voice endpoints accept 16-bit PCM at 16 kHz, mono. The upload endpoint takes it as a WAV file or as headerless little-endian samples, and the realtime endpoint takes headerless samples only. Convert a recording with ffmpeg:
 
 ```bash
-ffmpeg -i recording.wav -f s16le -ac 1 -ar 16000 speech.pcm
+ffmpeg -i recording.wav -f s16le -acodec pcm_s16le -ac 1 -ar 16000 speech.pcm
 ```
+
+## Quickstart: upload
+
+The upload endpoints take media you already have and return every measurement in one response.
+
+### Voice
+
+```typescript
+import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
+
+const client = new ExpressionMeasurementClient();
+
+const response = await client.voice.measure({
+    file: { path: "speech.pcm", contentType: "application/octet-stream" },
+});
+
+for (const measurement of response.measurements) {
+    const top = measurement.expressions
+        .slice(0, 3)
+        .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
+        .join(", ");
+    console.log(`utterance ${measurement.utterance_id}, ${measurement.audio_start_ms} to ${measurement.audio_end_ms} ms: ${top}`);
+}
+```
+
+`contentType` labels the part. `application/octet-stream` marks the file as headerless samples; to upload a WAV file, pass `audio/wav`. The response lists every utterance in `utterances` and every measurement in `measurements`, each with the `utterance_id` it belongs to. A request holds up to 25,000,000 bytes, a little over 13 minutes of audio. The [voice upload guide](https://dev.hume.ai/docs/expression-measurement/voice/upload) covers the request, the response, and every error.
+
+### Face
+
+```typescript
+import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
+
+const client = new ExpressionMeasurementClient();
+
+const response = await client.face.measure({
+    file: [{ path: "photo.jpg", contentType: "image/jpeg" }],
+});
+
+for (const result of response.measurements) {
+    for (const face of result.faces) {
+        const top = face.expressions
+            .slice(0, 3)
+            .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
+            .join(", ");
+        console.log(`image ${result.frame_id}, face ${face.face_id} at [${face.bbox.join(", ")}]: ${top}`);
+    }
+}
+```
+
+`file` is a list, so one request can carry several JPEG images. `measurements` holds one result per image, in the order sent, and `frame_id` is the image's position in the list. The [face upload guide](https://dev.hume.ai/docs/expression-measurement/face/upload) covers image limits, detection settings, and tracking faces across requests.
+
+## Quickstart: realtime
+
+The realtime endpoints take media that is still arriving, such as audio from a live microphone or images from a camera, and send measurements as they are produced.
+
+### Voice
 
 Open a session, register a message handler, stream the file in frames, and close.
 
@@ -81,9 +141,9 @@ for (let offset = 0; offset < audio.length; offset += FRAME_SIZE) {
 socket.sendVoiceSessionClose({ type: "session.close" });
 ```
 
-The server detects speech, groups it into utterances, and sends a `measurement.result` every 3 seconds of speech while an utterance continues. It accepts the first 30 seconds of audio immediately and then twice real time, so a long recording must be paced. The [voice guide](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/voice/realtime) covers the send rate, utterances, and the message flow.
+The server detects speech, groups it into utterances, and sends a `measurement.result` every 3 seconds of speech while an utterance continues. It accepts the first 30 seconds of audio immediately and then twice real time, so a long recording must be paced. The [voice realtime guide](https://dev.hume.ai/docs/expression-measurement/voice/realtime) covers the send rate, utterances, and the message flow.
 
-## Quickstart: face
+### Face
 
 The face endpoint accepts one complete JPEG image per frame and answers each accepted frame with one `measurement.result` listing every face it detected.
 
@@ -120,9 +180,9 @@ socket.sendImageFrame(await readFile("photo.jpg"));
 socket.sendFaceSessionClose({ type: "session.close" });
 ```
 
-`bbox` is `[x0, y0, x1, y1]` in pixels of the submitted image. `face_id` links the same face across frames within a session. The [face guide](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/face/realtime) covers frame limits, the send rate, and face tracking.
+`bbox` is `[x0, y0, x1, y1]` in pixels of the submitted image. `face_id` links the same face across frames within a session. The [face realtime guide](https://dev.hume.ai/docs/expression-measurement/face/realtime) covers frame limits, the send rate, and face tracking.
 
-## Handling messages
+### Handling messages
 
 The `message` handler receives one typed object per message, and each has a `type` field that narrows the union in a `switch`. The `open`, `close`, and `error` events report the state of the connection itself. Message types are exported under the `ExpressionMeasurement` namespace.
 
@@ -139,15 +199,32 @@ function topExpression(result: ExpressionMeasurement.VoiceMeasurementResult): st
 | `session.created` | yes | yes | Sent on connect with the session ID and the default configuration. |
 | `session.updated` | yes | yes | Confirms a `session.update` and states the configuration in force. |
 | `utterance.start`, `utterance.end` | yes | no | Bracket one continuous stretch of speech. |
-| `measurement.result` | yes | yes | Scores for one window of speech, or for the faces in one image. |
+| `measurement.result` | yes | yes | Scores for one window of an utterance, or for the faces in one image. |
 | `error` | yes | yes | A rejected frame or a failed session, with a `code` and whether it is `retryable`. |
 | `session.closed` | yes | yes | The last message. States why the session ended and totals what was received and produced. |
 
-Every measurement is a list of scores, each pairing a `name` with a `probability` from 0 to 1. Only scores above 0.1 are returned, sorted by descending probability, so arrays vary in length and may be empty. Voice results carry `expressions` and `voice_attributes`. Face results carry `expressions` and `descriptions` for each face. [Scores](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/scores) explains how to read them.
+## Scores
+
+Every measurement is a list of scores, each pairing a `name` with a `probability` from 0 to 1. A probability reflects how likely other people would be to perceive that expression, not what the person feels. Only scores above 0.1 are returned, sorted by descending probability, so arrays vary in length and may be empty. Voice results carry `expressions` and `voice_attributes`. Face results carry `expressions` and `descriptions` for each face. [Scores](https://dev.hume.ai/docs/expression-measurement/scores) explains how to read them.
 
 ## Configuration
 
-To change a setting, send `session.update` before the first frame. The server replies with `session.updated`. The configuration locks once the first frame is accepted, and a field omitted from `session.update` returns to its default.
+These settings apply to both upload and realtime requests.
+
+| Setting | Endpoint | Default | Range |
+|---|---|---|---|
+| `measurement_timer_ms` | Voice | 3000 | 3000 to 10000 ms of speech between measurements |
+| `face.threshold` | Face | 0.9 | 0 to 1, the minimum detection confidence for a face to be measured |
+| `face.min_size` | Face | 60 | 1 or more, the shortest side of a face's bounding box in pixels |
+
+On an upload, pass the settings as `config`:
+
+```typescript
+await client.voice.measure({ file: audioFile, config: { measurement_timer_ms: 5000 } });
+await client.face.measure({ file: images, config: { face: { threshold: 0.8, min_size: 40 } } });
+```
+
+In a session, send `session.update` before the first frame. The server replies with `session.updated`. The configuration locks once the first frame is accepted, and a field omitted from `session.update` returns to its default.
 
 ```typescript
 socket.sendVoiceSessionUpdate({ type: "session.update", measurement_timer_ms: 5000 });
@@ -156,12 +233,6 @@ socket.sendVoiceSessionUpdate({ type: "session.update", measurement_timer_ms: 50
 ```typescript
 socket.sendFaceSessionUpdate({ type: "session.update", face: { threshold: 0.8, min_size: 40 } });
 ```
-
-| Setting | Endpoint | Default | Range |
-|---|---|---|---|
-| `measurement_timer_ms` | Voice | 3000 | 3000 to 10000 ms of speech between measurements |
-| `face.threshold` | Face | 0.9 | 0 to 1, the minimum detection confidence for a face to be measured |
-| `face.min_size` | Face | 60 | 1 or more, the shortest side of a face's bounding box in pixels |
 
 ## Connection options
 
@@ -176,13 +247,49 @@ socket.sendFaceSessionUpdate({ type: "session.update", face: { threshold: 0.8, m
 
 `connect()` resolves before the handshake completes. Call `waitForOpen()` before sending, or send from the `open` handler. Sending on a socket that is not open throws.
 
+## Runs
+
+Every upload request that is measured and every realtime session is recorded as a run. A run's ID is the `request_id` of an upload response or the `session_id` of a session. The run endpoints return a run's status, configuration, and event log. They do not return measurements, so keep the results you need from the upload response or the session.
+
+```typescript
+import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
+
+const client = new ExpressionMeasurementClient();
+
+const page = await client.runs.list({ endpoint: "voice", mode: "realtime" });
+for (const summary of page.runs) {
+    console.log(summary.run_id, summary.status, summary.metered_seconds);
+}
+
+const run = await client.runs.get({ run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f" });
+console.log(run.status, run.close_reason);
+
+const events = await client.runs.listEvents({ run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f" });
+for (const event of events.events) {
+    console.log(event.seq, event.kind);
+}
+```
+
+`runs.list` and `runs.listEvents` return one page at a time. Pass a page's `next_cursor` back as `cursor` to fetch the next one; the last page has none. `runs.delete({ run_id })` permanently removes a run and everything stored for it. The [runs guide](https://dev.hume.ai/docs/expression-measurement/runs) covers filters, run status, and every event kind.
+
 ## Errors
 
-Problems during a session arrive as `error` messages rather than exceptions. A rejected frame, such as `invalid_audio_frame`, `invalid_image_frame`, or `rate_limited`, is discarded and the session continues. `config_invalid`, `message_too_large`, and a voice `internal_error` end the session, and `session.closed` follows with `reason` set to `error`.
+The upload and run methods reject with an `ExpressionMeasurementError` when a request fails. `statusCode` holds the HTTP status, and `body` holds the error body, whose `code` says what went wrong.
 
-A rejected API key fails the handshake, which surfaces through the socket's `error` and `close` events rather than as a message.
+```typescript
+import { ExpressionMeasurementError } from "@humeai/expression-measurement-node";
 
-[Errors](https://hume-expression-measurement.docs.buildwithfern.com/docs/expression-measurement/errors) lists every code and whether the session continues.
+try {
+    await client.face.measure({ file: [{ path: "photo.jpg", contentType: "image/jpeg" }] });
+} catch (error) {
+    if (!(error instanceof ExpressionMeasurementError)) throw error;
+    console.error(`${error.statusCode}: ${JSON.stringify(error.body)}`);
+}
+```
+
+Problems during a session arrive as `error` messages rather than exceptions. A rejected frame, such as `invalid_audio_frame`, `invalid_image_frame`, or `rate_limited`, is discarded and the session continues. `config_invalid`, `message_too_large`, and a voice `internal_error` end the session, and `session.closed` follows with `reason` set to `error`. A rejected API key fails the handshake, which surfaces through the socket's `error` and `close` events rather than as a message.
+
+[Errors](https://dev.hume.ai/docs/expression-measurement/errors) lists every code and whether to retry.
 
 ## Contributing
 
