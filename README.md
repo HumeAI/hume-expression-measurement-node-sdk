@@ -63,11 +63,11 @@ for (const measurement of response.measurements) {
         .slice(0, 3)
         .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
         .join(", ");
-    console.log(`utterance ${measurement.utterance_id}, ${measurement.audio_start_ms} to ${measurement.audio_end_ms} ms: ${top}`);
+    console.log(`utterance ${measurement.utteranceId}, ${measurement.audioStartMs} to ${measurement.audioEndMs} ms: ${top}`);
 }
 ```
 
-`contentType` labels the part. `application/octet-stream` marks the file as headerless samples; to upload a WAV file, pass `audio/wav`. The response lists every utterance in `utterances` and every measurement in `measurements`, each with the `utterance_id` it belongs to. A request holds up to 25,000,000 bytes, a little over 13 minutes of audio. The [voice upload guide](https://dev.hume.ai/docs/expression-measurement/voice/upload) covers the request, the response, and every error.
+`contentType` labels the part. `application/octet-stream` marks the file as headerless samples; to upload a WAV file, pass `audio/wav`. The response lists every utterance in `utterances` and every measurement in `measurements`, each with the `utteranceId` it belongs to. A request holds up to 25,000,000 bytes, a little over 13 minutes of audio. The [voice upload guide](https://dev.hume.ai/docs/expression-measurement/voice/upload) covers the request, the response, and every error.
 
 ### Face
 
@@ -86,12 +86,12 @@ for (const result of response.measurements) {
             .slice(0, 3)
             .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
             .join(", ");
-        console.log(`image ${result.frame_id}, face ${face.face_id} at [${face.bbox.join(", ")}]: ${top}`);
+        console.log(`image ${result.frameId}, face ${face.faceId} at [${face.bbox.join(", ")}]: ${top}`);
     }
 }
 ```
 
-`file` is a list, so one request can carry several JPEG images. `measurements` holds one result per image, in the order sent, and `frame_id` is the image's position in the list. The [face upload guide](https://dev.hume.ai/docs/expression-measurement/face/upload) covers image limits, detection settings, and tracking faces across requests.
+`file` is a list, so one request can carry several JPEG images. `measurements` holds one result per image, in the order sent, and `frameId` is the image's position in the list. The [face upload guide](https://dev.hume.ai/docs/expression-measurement/face/upload) covers image limits, detection settings, and tracking faces across requests.
 
 ## Quickstart: realtime
 
@@ -117,7 +117,7 @@ socket.on("message", (message) => {
                 .slice(0, 3)
                 .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
                 .join(", ");
-            console.log(`utterance ${message.utterance_id}, ${message.audio_start_ms} to ${message.audio_end_ms} ms: ${top}`);
+            console.log(`utterance ${message.utteranceId}, ${message.audioStartMs} to ${message.audioEndMs} ms: ${top}`);
             break;
         }
         case "error":
@@ -163,7 +163,7 @@ socket.on("message", (message) => {
                     .slice(0, 3)
                     .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
                     .join(", ");
-                console.log(`face ${face.face_id} at [${face.bbox.join(", ")}]: ${top}`);
+                console.log(`face ${face.faceId} at [${face.bbox.join(", ")}]: ${top}`);
             }
             break;
         case "error":
@@ -180,7 +180,7 @@ socket.sendImageFrame(await readFile("photo.jpg"));
 socket.sendFaceSessionClose({ type: "session.close" });
 ```
 
-`bbox` is `[x0, y0, x1, y1]` in pixels of the submitted image. `face_id` links the same face across frames within a session. The [face realtime guide](https://dev.hume.ai/docs/expression-measurement/face/realtime) covers frame limits, the send rate, and face tracking.
+`bbox` is `[x0, y0, x1, y1]` in pixels of the submitted image. `faceId` links the same face across frames within a session. The [face realtime guide](https://dev.hume.ai/docs/expression-measurement/face/realtime) covers frame limits, the send rate, and face tracking.
 
 ### Handling messages
 
@@ -205,7 +205,7 @@ function topExpression(result: ExpressionMeasurement.VoiceMeasurementResult): st
 
 ## Scores
 
-Every measurement is a list of scores, each pairing a `name` with a `probability` from 0 to 1. A probability reflects how likely other people would be to perceive that expression, not what the person feels. Only scores above 0.1 are returned, sorted by descending probability, so arrays vary in length and may be empty. Voice results carry `expressions` and `voice_attributes`. Face results carry `expressions` and `descriptions` for each face. [Scores](https://dev.hume.ai/docs/expression-measurement/scores) explains how to read them.
+Every measurement is a list of scores, each pairing a `name` with a `probability` from 0 to 1. A probability reflects how likely other people would be to perceive that expression, not what the person feels. Only scores above 0.1 are returned, sorted by descending probability, so arrays vary in length and may be empty. Voice results carry `expressions` and `voiceAttributes`. Face results carry `expressions` and `descriptions` for each face. [Scores](https://dev.hume.ai/docs/expression-measurement/scores) explains how to read them.
 
 ## Configuration
 
@@ -213,25 +213,25 @@ These settings apply to both upload and realtime requests.
 
 | Setting | Endpoint | Default | Range |
 |---|---|---|---|
-| `measurement_timer_ms` | Voice | 3000 | 3000 to 10000 ms of speech between measurements |
+| `measurementTimerMs` | Voice | 3000 | 3000 to 10000 ms of speech between measurements |
 | `face.threshold` | Face | 0.9 | 0 to 1, the minimum detection confidence for a face to be measured |
-| `face.min_size` | Face | 60 | 1 or more, the shortest side of a face's bounding box in pixels |
+| `face.minSize` | Face | 60 | 1 or more, the shortest side of a face's bounding box in pixels |
 
 On an upload, pass the settings as `config`:
 
 ```typescript
-await client.voice.measure({ file: audioFile, config: { measurement_timer_ms: 5000 } });
-await client.face.measure({ file: images, config: { face: { threshold: 0.8, min_size: 40 } } });
+await client.voice.measure({ file: audioFile, config: { measurementTimerMs: 5000 } });
+await client.face.measure({ file: images, config: { face: { threshold: 0.8, minSize: 40 } } });
 ```
 
 In a session, send `session.update` before the first frame. The server replies with `session.updated`. The configuration locks once the first frame is accepted, and a field omitted from `session.update` returns to its default.
 
 ```typescript
-socket.sendVoiceSessionUpdate({ type: "session.update", measurement_timer_ms: 5000 });
+socket.sendVoiceSessionUpdate({ type: "session.update", measurementTimerMs: 5000 });
 ```
 
 ```typescript
-socket.sendFaceSessionUpdate({ type: "session.update", face: { threshold: 0.8, min_size: 40 } });
+socket.sendFaceSessionUpdate({ type: "session.update", face: { threshold: 0.8, minSize: 40 } });
 ```
 
 ## Connection options
@@ -249,7 +249,7 @@ socket.sendFaceSessionUpdate({ type: "session.update", face: { threshold: 0.8, m
 
 ## Runs
 
-Every upload request that is measured and every realtime session is recorded as a run. A run's ID is the `request_id` of an upload response or the `session_id` of a session. The run endpoints return a run's status, configuration, and event log. They do not return measurements, so keep the results you need from the upload response or the session.
+Every upload request that is measured and every realtime session is recorded as a run. A run's ID is the `requestId` of an upload response or the `sessionId` of a session. The run endpoints return a run's status, configuration, and event log. They do not return measurements, so keep the results you need from the upload response or the session.
 
 ```typescript
 import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
@@ -258,19 +258,19 @@ const client = new ExpressionMeasurementClient();
 
 const page = await client.runs.list({ endpoint: "voice", mode: "realtime" });
 for (const summary of page.runs) {
-    console.log(summary.run_id, summary.status, summary.metered_seconds);
+    console.log(summary.runId, summary.status, summary.meteredSeconds);
 }
 
-const run = await client.runs.get({ run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f" });
-console.log(run.status, run.close_reason);
+const run = await client.runs.get({ runId: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f" });
+console.log(run.status, run.closeReason);
 
-const events = await client.runs.listEvents({ run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f" });
+const events = await client.runs.listEvents({ runId: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f" });
 for (const event of events.events) {
     console.log(event.seq, event.kind);
 }
 ```
 
-`runs.list` and `runs.listEvents` return one page at a time. Pass a page's `next_cursor` back as `cursor` to fetch the next one; the last page has none. `runs.delete({ run_id })` permanently removes a run and everything stored for it. The [runs guide](https://dev.hume.ai/docs/expression-measurement/runs) covers filters, run status, and every event kind.
+`runs.list` and `runs.listEvents` return one page at a time. Pass a page's `nextCursor` back as `cursor` to fetch the next one; the last page has none. The [runs guide](https://dev.hume.ai/docs/expression-measurement/runs) covers filters, run status, and every event kind.
 
 ## Errors
 
