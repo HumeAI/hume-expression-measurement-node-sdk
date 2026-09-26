@@ -5,9 +5,9 @@
  */
 export interface VoiceFileUtterance {
     /** Identifies the utterance within the run, counting from 0. */
-    utterance_id: number;
+    utteranceId: number;
     /** Where the utterance started, in milliseconds from the start of the audio. */
-    audio_start_ms: number;
+    audioStartMs: number;
     /** Where the utterance ended, in milliseconds from the start of the audio. */
-    audio_end_ms: number;
+    audioEndMs: number;
 }

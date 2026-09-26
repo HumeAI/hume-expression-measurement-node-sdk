@@ -9,11 +9,11 @@ export interface RunEventsPage {
     /** The entries, in `seq` order. */
     events: ExpressionMeasurement.RunEvent[];
     /** Whether some kind of event used up its per-run logging limit. Any later events of that kind were not logged, though there may have been none. When `gaps` is true, a false value cannot be relied on. `capped_kinds` names the kinds. */
-    at_cap: boolean;
+    atCap: boolean;
     /** The kinds that used up their limit. Empty when none did. */
-    capped_kinds: ExpressionMeasurement.RunEventKind[];
+    cappedKinds: ExpressionMeasurement.RunEventKind[];
     /** Whether entries are missing from the log: events that were numbered and never stored. */
     gaps: boolean;
     /** Absent on the last page. Pass it back as `cursor` for the next one. */
-    next_cursor?: string | undefined;
+    nextCursor?: string;
 }

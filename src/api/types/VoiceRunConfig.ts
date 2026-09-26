@@ -6,17 +6,9 @@ import type * as ExpressionMeasurement from "../index.js";
  * The configuration a voice run ran under.
  */
 export interface VoiceRunConfig {
-    /** Identifies the layout of this configuration document. Branch on it if you store configurations, so a document in a later layout is recognised rather than misread. */
-    schema: VoiceRunConfig.Schema;
+    /** Identifies the layout of this configuration. Check it if you store configurations, so one in a later layout is recognized rather than misread. */
+    schema: ExpressionMeasurement.VoiceRunConfigSchema;
     audio: ExpressionMeasurement.AudioConfig;
     /** How often the run measured within an utterance, in milliseconds of speech. */
-    measurement_timer_ms: number;
-}
-
-export namespace VoiceRunConfig {
-    /** Identifies the layout of this configuration document. Branch on it if you store configurations, so a document in a later layout is recognised rather than misread. */
-    export const Schema = {
-        V4: "v4",
-    } as const;
-    export type Schema = (typeof Schema)[keyof typeof Schema];
+    measurementTimerMs: number;
 }

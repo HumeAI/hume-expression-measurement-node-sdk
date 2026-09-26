@@ -3,14 +3,14 @@
 /**
  * @example
  *     {
- *         run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f"
+ *         runId: "01926f2c-6d92-7a41-9d26-5e8b0c3f71a9"
  *     }
  */
 export interface ListEventsRunsRequest {
-    /** The run's ID: the `session_id` of a realtime session or the `request_id` of a file request. */
-    run_id: string;
+    /** The run's ID: the `session_id` of a realtime session or the `run_id` of a file response. */
+    runId: string;
     /** How many entries to return. */
-    page_size?: number;
+    pageSize?: number;
     /** The `next_cursor` of the previous page. Pass it back unchanged. */
     cursor?: string;
 }

@@ -40,6 +40,18 @@ describe("RunsClient", () => {
                     metered_seconds: 5,
                 },
                 {
+                    run_id: "01926f3b-c943-7862-bce6-89e3ec968bf2",
+                    user_id: "8d3f4a1e-6b2c-4f7d-9e0a-1b2c3d4e5f60",
+                    status: "ended",
+                    endpoint: "face",
+                    mode: "realtime",
+                    started_at: "2024-10-09T03:04:02Z",
+                    ended_at: "2024-10-09T03:04:05Z",
+                    bytes_received: 1811673,
+                    bytes_recorded: 627453,
+                    metered_seconds: 1.333333332,
+                },
+                {
                     run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
                     user_id: "8d3f4a1e-6b2c-4f7d-9e0a-1b2c3d4e5f60",
                     status: "ended",
@@ -58,7 +70,59 @@ describe("RunsClient", () => {
         server.mockEndpoint().get("/v1/expression/run").respondWith().statusCode(200).jsonBody(rawResponseBody).build();
 
         const response = await client.runs.list();
-        expect(response).toEqual(rawResponseBody);
+        expect(response).toEqual({
+            runs: [
+                {
+                    runId: "01926f3e-397d-7ceb-9f52-a864c0102a44",
+                    userId: "8d3f4a1e-6b2c-4f7d-9e0a-1b2c3d4e5f60",
+                    status: "ended",
+                    endpoint: "face",
+                    mode: "file",
+                    startedAt: new Date("2024-10-09T03:06:41.000Z"),
+                    endedAt: new Date("2024-10-09T03:06:42.000Z"),
+                    bytesReceived: 418302,
+                    bytesRecorded: 418302,
+                    meteredSeconds: 0.666666666,
+                },
+                {
+                    runId: "01926f3c-d33c-7c9f-9c91-4502d80834d5",
+                    userId: "8d3f4a1e-6b2c-4f7d-9e0a-1b2c3d4e5f60",
+                    status: "ended",
+                    endpoint: "voice",
+                    mode: "file",
+                    startedAt: new Date("2024-10-09T03:05:10.000Z"),
+                    endedAt: new Date("2024-10-09T03:05:11.000Z"),
+                    bytesReceived: 160000,
+                    bytesRecorded: 160000,
+                    meteredSeconds: 5,
+                },
+                {
+                    runId: "01926f3b-c943-7862-bce6-89e3ec968bf2",
+                    userId: "8d3f4a1e-6b2c-4f7d-9e0a-1b2c3d4e5f60",
+                    status: "ended",
+                    endpoint: "face",
+                    mode: "realtime",
+                    startedAt: new Date("2024-10-09T03:04:02.000Z"),
+                    endedAt: new Date("2024-10-09T03:04:05.000Z"),
+                    bytesReceived: 1811673,
+                    bytesRecorded: 627453,
+                    meteredSeconds: 1.333333332,
+                },
+                {
+                    runId: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
+                    userId: "8d3f4a1e-6b2c-4f7d-9e0a-1b2c3d4e5f60",
+                    status: "ended",
+                    endpoint: "voice",
+                    mode: "realtime",
+                    startedAt: new Date("2024-10-09T03:02:28.000Z"),
+                    endedAt: new Date("2024-10-09T03:02:55.000Z"),
+                    bytesReceived: 832000,
+                    bytesRecorded: 832000,
+                    meteredSeconds: 26,
+                },
+            ],
+            nextCursor: "2024-10-09T03:02:28.380000Z|01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
+        });
     });
 
     test("list (2)", async () => {
@@ -69,7 +133,12 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
 
         server.mockEndpoint().get("/v1/expression/run").respondWith().statusCode(400).jsonBody(rawResponseBody).build();
 
@@ -103,13 +172,18 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
 
-        server.mockEndpoint().get("/v1/expression/run").respondWith().statusCode(500).jsonBody(rawResponseBody).build();
+        server.mockEndpoint().get("/v1/expression/run").respondWith().statusCode(405).jsonBody(rawResponseBody).build();
 
         await expect(async () => {
             return await client.runs.list();
-        }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
+        }).rejects.toThrow(ExpressionMeasurement.MethodNotAllowedError);
     });
 
     test("list (5)", async () => {
@@ -120,7 +194,34 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
+
+        server.mockEndpoint().get("/v1/expression/run").respondWith().statusCode(500).jsonBody(rawResponseBody).build();
+
+        await expect(async () => {
+            return await client.runs.list();
+        }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
+    });
+
+    test("list (6)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ExpressionMeasurementClient({
+            maxRetries: 0,
+            apiKey: "test",
+            environment: { base: server.baseUrl, production: server.baseUrl },
+        });
+
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
 
         server.mockEndpoint().get("/v1/expression/run").respondWith().statusCode(503).jsonBody(rawResponseBody).build();
 
@@ -145,7 +246,6 @@ describe("RunsClient", () => {
             mode: "realtime",
             started_at: "2024-10-09T03:02:28Z",
             ended_at: "2024-10-09T03:02:55Z",
-            heartbeat_at: "2024-10-09T03:02:43Z",
             close_code: 1000,
             close_reason: "client_request",
             bytes_received: 832000,
@@ -167,9 +267,32 @@ describe("RunsClient", () => {
             .build();
 
         const response = await client.runs.get({
-            run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
+            runId: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
         });
-        expect(response).toEqual(rawResponseBody);
+        expect(response).toEqual({
+            runId: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
+            userId: "8d3f4a1e-6b2c-4f7d-9e0a-1b2c3d4e5f60",
+            status: "ended",
+            endpoint: "voice",
+            mode: "realtime",
+            startedAt: new Date("2024-10-09T03:02:28.000Z"),
+            endedAt: new Date("2024-10-09T03:02:55.000Z"),
+            closeCode: 1000,
+            closeReason: "client_request",
+            bytesReceived: 832000,
+            bytesRecorded: 832000,
+            meteredSeconds: 26,
+            config: {
+                schema: "v4",
+                audio: {
+                    type: "audio/pcm",
+                    encoding: "s16le",
+                    sampleRate: 16000,
+                    channels: 1,
+                },
+                measurementTimerMs: 3000,
+            },
+        });
     });
 
     test("get (2)", async () => {
@@ -192,7 +315,7 @@ describe("RunsClient", () => {
 
         await expect(async () => {
             return await client.runs.get({
-                run_id: "run_id",
+                runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.UnauthorizedError);
     });
@@ -205,7 +328,12 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
 
         server
             .mockEndpoint()
@@ -217,7 +345,7 @@ describe("RunsClient", () => {
 
         await expect(async () => {
             return await client.runs.get({
-                run_id: "run_id",
+                runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.NotFoundError);
     });
@@ -230,21 +358,26 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
 
         server
             .mockEndpoint()
             .get("/v1/expression/run/run_id")
             .respondWith()
-            .statusCode(500)
+            .statusCode(405)
             .jsonBody(rawResponseBody)
             .build();
 
         await expect(async () => {
             return await client.runs.get({
-                run_id: "run_id",
+                runId: "run_id",
             });
-        }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
+        }).rejects.toThrow(ExpressionMeasurement.MethodNotAllowedError);
     });
 
     test("get (5)", async () => {
@@ -255,7 +388,42 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
+
+        server
+            .mockEndpoint()
+            .get("/v1/expression/run/run_id")
+            .respondWith()
+            .statusCode(500)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.runs.get({
+                runId: "run_id",
+            });
+        }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
+    });
+
+    test("get (6)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ExpressionMeasurementClient({
+            maxRetries: 0,
+            apiKey: "test",
+            environment: { base: server.baseUrl, production: server.baseUrl },
+        });
+
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
 
         server
             .mockEndpoint()
@@ -267,153 +435,7 @@ describe("RunsClient", () => {
 
         await expect(async () => {
             return await client.runs.get({
-                run_id: "run_id",
-            });
-        }).rejects.toThrow(ExpressionMeasurement.ServiceUnavailableError);
-    });
-
-    test("delete (1)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ExpressionMeasurementClient({
-            maxRetries: 0,
-            apiKey: "test",
-            environment: { base: server.baseUrl, production: server.baseUrl },
-        });
-
-        server
-            .mockEndpoint()
-            .delete("/v1/expression/run/01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f")
-            .respondWith()
-            .statusCode(200)
-            .build();
-
-        const response = await client.runs.delete({
-            run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
-        });
-        expect(response).toEqual(undefined);
-    });
-
-    test("delete (2)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ExpressionMeasurementClient({
-            maxRetries: 0,
-            apiKey: "test",
-            environment: { base: server.baseUrl, production: server.baseUrl },
-        });
-
-        const rawResponseBody = { message: "message" };
-
-        server
-            .mockEndpoint()
-            .delete("/v1/expression/run/run_id")
-            .respondWith()
-            .statusCode(401)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.runs.delete({
-                run_id: "run_id",
-            });
-        }).rejects.toThrow(ExpressionMeasurement.UnauthorizedError);
-    });
-
-    test("delete (3)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ExpressionMeasurementClient({
-            maxRetries: 0,
-            apiKey: "test",
-            environment: { base: server.baseUrl, production: server.baseUrl },
-        });
-
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
-
-        server
-            .mockEndpoint()
-            .delete("/v1/expression/run/run_id")
-            .respondWith()
-            .statusCode(404)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.runs.delete({
-                run_id: "run_id",
-            });
-        }).rejects.toThrow(ExpressionMeasurement.NotFoundError);
-    });
-
-    test("delete (4)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ExpressionMeasurementClient({
-            maxRetries: 0,
-            apiKey: "test",
-            environment: { base: server.baseUrl, production: server.baseUrl },
-        });
-
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
-
-        server
-            .mockEndpoint()
-            .delete("/v1/expression/run/run_id")
-            .respondWith()
-            .statusCode(409)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.runs.delete({
-                run_id: "run_id",
-            });
-        }).rejects.toThrow(ExpressionMeasurement.ConflictError);
-    });
-
-    test("delete (5)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ExpressionMeasurementClient({
-            maxRetries: 0,
-            apiKey: "test",
-            environment: { base: server.baseUrl, production: server.baseUrl },
-        });
-
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
-
-        server
-            .mockEndpoint()
-            .delete("/v1/expression/run/run_id")
-            .respondWith()
-            .statusCode(500)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.runs.delete({
-                run_id: "run_id",
-            });
-        }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
-    });
-
-    test("delete (6)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ExpressionMeasurementClient({
-            maxRetries: 0,
-            apiKey: "test",
-            environment: { base: server.baseUrl, production: server.baseUrl },
-        });
-
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
-
-        server
-            .mockEndpoint()
-            .delete("/v1/expression/run/run_id")
-            .respondWith()
-            .statusCode(503)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.runs.delete({
-                run_id: "run_id",
+                runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.ServiceUnavailableError);
     });
@@ -430,11 +452,11 @@ describe("RunsClient", () => {
             events: [
                 {
                     seq: 1,
-                    at: "2024-10-09T03:02:31Z",
+                    at: "2024-10-09T02:47:15Z",
                     kind: "invalid_audio_frame",
                     detail: { detail: "binary audio frame must contain complete 16-bit PCM samples" },
                 },
-                { seq: 2, at: "2024-10-09T03:02:40Z", kind: "rate_limited", detail: { key: "value" } },
+                { seq: 2, at: "2024-10-09T02:47:16Z", kind: "rate_limited", detail: { key: "value" } },
             ],
             at_cap: true,
             capped_kinds: ["rate_limited"],
@@ -444,16 +466,39 @@ describe("RunsClient", () => {
 
         server
             .mockEndpoint()
-            .get("/v1/expression/run/01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f/events")
+            .get("/v1/expression/run/01926f2c-6d92-7a41-9d26-5e8b0c3f71a9/events")
             .respondWith()
             .statusCode(200)
             .jsonBody(rawResponseBody)
             .build();
 
         const response = await client.runs.listEvents({
-            run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
+            runId: "01926f2c-6d92-7a41-9d26-5e8b0c3f71a9",
         });
-        expect(response).toEqual(rawResponseBody);
+        expect(response).toEqual({
+            events: [
+                {
+                    seq: 1,
+                    at: new Date("2024-10-09T02:47:15.000Z"),
+                    kind: "invalid_audio_frame",
+                    detail: {
+                        detail: "binary audio frame must contain complete 16-bit PCM samples",
+                    },
+                },
+                {
+                    seq: 2,
+                    at: new Date("2024-10-09T02:47:16.000Z"),
+                    kind: "rate_limited",
+                    detail: {
+                        key: "value",
+                    },
+                },
+            ],
+            atCap: true,
+            cappedKinds: ["rate_limited"],
+            gaps: false,
+            nextCursor: "2",
+        });
     });
 
     test("list-events (2)", async () => {
@@ -464,7 +509,12 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
 
         server
             .mockEndpoint()
@@ -476,7 +526,7 @@ describe("RunsClient", () => {
 
         await expect(async () => {
             return await client.runs.listEvents({
-                run_id: "run_id",
+                runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.BadRequestError);
     });
@@ -501,7 +551,7 @@ describe("RunsClient", () => {
 
         await expect(async () => {
             return await client.runs.listEvents({
-                run_id: "run_id",
+                runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.UnauthorizedError);
     });
@@ -514,7 +564,12 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
 
         server
             .mockEndpoint()
@@ -526,7 +581,7 @@ describe("RunsClient", () => {
 
         await expect(async () => {
             return await client.runs.listEvents({
-                run_id: "run_id",
+                runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.NotFoundError);
     });
@@ -539,7 +594,42 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
+
+        server
+            .mockEndpoint()
+            .get("/v1/expression/run/run_id/events")
+            .respondWith()
+            .statusCode(405)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.runs.listEvents({
+                runId: "run_id",
+            });
+        }).rejects.toThrow(ExpressionMeasurement.MethodNotAllowedError);
+    });
+
+    test("list-events (6)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ExpressionMeasurementClient({
+            maxRetries: 0,
+            apiKey: "test",
+            environment: { base: server.baseUrl, production: server.baseUrl },
+        });
+
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
 
         server
             .mockEndpoint()
@@ -551,12 +641,12 @@ describe("RunsClient", () => {
 
         await expect(async () => {
             return await client.runs.listEvents({
-                run_id: "run_id",
+                runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
     });
 
-    test("list-events (6)", async () => {
+    test("list-events (7)", async () => {
         const server = mockServerPool.createServer();
         const client = new ExpressionMeasurementClient({
             maxRetries: 0,
@@ -564,7 +654,12 @@ describe("RunsClient", () => {
             environment: { base: server.baseUrl, production: server.baseUrl },
         });
 
-        const rawResponseBody = { type: "error", code: "message_invalid", message: "message" };
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
 
         server
             .mockEndpoint()
@@ -576,7 +671,7 @@ describe("RunsClient", () => {
 
         await expect(async () => {
             return await client.runs.listEvents({
-                run_id: "run_id",
+                runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.ServiceUnavailableError);
     });

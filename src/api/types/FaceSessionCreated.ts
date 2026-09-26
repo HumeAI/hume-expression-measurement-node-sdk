@@ -6,15 +6,8 @@ import type * as ExpressionMeasurement from "../index.js";
  * The session ID and the configuration in effect when the connection opened.
  */
 export interface FaceSessionCreated {
-    type: FaceSessionCreated.Type;
-    session_id: ExpressionMeasurement.SessionId;
+    type: ExpressionMeasurement.FaceSessionCreatedType;
+    sessionId: ExpressionMeasurement.SessionId;
     image: ExpressionMeasurement.ImageConfig;
     face: ExpressionMeasurement.FaceConfig;
-}
-
-export namespace FaceSessionCreated {
-    export const Type = {
-        SessionCreated: "session.created",
-    } as const;
-    export type Type = (typeof Type)[keyof typeof Type];
 }

@@ -6,15 +6,8 @@ import type * as ExpressionMeasurement from "../index.js";
  * The configuration to apply to the session. Omitted fields are reset to their defaults.
  */
 export interface VoiceSessionUpdate {
-    type: VoiceSessionUpdate.Type;
-    audio?: ExpressionMeasurement.AudioConfigUpdate | undefined;
+    type: ExpressionMeasurement.VoiceSessionUpdateType;
+    audio?: ExpressionMeasurement.AudioConfigUpdate;
     /** The interval between measurements while speech is in progress, in milliseconds of speech. Lower values produce measurements more often; at the maximum, interval measurements are back to back rather than overlapping. */
-    measurement_timer_ms?: number | undefined;
-}
-
-export namespace VoiceSessionUpdate {
-    export const Type = {
-        SessionUpdate: "session.update",
-    } as const;
-    export type Type = (typeof Type)[keyof typeof Type];
+    measurementTimerMs?: number;
 }

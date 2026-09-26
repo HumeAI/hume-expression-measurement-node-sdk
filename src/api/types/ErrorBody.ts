@@ -6,17 +6,10 @@ import type * as ExpressionMeasurement from "../index.js";
  * The body of every error response other than a `401`. `type` is always `error`; the HTTP status says how the request failed and `code` says why.
  */
 export interface ErrorBody {
-    type: ErrorBody.Type;
+    type: ExpressionMeasurement.ErrorBodyType;
     code: ExpressionMeasurement.RequestErrorCode;
     /** What went wrong, for a person. Its wording may change; switch on `code`. */
     message: string;
     /** Identifies the request in Hume's records. Quote it when contacting support. */
-    request_id?: string | undefined;
-}
-
-export namespace ErrorBody {
-    export const Type = {
-        Error: "error",
-    } as const;
-    export type Type = (typeof Type)[keyof typeof Type];
+    requestId: string;
 }

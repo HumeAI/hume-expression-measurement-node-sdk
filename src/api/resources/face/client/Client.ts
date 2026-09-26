@@ -8,6 +8,7 @@ import { toJson } from "../../../../core/json.js";
 import * as environments from "../../../../environments.js";
 import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
 import * as errors from "../../../../errors/index.js";
+import * as serializers from "../../../../serialization/index.js";
 import * as ExpressionMeasurement from "../../../index.js";
 import { FaceSocket } from "./Socket.js";
 
@@ -59,9 +60,9 @@ export class FaceClient {
      *
      * | Limit | Value |
      * |---|---|
-     * | Request size | 25,000,000 bytes, the whole multipart body |
-     * | Image size | 2,000,000 bytes |
-     * | Pixels per image | 8,294,400 (the area of a 3840 by 2160 image) |
+     * | Request size | 25MB, the whole multipart body |
+     * | Image size | 2MB |
+     * | Pixels per image | 8,294,400 (the area of a 3840x2160 image) |
      * | Faces measured per image | 64 |
      *
      * The request is measured as a whole: an image that is not a JPEG, is over a size limit or cannot be decoded fails the request with `unsupported_media_type`, `image_too_large` or `image_decode_failed`, and no result is returned for any image.
@@ -71,6 +72,8 @@ export class FaceClient {
      *
      * @throws {@link ExpressionMeasurement.BadRequestError}
      * @throws {@link ExpressionMeasurement.UnauthorizedError}
+     * @throws {@link ExpressionMeasurement.ForbiddenError}
+     * @throws {@link ExpressionMeasurement.MethodNotAllowedError}
      * @throws {@link ExpressionMeasurement.ContentTooLargeError}
      * @throws {@link ExpressionMeasurement.UnsupportedMediaTypeError}
      * @throws {@link ExpressionMeasurement.InternalServerError}
@@ -96,12 +99,12 @@ export class FaceClient {
         requestOptions?: FaceClient.RequestOptions,
     ): Promise<core.WithRawResponse<ExpressionMeasurement.FaceFileResponse>> {
         const _body = await core.newFormData();
-        for (const _file of request.file) {
-            await _body.appendFile("file", _file);
-        }
-
         if (request.config != null) {
             _body.append("config", toJson(request.config));
+        }
+
+        for (const _file of request.file) {
+            await _body.appendFile("file", _file);
         }
 
         const _maybeEncodedRequest = await _body.getRequest();
@@ -135,7 +138,13 @@ export class FaceClient {
         });
         if (_response.ok) {
             return {
-                data: _response.body as ExpressionMeasurement.FaceFileResponse,
+                data: serializers.FaceFileResponse.parseOrThrow(_response.body, {
+                    unrecognizedObjectKeys: "passthrough",
+                    allowUnrecognizedUnionMembers: true,
+                    allowUnrecognizedEnumValues: true,
+                    skipValidation: true,
+                    breadcrumbsPrefix: ["response"],
+                }),
                 rawResponse: _response.rawResponse,
             };
         }
@@ -144,32 +153,90 @@ export class FaceClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new ExpressionMeasurement.BadRequestError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 401:
                     throw new ExpressionMeasurement.UnauthorizedError(
-                        _response.error.body as ExpressionMeasurement.AuthenticationError,
+                        serializers.AuthenticationError.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new ExpressionMeasurement.ForbiddenError(
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        _response.rawResponse,
+                    );
+                case 405:
+                    throw new ExpressionMeasurement.MethodNotAllowedError(
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 413:
                     throw new ExpressionMeasurement.ContentTooLargeError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 415:
                     throw new ExpressionMeasurement.UnsupportedMediaTypeError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 500:
                     throw new ExpressionMeasurement.InternalServerError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 503:
                     throw new ExpressionMeasurement.ServiceUnavailableError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 default:

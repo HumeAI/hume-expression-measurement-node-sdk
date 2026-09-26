@@ -8,19 +8,19 @@ import type * as ExpressionMeasurement from "../../../../index.js";
  */
 export interface ListRunsRequest {
     /** How many runs to return. */
-    page_size?: number;
+    pageSize?: number;
     /** The `next_cursor` of the previous page. Pass it back unchanged. */
     cursor?: string;
     /** Only runs made by this user. */
-    user_id?: string;
+    userId?: string;
     /** Only runs with this status. */
     status?: ExpressionMeasurement.RunStatus;
     /** Only runs that reached the API this way. */
     mode?: ExpressionMeasurement.RunMode;
-    /** Only runs measured by this pipeline. */
+    /** Only runs that measured this kind of media. */
     endpoint?: ExpressionMeasurement.RunEndpoint;
     /** Only runs that started before this time, in RFC 3339 format. */
-    started_before?: string;
-    /** Only runs that started at or after this time, in RFC 3339 format. Consecutive windows that share a boundary neither skip a run nor return one twice. */
-    started_after?: string;
+    startedBefore?: Date;
+    /** Only runs that started at or after this time, in RFC 3339 format. Consecutive time ranges that share a boundary neither skip a run nor return one twice. */
+    startedAfter?: Date;
 }

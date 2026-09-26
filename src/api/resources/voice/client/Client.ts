@@ -8,6 +8,7 @@ import { toJson } from "../../../../core/json.js";
 import * as environments from "../../../../environments.js";
 import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
 import * as errors from "../../../../errors/index.js";
+import * as serializers from "../../../../serialization/index.js";
 import * as ExpressionMeasurement from "../../../index.js";
 import { VoiceSocket } from "./Socket.js";
 
@@ -61,16 +62,18 @@ export class VoiceClient {
      *
      * | Limit | Value |
      * |---|---|
-     * | Request size | 25,000,000 bytes, the whole multipart body |
+     * | Request size | 25MB, the whole multipart body |
      * | Audio format | 16-bit PCM, 16 kHz, mono, as a WAV file or headerless samples |
      *
-     * A request over the size limit is rejected with `audio_too_large`. Audio in another container, such as MP3 or FLAC, is rejected with `unsupported_media_type`; convert it before sending. A WAV file at another sample rate, channel count or sample format is rejected with `audio_decode_failed` rather than converted.
+     * A request over the size limit is rejected with `audio_too_long`. Audio in another container, such as MP3 or FLAC, is rejected with `unsupported_media_type`; convert it before sending. A WAV file at another sample rate, channel count or sample format is rejected with `audio_decode_failed` rather than converted.
      *
      * @param {ExpressionMeasurement.VoiceFileUpload} request
      * @param {VoiceClient.RequestOptions} requestOptions - Request-specific configuration.
      *
      * @throws {@link ExpressionMeasurement.BadRequestError}
      * @throws {@link ExpressionMeasurement.UnauthorizedError}
+     * @throws {@link ExpressionMeasurement.ForbiddenError}
+     * @throws {@link ExpressionMeasurement.MethodNotAllowedError}
      * @throws {@link ExpressionMeasurement.ContentTooLargeError}
      * @throws {@link ExpressionMeasurement.UnsupportedMediaTypeError}
      * @throws {@link ExpressionMeasurement.InternalServerError}
@@ -96,11 +99,11 @@ export class VoiceClient {
         requestOptions?: VoiceClient.RequestOptions,
     ): Promise<core.WithRawResponse<ExpressionMeasurement.VoiceFileResponse>> {
         const _body = await core.newFormData();
-        await _body.appendFile("file", request.file);
         if (request.config != null) {
             _body.append("config", toJson(request.config));
         }
 
+        await _body.appendFile("file", request.file);
         const _maybeEncodedRequest = await _body.getRequest();
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
@@ -132,7 +135,13 @@ export class VoiceClient {
         });
         if (_response.ok) {
             return {
-                data: _response.body as ExpressionMeasurement.VoiceFileResponse,
+                data: serializers.VoiceFileResponse.parseOrThrow(_response.body, {
+                    unrecognizedObjectKeys: "passthrough",
+                    allowUnrecognizedUnionMembers: true,
+                    allowUnrecognizedEnumValues: true,
+                    skipValidation: true,
+                    breadcrumbsPrefix: ["response"],
+                }),
                 rawResponse: _response.rawResponse,
             };
         }
@@ -141,32 +150,90 @@ export class VoiceClient {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new ExpressionMeasurement.BadRequestError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 401:
                     throw new ExpressionMeasurement.UnauthorizedError(
-                        _response.error.body as ExpressionMeasurement.AuthenticationError,
+                        serializers.AuthenticationError.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        _response.rawResponse,
+                    );
+                case 403:
+                    throw new ExpressionMeasurement.ForbiddenError(
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        _response.rawResponse,
+                    );
+                case 405:
+                    throw new ExpressionMeasurement.MethodNotAllowedError(
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 413:
                     throw new ExpressionMeasurement.ContentTooLargeError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 415:
                     throw new ExpressionMeasurement.UnsupportedMediaTypeError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 500:
                     throw new ExpressionMeasurement.InternalServerError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 503:
                     throw new ExpressionMeasurement.ServiceUnavailableError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 default:

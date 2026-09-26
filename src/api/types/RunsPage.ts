@@ -9,5 +9,5 @@ export interface RunsPage {
     /** The runs, newest first. */
     runs: ExpressionMeasurement.RunSummary[];
     /** Absent on the last page. Pass it back as `cursor` for the next one. */
-    next_cursor?: string | undefined;
+    nextCursor?: string;
 }

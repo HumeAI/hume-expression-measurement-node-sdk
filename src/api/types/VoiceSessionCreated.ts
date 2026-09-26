@@ -6,15 +6,8 @@ import type * as ExpressionMeasurement from "../index.js";
  * The session ID and the configuration in effect when the connection opened.
  */
 export interface VoiceSessionCreated {
-    type: VoiceSessionCreated.Type;
-    session_id: ExpressionMeasurement.SessionId;
+    type: ExpressionMeasurement.VoiceSessionCreatedType;
+    sessionId: ExpressionMeasurement.SessionId;
     audio: ExpressionMeasurement.AudioConfig;
-    measurement_timer_ms: ExpressionMeasurement.MeasurementTimerMs;
-}
-
-export namespace VoiceSessionCreated {
-    export const Type = {
-        SessionCreated: "session.created",
-    } as const;
-    export type Type = (typeof Type)[keyof typeof Type];
+    measurementTimerMs: ExpressionMeasurement.MeasurementTimerMs;
 }

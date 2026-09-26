@@ -6,22 +6,14 @@ import type * as ExpressionMeasurement from "../index.js";
  * The response to a face request.
  */
 export interface FaceFileResponse {
-    /** Identifies this request in Hume's records, and the run it was recorded as. */
-    request_id: string;
+    /** Identifies this request in Hume's records. Quote it when contacting support. */
+    requestId: string;
+    /** Identifies the run this request was recorded as. Pass it to the run endpoints to look the run up. */
+    runId: string;
     /** What the server took from the request. */
-    received: FaceFileResponse.Received;
+    received: ExpressionMeasurement.FaceFileResponseReceived;
     /** One result per image, in the order the `file` parts were sent. An image with no faces still has a result, with `faces` empty. */
     measurements: ExpressionMeasurement.FaceFileMeasurement[];
-    /** Present when `return_face_state` was set: pass it as `face_state` in a later request, within 24 hours, to continue `face_id` numbering. Treat it as opaque. */
-    face_state?: string | undefined;
-}
-
-export namespace FaceFileResponse {
-    /**
-     * What the server took from the request.
-     */
-    export interface Received {
-        /** The number of images measured. */
-        frames: number;
-    }
+    /** Present when `return_face_state` was set. Pass it unchanged as `face_state` in a later request, within 24 hours, to continue `face_id` numbering. */
+    faceState?: string;
 }

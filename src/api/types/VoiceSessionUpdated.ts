@@ -6,14 +6,7 @@ import type * as ExpressionMeasurement from "../index.js";
  * The full configuration in effect after a `session.update`, including defaults for any fields you omitted.
  */
 export interface VoiceSessionUpdated {
-    type: VoiceSessionUpdated.Type;
+    type: ExpressionMeasurement.VoiceSessionUpdatedType;
     audio: ExpressionMeasurement.AudioConfig;
-    measurement_timer_ms: ExpressionMeasurement.MeasurementTimerMs;
-}
-
-export namespace VoiceSessionUpdated {
-    export const Type = {
-        SessionUpdated: "session.updated",
-    } as const;
-    export type Type = (typeof Type)[keyof typeof Type];
+    measurementTimerMs: ExpressionMeasurement.MeasurementTimerMs;
 }

@@ -7,5 +7,5 @@ export interface FaceConfig {
     /** Minimum detection confidence for a face to be measured. Lower values include more faces at the risk of false detections. This scale is specific to this API; thresholds tuned for other face detection APIs do not carry over. */
     threshold: number;
     /** Minimum face size to measure, as the shorter side of the face's bounding box in pixels of the submitted image. */
-    min_size: number;
+    minSize: number;
 }
