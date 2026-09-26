@@ -3,7 +3,7 @@
 /**
  * Identifies what went wrong. The HTTP status carried with it says how the request failed.
  *
- * Some of these names are also error codes of the realtime API, where they name the same kind of problem on that transport.
+ * Some of these names are also error codes of the realtime API, where they name the same kind of problem.
  *
  * **`400 Bad Request`**, something in the request needs correcting.
  *
@@ -13,17 +13,21 @@
  * - `image_decode_failed`: an image could not be decoded. Face only.
  * - `invalid_request`: a query parameter has a value the endpoint does not accept, or `cursor` is not one the endpoint issued. Run endpoints only.
  *
+ * **`403 Forbidden`**
+ *
+ * - `forbidden`: your organization is not permitted to use this endpoint. Contact support. File endpoints only.
+ *
  * **`404 Not Found`**
  *
- * - `not_found`: no run with this ID exists in your organization. Run endpoints only.
+ * - `not_found`: no run with this ID exists in your organization, or no endpoint exists at this path.
  *
- * **`409 Conflict`**
+ * **`405 Method Not Allowed`**
  *
- * - `conflict`: the run is still in progress and cannot be deleted yet.
+ * - `method_not_allowed`: the endpoint does not accept this HTTP method. The `Allow` header lists the methods it does accept.
  *
  * **`413 Content Too Large`**, the request exceeds a size limit.
  *
- * - `audio_too_large`: the request body is over the size limit. Voice only.
+ * - `audio_too_long`: the request body is over the size limit. Voice only.
  * - `image_too_large`: the request body or one image is over the size limit, or an image has more pixels than the endpoint accepts. Face only.
  *
  * **`415 Unsupported Media Type`**, the media is in a format the endpoint does not accept.
@@ -36,7 +40,7 @@
  *
  * **`503 Service Unavailable`**
  *
- * - `overloaded`: the service is at capacity and shed the request. Wait for the interval in `Retry-After`, then retry.
+ * - `overloaded`: the service is at capacity and turned the request away. Wait for the interval in `Retry-After`, then retry.
  */
 export const RequestErrorCode = {
     MessageInvalid: "message_invalid",
@@ -44,9 +48,10 @@ export const RequestErrorCode = {
     AudioDecodeFailed: "audio_decode_failed",
     ImageDecodeFailed: "image_decode_failed",
     InvalidRequest: "invalid_request",
+    Forbidden: "forbidden",
     NotFound: "not_found",
-    Conflict: "conflict",
-    AudioTooLarge: "audio_too_large",
+    MethodNotAllowed: "method_not_allowed",
+    AudioTooLong: "audio_too_long",
     ImageTooLarge: "image_too_large",
     UnsupportedMediaType: "unsupported_media_type",
     InternalError: "internal_error",

@@ -10,7 +10,7 @@ import type * as ExpressionMeasurement from "../../../../index.js";
  *     }
  */
 export interface VoiceFileUpload {
+    config?: ExpressionMeasurement.VoiceFileConfig;
     /** The audio, as 16-bit PCM at 16 kHz, mono: either a WAV file or the headerless little-endian samples. A WAV file at another sample rate, channel count or sample format is rejected rather than converted. */
     file: core.file.Uploadable;
-    config?: ExpressionMeasurement.VoiceFileConfig;
 }

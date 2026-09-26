@@ -6,23 +6,23 @@ import type * as ExpressionMeasurement from "../index.js";
  * A run, as the list returns it.
  */
 export interface RunSummary {
-    /** The run's ID: the `session_id` of a realtime session, or the `request_id` of a file request. */
-    run_id: string;
+    /** The run's ID: the `session_id` of a realtime session, or the `run_id` of a file response. */
+    runId: string;
     /** The ID of the Hume user who made the run. */
-    user_id: string;
+    userId: string;
     status: ExpressionMeasurement.RunStatus;
-    /** Which pipeline measured the run. */
+    /** What the run measured. */
     endpoint: ExpressionMeasurement.RunEndpoint;
     /** How the media reached the API. */
     mode: ExpressionMeasurement.RunMode;
     /** When the run started. */
-    started_at: string;
+    startedAt: Date;
     /** When the run ended. Null while it is in progress. */
-    ended_at: string | null;
-    /** Bytes of media the server accepted. Null until the run ends, and for a run whose end was never recorded. */
-    bytes_received: number | null;
+    endedAt: Date | null;
+    /** Bytes of media the server took in. A realtime face frame counts once it passes the send-rate and capacity checks, even if it is then rejected as invalid. Null until the run ends, and for a run whose end was never recorded. */
+    bytesReceived: number | null;
     /** How far the server got in storing the run's media, in bytes. Media that could not be stored is included, so this can exceed what was kept. Null when the run's media was not being stored. */
-    bytes_recorded: number | null;
-    /** Billable seconds for the run. For voice, this is the duration of the audio the server accepted. For face, each accepted frame or image counts as one third of a second, regardless of frame rate. Updated while a realtime run is in progress. */
-    metered_seconds: number;
+    bytesRecorded: number | null;
+    /** Billable seconds for the run. For voice, this is the duration of the audio the server took in. For face, each frame or image the server took in counts as one third of a second, regardless of frame rate, including a realtime frame rejected as invalid after it passed the send-rate and capacity checks. Updated while a realtime run is in progress. */
+    meteredSeconds: number;
 }

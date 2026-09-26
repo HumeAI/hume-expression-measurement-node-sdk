@@ -6,16 +6,9 @@ import type * as ExpressionMeasurement from "../index.js";
  * Expression measurements for every face in one frame. `faces` is empty when no face was detected; this is a normal result, not an error.
  */
 export interface FaceMeasurementResult {
-    type: FaceMeasurementResult.Type;
+    type: ExpressionMeasurement.FaceMeasurementResultType;
     /** Sequential identifier of the frame within the session, starting at 0. Only frames answered with a `measurement.result` receive an ID, so the Nth result is for the Nth frame that was not answered with an `error`. */
-    frame_id: number;
+    frameId: number;
     /** The faces detected in the frame, in descending order of confidence. */
     faces: ExpressionMeasurement.Face[];
-}
-
-export namespace FaceMeasurementResult {
-    export const Type = {
-        MeasurementResult: "measurement.result",
-    } as const;
-    export type Type = (typeof Type)[keyof typeof Type];
 }

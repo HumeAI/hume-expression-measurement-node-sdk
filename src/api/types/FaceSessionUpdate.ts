@@ -6,14 +6,7 @@ import type * as ExpressionMeasurement from "../index.js";
  * The configuration to apply to the session. Omitted fields are reset to their defaults.
  */
 export interface FaceSessionUpdate {
-    type: FaceSessionUpdate.Type;
-    image?: ExpressionMeasurement.ImageConfigUpdate | undefined;
-    face?: ExpressionMeasurement.FaceConfigUpdate | undefined;
-}
-
-export namespace FaceSessionUpdate {
-    export const Type = {
-        SessionUpdate: "session.update",
-    } as const;
-    export type Type = (typeof Type)[keyof typeof Type];
+    type: ExpressionMeasurement.FaceSessionUpdateType;
+    image?: ExpressionMeasurement.ImageConfigUpdate;
+    face?: ExpressionMeasurement.FaceConfigUpdate;
 }

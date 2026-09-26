@@ -6,16 +6,8 @@ import type * as ExpressionMeasurement from "../index.js";
  * The configuration a face run ran under.
  */
 export interface FaceRunConfig {
-    /** Identifies the layout of this configuration document. Branch on it if you store configurations, so a document in a later layout is recognised rather than misread. */
-    schema: FaceRunConfig.Schema;
+    /** Identifies the layout of this configuration. Check it if you store configurations, so one in a later layout is recognized rather than misread. */
+    schema: ExpressionMeasurement.FaceRunConfigSchema;
     image: ExpressionMeasurement.ImageConfig;
     face: ExpressionMeasurement.FaceConfig;
-}
-
-export namespace FaceRunConfig {
-    /** Identifies the layout of this configuration document. Branch on it if you store configurations, so a document in a later layout is recognised rather than misread. */
-    export const Schema = {
-        V4: "v4",
-    } as const;
-    export type Schema = (typeof Schema)[keyof typeof Schema];
 }

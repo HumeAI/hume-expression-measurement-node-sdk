@@ -7,6 +7,7 @@ import * as core from "../../../../core/index.js";
 import * as environments from "../../../../environments.js";
 import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
 import * as errors from "../../../../errors/index.js";
+import * as serializers from "../../../../serialization/index.js";
 import * as ExpressionMeasurement from "../../../index.js";
 
 export declare namespace RunsClient {
@@ -33,6 +34,7 @@ export class RunsClient {
      *
      * @throws {@link ExpressionMeasurement.BadRequestError}
      * @throws {@link ExpressionMeasurement.UnauthorizedError}
+     * @throws {@link ExpressionMeasurement.MethodNotAllowedError}
      * @throws {@link ExpressionMeasurement.InternalServerError}
      * @throws {@link ExpressionMeasurement.ServiceUnavailableError}
      * @throws {@link errors.ExpressionMeasurementError}
@@ -52,25 +54,31 @@ export class RunsClient {
         request: ExpressionMeasurement.ListRunsRequest = {},
         requestOptions?: RunsClient.RequestOptions,
     ): Promise<core.WithRawResponse<ExpressionMeasurement.RunsPage>> {
-        const {
-            page_size: pageSize,
-            cursor,
-            user_id: userId,
-            status,
-            mode,
-            endpoint,
-            started_before: startedBefore,
-            started_after: startedAfter,
-        } = request;
+        const { pageSize, cursor, userId, status, mode, endpoint, startedBefore, startedAfter } = request;
         const _queryParams: Record<string, unknown> = {
             page_size: pageSize,
             cursor,
             user_id: userId,
-            status: status != null ? status : undefined,
-            mode: mode != null ? mode : undefined,
-            endpoint: endpoint != null ? endpoint : undefined,
-            started_before: startedBefore != null ? startedBefore : undefined,
-            started_after: startedAfter != null ? startedAfter : undefined,
+            status:
+                status != null
+                    ? serializers.RunStatus.jsonOrThrow(status, {
+                          unrecognizedObjectKeys: "strip",
+                          omitUndefined: true,
+                      })
+                    : undefined,
+            mode:
+                mode != null
+                    ? serializers.RunMode.jsonOrThrow(mode, { unrecognizedObjectKeys: "strip", omitUndefined: true })
+                    : undefined,
+            endpoint:
+                endpoint != null
+                    ? serializers.RunEndpoint.jsonOrThrow(endpoint, {
+                          unrecognizedObjectKeys: "strip",
+                          omitUndefined: true,
+                      })
+                    : undefined,
+            started_before: startedBefore != null ? startedBefore?.toISOString() : undefined,
+            started_after: startedAfter != null ? startedAfter?.toISOString() : undefined,
         };
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
@@ -101,29 +109,73 @@ export class RunsClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body as ExpressionMeasurement.RunsPage, rawResponse: _response.rawResponse };
+            return {
+                data: serializers.RunsPage.parseOrThrow(_response.body, {
+                    unrecognizedObjectKeys: "passthrough",
+                    allowUnrecognizedUnionMembers: true,
+                    allowUnrecognizedEnumValues: true,
+                    skipValidation: true,
+                    breadcrumbsPrefix: ["response"],
+                }),
+                rawResponse: _response.rawResponse,
+            };
         }
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new ExpressionMeasurement.BadRequestError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 401:
                     throw new ExpressionMeasurement.UnauthorizedError(
-                        _response.error.body as ExpressionMeasurement.AuthenticationError,
+                        serializers.AuthenticationError.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        _response.rawResponse,
+                    );
+                case 405:
+                    throw new ExpressionMeasurement.MethodNotAllowedError(
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 500:
                     throw new ExpressionMeasurement.InternalServerError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 503:
                     throw new ExpressionMeasurement.ServiceUnavailableError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 default:
@@ -146,6 +198,7 @@ export class RunsClient {
      *
      * @throws {@link ExpressionMeasurement.UnauthorizedError}
      * @throws {@link ExpressionMeasurement.NotFoundError}
+     * @throws {@link ExpressionMeasurement.MethodNotAllowedError}
      * @throws {@link ExpressionMeasurement.InternalServerError}
      * @throws {@link ExpressionMeasurement.ServiceUnavailableError}
      * @throws {@link errors.ExpressionMeasurementError}
@@ -153,7 +206,7 @@ export class RunsClient {
      *
      * @example
      *     await client.runs.get({
-     *         run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f"
+     *         runId: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f"
      *     })
      */
     public get(
@@ -167,7 +220,7 @@ export class RunsClient {
         request: ExpressionMeasurement.GetRunsRequest,
         requestOptions?: RunsClient.RequestOptions,
     ): Promise<core.WithRawResponse<ExpressionMeasurement.Run>> {
-        const { run_id: runId } = request;
+        const { runId } = request;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
             _authRequest.headers,
@@ -193,29 +246,73 @@ export class RunsClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body as ExpressionMeasurement.Run, rawResponse: _response.rawResponse };
+            return {
+                data: serializers.Run.parseOrThrow(_response.body, {
+                    unrecognizedObjectKeys: "passthrough",
+                    allowUnrecognizedUnionMembers: true,
+                    allowUnrecognizedEnumValues: true,
+                    skipValidation: true,
+                    breadcrumbsPrefix: ["response"],
+                }),
+                rawResponse: _response.rawResponse,
+            };
         }
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
                 case 401:
                     throw new ExpressionMeasurement.UnauthorizedError(
-                        _response.error.body as ExpressionMeasurement.AuthenticationError,
+                        serializers.AuthenticationError.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 404:
                     throw new ExpressionMeasurement.NotFoundError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        _response.rawResponse,
+                    );
+                case 405:
+                    throw new ExpressionMeasurement.MethodNotAllowedError(
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 500:
                     throw new ExpressionMeasurement.InternalServerError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 503:
                     throw new ExpressionMeasurement.ServiceUnavailableError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 default:
@@ -231,109 +328,6 @@ export class RunsClient {
     }
 
     /**
-     * Removes the run and everything stored for it, including its event log. The deletion is permanent. A run that is still in progress cannot be deleted; a run whose connection was lost becomes deletable five minutes after the server last heard from it. A run that has already been deleted answers `404`.
-     *
-     * @param {ExpressionMeasurement.DeleteRunsRequest} request
-     * @param {RunsClient.RequestOptions} requestOptions - Request-specific configuration.
-     *
-     * @throws {@link ExpressionMeasurement.UnauthorizedError}
-     * @throws {@link ExpressionMeasurement.NotFoundError}
-     * @throws {@link ExpressionMeasurement.ConflictError}
-     * @throws {@link ExpressionMeasurement.InternalServerError}
-     * @throws {@link ExpressionMeasurement.ServiceUnavailableError}
-     * @throws {@link errors.ExpressionMeasurementError}
-     * @throws {@link errors.ExpressionMeasurementTimeoutError}
-     *
-     * @example
-     *     await client.runs.delete({
-     *         run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f"
-     *     })
-     */
-    public delete(
-        request: ExpressionMeasurement.DeleteRunsRequest,
-        requestOptions?: RunsClient.RequestOptions,
-    ): core.HttpResponsePromise<void> {
-        return core.HttpResponsePromise.fromPromise(this.__delete(request, requestOptions));
-    }
-
-    private async __delete(
-        request: ExpressionMeasurement.DeleteRunsRequest,
-        requestOptions?: RunsClient.RequestOptions,
-    ): Promise<core.WithRawResponse<void>> {
-        const { run_id: runId } = request;
-        const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
-        const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
-            _authRequest.headers,
-            this._options?.headers,
-            requestOptions?.headers,
-        );
-        const _response = await core.fetcher({
-            url: core.url.join(
-                (await core.Supplier.get(this._options.baseUrl)) ??
-                    (
-                        (await core.Supplier.get(this._options.environment)) ??
-                        environments.ExpressionMeasurementEnvironment.Production
-                    ).base,
-                `v1/expression/run/${core.url.encodePathParam(runId)}`,
-            ),
-            method: "DELETE",
-            headers: _headers,
-            queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
-            timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
-            maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
-            abortSignal: requestOptions?.abortSignal,
-            fetchFn: this._options?.fetch,
-            logging: this._options.logging,
-        });
-        if (_response.ok) {
-            return { data: undefined, rawResponse: _response.rawResponse };
-        }
-
-        if (_response.error.reason === "status-code") {
-            switch (_response.error.statusCode) {
-                case 401:
-                    throw new ExpressionMeasurement.UnauthorizedError(
-                        _response.error.body as ExpressionMeasurement.AuthenticationError,
-                        _response.rawResponse,
-                    );
-                case 404:
-                    throw new ExpressionMeasurement.NotFoundError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
-                        _response.rawResponse,
-                    );
-                case 409:
-                    throw new ExpressionMeasurement.ConflictError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
-                        _response.rawResponse,
-                    );
-                case 500:
-                    throw new ExpressionMeasurement.InternalServerError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
-                        _response.rawResponse,
-                    );
-                case 503:
-                    throw new ExpressionMeasurement.ServiceUnavailableError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
-                        _response.rawResponse,
-                    );
-                default:
-                    throw new errors.ExpressionMeasurementError({
-                        statusCode: _response.error.statusCode,
-                        body: _response.error.body,
-                        rawResponse: _response.rawResponse,
-                    });
-            }
-        }
-
-        return handleNonStatusCodeError(
-            _response.error,
-            _response.rawResponse,
-            "DELETE",
-            "/v1/expression/run/{run_id}",
-        );
-    }
-
-    /**
      * The problems the run reported, in order: frames it rejected and failures it hit. A run that went well has none, and only realtime sessions record any.
      *
      * @param {ExpressionMeasurement.ListEventsRunsRequest} request
@@ -342,6 +336,7 @@ export class RunsClient {
      * @throws {@link ExpressionMeasurement.BadRequestError}
      * @throws {@link ExpressionMeasurement.UnauthorizedError}
      * @throws {@link ExpressionMeasurement.NotFoundError}
+     * @throws {@link ExpressionMeasurement.MethodNotAllowedError}
      * @throws {@link ExpressionMeasurement.InternalServerError}
      * @throws {@link ExpressionMeasurement.ServiceUnavailableError}
      * @throws {@link errors.ExpressionMeasurementError}
@@ -349,7 +344,7 @@ export class RunsClient {
      *
      * @example
      *     await client.runs.listEvents({
-     *         run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f"
+     *         runId: "01926f2c-6d92-7a41-9d26-5e8b0c3f71a9"
      *     })
      */
     public listEvents(
@@ -363,7 +358,7 @@ export class RunsClient {
         request: ExpressionMeasurement.ListEventsRunsRequest,
         requestOptions?: RunsClient.RequestOptions,
     ): Promise<core.WithRawResponse<ExpressionMeasurement.RunEventsPage>> {
-        const { run_id: runId, page_size: pageSize, cursor } = request;
+        const { runId, pageSize, cursor } = request;
         const _queryParams: Record<string, unknown> = {
             page_size: pageSize,
             cursor,
@@ -397,34 +392,84 @@ export class RunsClient {
             logging: this._options.logging,
         });
         if (_response.ok) {
-            return { data: _response.body as ExpressionMeasurement.RunEventsPage, rawResponse: _response.rawResponse };
+            return {
+                data: serializers.RunEventsPage.parseOrThrow(_response.body, {
+                    unrecognizedObjectKeys: "passthrough",
+                    allowUnrecognizedUnionMembers: true,
+                    allowUnrecognizedEnumValues: true,
+                    skipValidation: true,
+                    breadcrumbsPrefix: ["response"],
+                }),
+                rawResponse: _response.rawResponse,
+            };
         }
 
         if (_response.error.reason === "status-code") {
             switch (_response.error.statusCode) {
                 case 400:
                     throw new ExpressionMeasurement.BadRequestError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 401:
                     throw new ExpressionMeasurement.UnauthorizedError(
-                        _response.error.body as ExpressionMeasurement.AuthenticationError,
+                        serializers.AuthenticationError.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 404:
                     throw new ExpressionMeasurement.NotFoundError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        _response.rawResponse,
+                    );
+                case 405:
+                    throw new ExpressionMeasurement.MethodNotAllowedError(
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 500:
                     throw new ExpressionMeasurement.InternalServerError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 case 503:
                     throw new ExpressionMeasurement.ServiceUnavailableError(
-                        _response.error.body as ExpressionMeasurement.ErrorBody,
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
                         _response.rawResponse,
                     );
                 default:

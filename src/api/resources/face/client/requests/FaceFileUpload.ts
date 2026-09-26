@@ -10,7 +10,7 @@ import type * as ExpressionMeasurement from "../../../../index.js";
  *     }
  */
 export interface FaceFileUpload {
+    config?: ExpressionMeasurement.FaceFileConfig;
     /** The images, one JPEG per `file` part. Results are numbered by the order of the parts. */
     file: core.file.Uploadable[];
-    config?: ExpressionMeasurement.FaceFileConfig;
 }

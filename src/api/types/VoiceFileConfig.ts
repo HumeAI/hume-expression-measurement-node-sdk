@@ -5,5 +5,5 @@
  */
 export interface VoiceFileConfig {
     /** How often to measure within an utterance, in milliseconds of speech. */
-    measurement_timer_ms?: number | undefined;
+    measurementTimerMs?: number;
 }

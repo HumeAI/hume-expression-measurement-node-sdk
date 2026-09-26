@@ -6,22 +6,14 @@ import type * as ExpressionMeasurement from "../index.js";
  * The response to a voice request.
  */
 export interface VoiceFileResponse {
-    /** Identifies this request in Hume's records, and the run it was recorded as. */
-    request_id: string;
+    /** Identifies this request in Hume's records. Quote it when contacting support. */
+    requestId: string;
+    /** Identifies the run this request was recorded as. Pass it to the run endpoints to look the run up. */
+    runId: string;
     /** What the server took from the request. */
-    received: VoiceFileResponse.Received;
+    received: ExpressionMeasurement.VoiceFileResponseReceived;
     /** Every utterance found, in order. */
     utterances: ExpressionMeasurement.VoiceFileUtterance[];
     /** Every measurement, in order. `utterance_id` says which utterance each belongs to. */
     measurements: ExpressionMeasurement.VoiceFileMeasurement[];
-}
-
-export namespace VoiceFileResponse {
-    /**
-     * What the server took from the request.
-     */
-    export interface Received {
-        /** The duration of the audio, in milliseconds. */
-        audio_duration_ms: number;
-    }
 }

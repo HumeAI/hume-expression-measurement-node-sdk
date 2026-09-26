@@ -5,7 +5,7 @@
  */
 export interface VoiceReceived {
     /** Total duration of audio accepted, in milliseconds, whether or not it contained speech. */
-    audio_duration_ms: number;
+    audioDurationMs: number;
     /** Number of audio frames accepted. Frames rejected with an error are not counted, so comparing this with the number you sent tells you how many were rejected. */
     frames: number;
 }

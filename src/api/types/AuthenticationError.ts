@@ -6,6 +6,6 @@
 export interface AuthenticationError {
     /** What went wrong, for a person. */
     message: string;
-    /** Identifies the request at the gateway. Sent only when an API key was rejected. */
-    request_id?: string | undefined;
+    /** Identifies the request. Sent only when an API key was rejected. */
+    requestId?: string;
 }

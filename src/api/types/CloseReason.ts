@@ -5,11 +5,13 @@
  *
  * - `client_request`: you sent `session.close`. Close code 1000.
  * - `server_shutdown`: the server is shutting down; reconnect to start a new session. Close code 1000.
+ * - `idle_timeout`: the server received no media frame it could use for 30 seconds; open a new session to continue. Close code 1000.
  * - `error`: a session-ending error, reported in the preceding `error` message. Close code 1008.
  */
 export const CloseReason = {
     ClientRequest: "client_request",
     ServerShutdown: "server_shutdown",
+    IdleTimeout: "idle_timeout",
     Error: "error",
 } as const;
 export type CloseReason = (typeof CloseReason)[keyof typeof CloseReason];

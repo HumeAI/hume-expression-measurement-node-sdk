@@ -6,17 +6,10 @@ import type * as ExpressionMeasurement from "../index.js";
  * A rejected message or a processing failure. `code` says what happened and whether the session continues.
  */
 export interface Error_ {
-    type: Error_.Type;
+    type: ExpressionMeasurement.ErrorType;
     code: ExpressionMeasurement.ErrorCode;
     /** A human-readable description of the error, intended for logging and debugging. The wording may change; use `code` for programmatic handling. */
     message: string;
-    /** `false` for every error that ends the session. `true` for every error the session survives, except `internal_error` on the face endpoint, where it reports whether the failure was transient and the frame is worth resending. */
+    /** `false` for every error that ends the session. `true` for every error the session survives, except `internal_error` on the face endpoint, where it reports whether the failure was temporary and the frame is worth resending. */
     retryable: boolean;
-}
-
-export namespace Error_ {
-    export const Type = {
-        Error: "error",
-    } as const;
-    export type Type = (typeof Type)[keyof typeof Type];
 }

@@ -4,13 +4,13 @@ import type * as core from "../../core/index.js";
 import * as errors from "../../errors/index.js";
 import type * as ExpressionMeasurement from "../index.js";
 
-export class ConflictError extends errors.ExpressionMeasurementError {
+export class ForbiddenError extends errors.ExpressionMeasurementError {
     public declare readonly body: ExpressionMeasurement.ErrorBody;
 
     constructor(body: ExpressionMeasurement.ErrorBody, rawResponse?: core.RawResponse) {
         super({
-            message: "ConflictError",
-            statusCode: 409,
+            message: "ForbiddenError",
+            statusCode: 403,
             body: body,
             rawResponse: rawResponse,
         });
@@ -19,6 +19,6 @@ export class ConflictError extends errors.ExpressionMeasurementError {
             Error.captureStackTrace(this, this.constructor);
         }
 
-        this.name = "ConflictError";
+        this.name = "ForbiddenError";
     }
 }

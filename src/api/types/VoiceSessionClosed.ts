@@ -6,16 +6,9 @@ import type * as ExpressionMeasurement from "../index.js";
  * Why the session ended, and totals of what was received and produced.
  */
 export interface VoiceSessionClosed {
-    type: VoiceSessionClosed.Type;
-    session_id: ExpressionMeasurement.SessionId;
+    type: ExpressionMeasurement.VoiceSessionClosedType;
+    sessionId: ExpressionMeasurement.SessionId;
     reason: ExpressionMeasurement.CloseReason;
     received: ExpressionMeasurement.VoiceReceived;
     produced: ExpressionMeasurement.VoiceProduced;
-}
-
-export namespace VoiceSessionClosed {
-    export const Type = {
-        SessionClosed: "session.closed",
-    } as const;
-    export type Type = (typeof Type)[keyof typeof Type];
 }

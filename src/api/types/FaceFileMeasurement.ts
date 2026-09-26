@@ -7,7 +7,7 @@ import type * as ExpressionMeasurement from "../index.js";
  */
 export interface FaceFileMeasurement {
     /** Identifies the image within the run, counting from 0. A file request numbers its images by the order of the `file` parts; a realtime session numbers only the frames it answered with a measurement. */
-    frame_id: number;
+    frameId: number;
     /** The faces detected in the image, in descending order of confidence. */
     faces: ExpressionMeasurement.Face[];
 }
