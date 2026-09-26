@@ -67,7 +67,7 @@ for (const measurement of response.measurements) {
 }
 ```
 
-`contentType` labels the part. `application/octet-stream` marks the file as headerless samples; to upload a WAV file, pass `audio/wav`. The response lists every utterance in `utterances` and every measurement in `measurements`, each with the `utteranceId` it belongs to. A request holds up to 25,000,000 bytes, a little over 13 minutes of audio. The [voice upload guide](https://dev.hume.ai/docs/expression-measurement/voice/upload) covers the request, the response, and every error.
+`contentType` labels the part. `application/octet-stream` marks the file as headerless samples; to upload a WAV file, pass `audio/wav`. The response lists every utterance in `utterances` and every measurement in `measurements`, each with the `utteranceId` it belongs to. The 25MB request limit applies to the whole multipart body, config included, which leaves room for a little over 13 minutes of audio. The [voice upload guide](https://dev.hume.ai/docs/expression-measurement/voice/upload) covers the request, the response, and every error.
 
 ### Face
 
