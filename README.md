@@ -184,7 +184,7 @@ socket.sendFaceSessionClose({ type: "session.close" });
 
 ### Handling messages
 
-The `message` handler receives one typed object per message, and each has a `type` field that narrows the union in a `switch`. The `open`, `close`, and `error` events report the state of the connection itself. Message types are exported under the `ExpressionMeasurement` namespace.
+The `message` handler receives one typed object per message, and each has a `type` field that narrows the union in a `switch`. The `open`, `close`, and `error` events report the state of the connection itself, and `error` also fires when a message arrives that the SDK cannot parse. Message types are exported under the `ExpressionMeasurement` namespace.
 
 ```typescript
 import type { ExpressionMeasurement } from "@humeai/expression-measurement-node";
@@ -205,7 +205,7 @@ function topExpression(result: ExpressionMeasurement.VoiceMeasurementResult): st
 
 ## Scores
 
-Every measurement is a list of scores, each pairing a `name` with a `probability` from 0 to 1. A probability reflects how likely other people would be to perceive that expression, not what the person feels. Only scores above 0.1 are returned, sorted by descending probability, so arrays vary in length and may be empty. Voice results carry `expressions` and `voiceAttributes`. Face results carry `expressions` and `descriptions` for each face. [Scores](https://dev.hume.ai/docs/expression-measurement/scores) explains how to read them.
+Every measurement is a list of scores, each pairing a `name` with a `probability` from 0 to 1 that the expression or quality is present. Scores are sorted by descending probability, and only those judged present are returned, so arrays vary in length and may be empty. Voice results carry `expressions`, each filtered against a threshold set for that expression, and `voiceAttributes`, which include only scores of 0.85 or above. Face results carry `expressions` and `descriptions` for each face, which include only scores above 0.1. [Scores](https://dev.hume.ai/docs/expression-measurement/scores) explains how to read them.
 
 ## Configuration
 
@@ -241,6 +241,7 @@ socket.sendFaceSessionUpdate({ type: "session.update", face: { threshold: 0.8, m
 | Option | Default | Purpose |
 |---|---|---|
 | `reconnectAttempts` | 30 | Automatic reconnects after an unexpected close. Set to 0 for session-based streaming, since a new connection is a new session. |
+| `shouldReconnect` | reconnect on any close code other than 1000 | Decides whether a close triggers a reconnect. Return false to treat the close as final. |
 | `connectionTimeoutInSeconds` | none | Fails the handshake after this long. |
 | `headers`, `queryParams` | none | Extra values sent with the handshake. |
 | `abortSignal` | none | Aborts the connection from outside. |
@@ -249,7 +250,7 @@ socket.sendFaceSessionUpdate({ type: "session.update", face: { threshold: 0.8, m
 
 ## Runs
 
-Every upload request that is measured and every realtime session is recorded as a run. A run's ID is the `requestId` of an upload response or the `sessionId` of a session. The run endpoints return a run's status, configuration, and event log. They do not return measurements, so keep the results you need from the upload response or the session.
+Every upload request that is measured and every realtime session is recorded as a run. A run's ID is the `runId` of an upload response or the `sessionId` of a session. The run endpoints return a run's status, configuration, and event log. They do not return measurements, so keep the results you need from the upload response or the session.
 
 ```typescript
 import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
@@ -274,7 +275,7 @@ for (const event of events.events) {
 
 ## Errors
 
-The upload and run methods reject with an `ExpressionMeasurementError` when a request fails. `statusCode` holds the HTTP status, and `body` holds the error body, whose `code` says what went wrong.
+The upload and run methods reject with an `ExpressionMeasurementError` when a request fails. `statusCode` holds the HTTP status, and `body` holds the error body, whose `code` says what went wrong. A `401` body has no `code`; it carries a `message` and, when an API key was rejected, a `requestId`.
 
 ```typescript
 import { ExpressionMeasurementError } from "@humeai/expression-measurement-node";
