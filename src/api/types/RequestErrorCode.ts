@@ -9,7 +9,7 @@
  *
  * - `message_invalid`: the multipart body could not be read, is missing its `file` part, or carries a part with another name. Voice takes exactly one `file` part; face takes one or more. File endpoints only.
  * - `config_invalid`: the `config` part is not valid JSON, names a field the endpoint does not recognize, holds a value outside its range, or appears more than once. File endpoints only.
- * - `audio_decode_failed`: the audio could not be decoded: a WAV file at another sample rate, channel count or sample format, or bytes that are not whole 16-bit samples. Voice only.
+ * - `audio_decode_failed`: the audio could not be decoded: a WAV file that is truncated or malformed, or at another sample rate, channel count or sample format, or with the extensible WAV header, or a file that is empty or is not a whole number of 16-bit samples. Voice only.
  * - `image_decode_failed`: an image could not be decoded. Face only.
  * - `invalid_request`: a query parameter has a value the endpoint does not accept, or `cursor` is not one the endpoint issued. Run endpoints only.
  *
@@ -32,7 +32,7 @@
  *
  * **`415 Unsupported Media Type`**, the media is in a format the endpoint does not accept.
  *
- * - `unsupported_media_type`: the audio is in a container other than WAV or headerless PCM, or an image is not a JPEG. File endpoints only.
+ * - `unsupported_media_type`: the audio is in a format the server recognizes but does not accept, such as MP3 or FLAC, or an image is not a JPEG. File endpoints only.
  *
  * **`500 Internal Server Error`**
  *

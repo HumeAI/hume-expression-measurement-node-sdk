@@ -3,7 +3,7 @@
 import type * as ExpressionMeasurement from "../index.js";
 
 /**
- * Expression measurements for a window of speech within an utterance. The window spans `audio_start_ms` to `audio_end_ms` and covers up to the most recent 10 seconds of the utterance. Consecutive measurements of an utterance overlap, except interval measurements at a `measurement_timer_ms` of 10000, which meet end to end.
+ * Expression measurements for a window of an utterance. The window spans `audio_start_ms` to `audio_end_ms` and covers up to the most recent 10 seconds of the utterance. An interval measurement taken as speech stops can end shortly after the utterance does. Consecutive measurements of an utterance overlap, except interval measurements at a `measurement_timer_ms` of 10000, which meet end to end.
  */
 export interface VoiceFileMeasurement {
     /** Sequential identifier of the measurement within the run, starting at 0. */

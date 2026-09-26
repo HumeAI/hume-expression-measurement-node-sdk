@@ -6,7 +6,7 @@ import type * as ExpressionMeasurement from "../index.js";
  * One entry in a run's event log.
  */
 export interface RunEvent {
-    /** The entry's position in the log, counting from 1. */
+    /** The entry's position in the log. */
     seq: number;
     /** When the event was recorded. */
     at: Date;
