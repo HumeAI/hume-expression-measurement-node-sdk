@@ -17,15 +17,15 @@ export interface Run {
     mode: ExpressionMeasurement.RunMode;
     /** When the run started. */
     startedAt: Date;
-    /** When the run ended. Null while it is in progress. */
+    /** When the run ended. Null while it is in progress. For a run reported `errored` because the server stopped hearing from it, the last time the server heard from it. */
     endedAt: Date | null;
-    /** The WebSocket close code the session ended with, or 1011 if the connection was lost without a close frame. Only realtime runs that have ended have one. */
+    /** The WebSocket close code the session ended with, or 1011 if the connection was lost without a close frame. Only realtime runs that have ended have one, and not all of those: it is absent when the client's close frame carried no code, or when the server stopped before recording how the session closed. */
     closeCode: number | null;
-    /** Why the session closed: `client_request`, `server_shutdown`, `idle_timeout` or `error` when the server closed it, `error` when the connection was lost without a close frame, and otherwise the reason text from the client's close frame. Only realtime runs that have ended have one. */
+    /** Why the session closed: `client_request`, `server_shutdown`, `idle_timeout` or `error` when the server closed it, `error` when the connection was lost without a close frame, and otherwise the reason text from the client's close frame. Only realtime runs that have ended have one, and not all of those: it is absent when the client's close frame carried no code, or when the server stopped before recording how the session closed. */
     closeReason: string | null;
     /** Bytes of media the server took in. A realtime face frame counts once it passes the send-rate and capacity checks, even if it is then rejected as invalid. Null until the run ends, and for a run whose end was never recorded. */
     bytesReceived: number | null;
-    /** How far the server got in storing the run's media, in bytes. Media that could not be stored is included, so this can exceed what was kept. Null when the run's media was not being stored. */
+    /** How far the server got in storing the run's media, in bytes. Media that could not be stored is included, so this can exceed what was kept. Null when the run's media was not being stored, or when the server has not reported how much it stored, as early in a live run. */
     bytesRecorded: number | null;
     /** Billable seconds for the run. For voice, this is the duration of the audio the server took in. For face, each frame or image the server took in counts as one third of a second, regardless of frame rate, including a realtime frame rejected as invalid after it passed the send-rate and capacity checks. Updated while a realtime run is in progress. */
     meteredSeconds: number;

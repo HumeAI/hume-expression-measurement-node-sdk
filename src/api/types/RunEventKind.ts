@@ -4,7 +4,7 @@
  * What a run's event log records. Every kind is something the run refused or that went wrong, so a run that went well has no events.
  *
  * - `invalid_audio_frame`: an audio frame was rejected. Voice only.
- * - `invalid_image_frame`: an image frame was rejected. Face only.
+ * - `invalid_image_frame`: an image frame was rejected, or face detection failed on a frame and the session reported `internal_error`. Face only.
  * - `rate_limited`: media arrived faster than the send rate and a frame was rejected.
  * - `overloaded`: the server was at capacity and a frame was rejected. Face only.
  * - `inference_failed`: a frame was skipped because its measurement failed, which the session reported as `internal_error`. Face only.
