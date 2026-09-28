@@ -7,8 +7,8 @@ export interface ExpressionMeasurementEnvironmentUrls {
 
 export const ExpressionMeasurementEnvironment = {
     Production: {
-        base: "https://api.hume.ai",
-        production: "wss://api.hume.ai",
+        base: "https://api.cloud.hume.ai",
+        production: "wss://api.cloud.hume.ai",
     },
 } as const;
 
