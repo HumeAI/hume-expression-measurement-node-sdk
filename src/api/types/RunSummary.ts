@@ -23,6 +23,6 @@ export interface RunSummary {
     bytesReceived: number | null;
     /** How far the server got in storing the run's media, in bytes. Media that could not be stored is included, so this can exceed what was kept. Null when the run's media was not being stored, or when the server has not reported how much it stored, as early in a live run. */
     bytesRecorded: number | null;
-    /** Billable seconds for the run. For voice, this is the duration of the audio the server took in. For face, each frame or image the server took in counts as one third of a second, regardless of frame rate, including a realtime frame rejected as invalid after it passed the send-rate and capacity checks. Updated while a realtime run is in progress. */
+    /** Billable seconds for the run. For voice, this is the duration of the audio the server took in. For face, each frame or image the server took in counts as one third of a second, regardless of frame rate, including a realtime frame rejected as invalid after it passed the send-rate and capacity checks. Updated while a realtime run is in progress. A file request that fails is not billed, and a run recorded for it reports 0. */
     meteredSeconds: number;
 }
