@@ -244,6 +244,7 @@ export class Microphone implements AsyncIterable<Uint8Array> {
             next: () => this.next(state),
             return: async () => {
                 state.ended = true;
+                this.wake();
                 return { done: true, value: undefined };
             },
             [Symbol.asyncIterator]: () => iterator,
@@ -279,9 +280,9 @@ export class Microphone implements AsyncIterable<Uint8Array> {
 
     private async read(state: Iteration): Promise<Uint8Array | undefined> {
         while (true) {
-            // Checked before every frame, so a replaced or overflowed iteration returns none of the
-            // frames it has already converted.
-            if (state.id !== this.iteration) {
+            // Checked before every frame, so an iteration that was returned, replaced or overflowed
+            // yields none of the frames it has already converted.
+            if (state.ended || state.id !== this.iteration) {
                 return undefined;
             }
             if (this.overflowed) {

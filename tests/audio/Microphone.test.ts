@@ -199,6 +199,16 @@ describe("Microphone", () => {
         expect(await withTimeout(older.next())).toEqual({ done: true, value: undefined });
     });
 
+    it("ends a waiting read when its iteration is returned", async () => {
+        at16k();
+        const frames = (await open({ frameMs: 10 }))[Symbol.asyncIterator]();
+        const waiting = frames.next();
+        await frames.return?.();
+        stream().record(constant(0.25));
+
+        expect(await withTimeout(waiting)).toEqual({ done: true, value: undefined });
+    });
+
     it("rejects a second read while one is waiting", async () => {
         at16k();
         const frames = (await open({ frameMs: 10 }))[Symbol.asyncIterator]();
