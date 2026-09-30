@@ -17,6 +17,6 @@ export interface VoiceFileMeasurement {
     trigger: ExpressionMeasurement.MeasurementTrigger;
     /** Expressions detected in the speech, such as `joy`, `anger` and `chuckling`, in descending order of probability. Scores with equal probability are ordered by the model's underlying score, then by name. Only expressions judged present are included, each against a threshold set for that expression, so the array may be empty. `probability` is the measured chance that the expression is truly present. */
     expressions: ExpressionMeasurement.VoiceExpressionScore[];
-    /** Qualities of the voice and the audio, such as `breathy`, `fast` and `background music`, in descending order of probability. Scores with equal probability are ordered by the model's underlying score, then by name. Only scores of 0.85 or above are included, so the array may be empty. */
+    /** Qualities of the voice and the audio, such as `husky`, `fast` and `background music`, in descending order of probability. Scores with equal probability are ordered by the model's underlying score, then by name. Only scores of 0.725 or above are included, and `nasal` and `breathy` are never included, so the array may be empty. `probability` is calibrated: the expected intensity a human rater would give the quality. */
     voiceAttributes: ExpressionMeasurement.VoiceAttributeScore[];
 }
