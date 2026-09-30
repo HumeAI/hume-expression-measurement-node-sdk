@@ -203,6 +203,108 @@ function topExpression(result: ExpressionMeasurement.VoiceMeasurementResult): st
 | `error` | yes | yes | A rejected frame or a failed session, with a `code` and whether it is `retryable`. |
 | `session.closed` | yes | yes | The last message. States why the session ended and totals what was received and produced. |
 
+## Audio helpers
+
+`@humeai/expression-measurement-node/audio` records from a microphone, reads WAV files, and converts audio at any sample rate from 1 kHz and any channel count into frames for the realtime voice endpoint. The WAV reader and the resampler are written in TypeScript and need nothing beyond this package.
+
+### Microphone
+
+`Microphone` records through [decibri](https://www.npmjs.com/package/decibri), an optional peer dependency. Install it alongside the SDK:
+
+```bash
+npm install decibri
+```
+
+decibri is licensed under the Apache License 2.0. Its platform packages include ONNX Runtime, licensed under MIT, which accounts for most of their size, about 40 MB on macOS. decibri provides native addons for Windows and Linux (glibc) on x64 and arm64 and for macOS on arm64. On Linux it also needs the ALSA library: `sudo apt-get install libasound2t64` on Ubuntu 24.04, Debian 13 and later, or `sudo apt-get install libasound2` on earlier releases of Debian and Ubuntu. If decibri is missing or cannot load, `Microphone.open()` throws a `MissingDependencyError` whose message says what to install.
+
+`Microphone.open()` records from the default input device, or the one you pass as `device`, and yields 100 ms frames ready to send. This example records for 10 seconds while printing measurements as they arrive, then closes the session.
+
+```typescript
+import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
+import { Microphone } from "@humeai/expression-measurement-node/audio";
+
+const client = new ExpressionMeasurementClient();
+
+// Opening the microphone first means a missing or busy device fails before a session starts.
+const microphone = await Microphone.open();
+try {
+    const socket = await client.voice.connect({ reconnectAttempts: 0 });
+    socket.on("message", (message) => {
+        switch (message.type) {
+            case "measurement.result": {
+                const top = message.expressions
+                    .slice(0, 3)
+                    .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
+                    .join(", ");
+                console.log(`utterance ${message.utteranceId}, ${message.audioStartMs} to ${message.audioEndMs} ms: ${top}`);
+                break;
+            }
+            case "error":
+                console.error(`${message.code}: ${message.message}`);
+                break;
+            case "session.closed":
+                socket.close();
+                break;
+        }
+    });
+    await socket.waitForOpen();
+
+    console.log(`Recording from ${microphone.deviceName} for 10 seconds`);
+    let framesSent = 0;
+    for await (const frame of microphone) {
+        socket.sendAudioFrame(frame);
+        framesSent++;
+        // 100 frames of 100 ms is 10 seconds.
+        if (framesSent === 100) {
+            break;
+        }
+    }
+    socket.sendVoiceSessionClose({ type: "session.close" });
+} finally {
+    await microphone.close();
+}
+```
+
+The device records at its own sample rate, and the SDK converts its audio to 16 kHz mono. Each `for await` yields only audio recorded after it starts, so a push-to-talk loop that starts a new `for await` for each press never sends audio recorded between presses. If the loop body is too slow and more than 10 seconds of audio builds up, the loop throws. An unknown device, or a name that matches several devices, throws an error that lists the available input devices. On macOS, the first recording asks permission for the terminal or app running Node; if access is denied, recording fails or records silence.
+
+### WAV files
+
+`iterWavFrames` reads 8, 16, 24, or 32-bit integer and 32 or 64-bit floating-point WAV at any sample rate from 1 kHz and any channel count and yields 100 ms frames. It replaces the file loop in the [realtime quickstart](#quickstart-realtime):
+
+```typescript
+import { iterWavFrames } from "@humeai/expression-measurement-node/audio";
+
+await socket.waitForOpen();
+for await (const frame of iterWavFrames("recording.wav")) {
+    socket.sendAudioFrame(frame);
+}
+socket.sendVoiceSessionClose({ type: "session.close" });
+```
+
+Frames are produced as fast as the file is read, so pace the sends for a file longer than 30 seconds. Compressed WAV files make iteration throw an error with an ffmpeg command that converts them.
+
+### Other sources
+
+`Resampler` converts a stream you already have, block by block. Pass each block to `process`, then call `flush` after the last one. Blocks can be bytes, as an `ArrayBuffer`, `Uint8Array`, or `Buffer`, which are read as little-endian and may end partway through a sample frame, or an `Int16Array`, `Float32Array`, or `Float64Array` that matches `sampleFormat`. Channels are averaged to mono.
+
+At input rates other than 16 kHz, the resampler holds back a little audio as filter history, 4 ms at input rates above 16 kHz and up to 64 ms at 1 kHz, so `process` can return an empty result for a short block. The endpoint rejects empty frames, so check before sending. It also rejects frames longer than 10 seconds, so pass a long recording in blocks of about 100 ms rather than in one call, and pace the sends for a recording longer than 30 seconds.
+
+```typescript
+import { Resampler } from "@humeai/expression-measurement-node/audio";
+
+const resampler = new Resampler({ sampleRate: 48000, channels: 2, sampleFormat: "int16" });
+for await (const block of blocks) {
+    const pcm = resampler.process(block);
+    if (pcm.length > 0) {
+        socket.sendAudioFrame(pcm);
+    }
+}
+const rest = resampler.flush();
+if (rest.length > 0) {
+    socket.sendAudioFrame(rest);
+}
+```
+
 ## Scores
 
 Every measurement is a list of scores, each pairing a `name` with a `probability` from 0 to 1 that the expression or quality is present. Scores are sorted by descending probability, and only those judged present are returned, so arrays vary in length and may be empty. Voice results carry `expressions`, each filtered against a threshold set for that expression, and `voiceAttributes`, which include only scores of 0.85 or above. Face results carry `expressions` and `descriptions` for each face, which include only scores above 0.1. [Scores](https://dev.hume.ai/docs/expression-measurement/scores) explains how to read them.
