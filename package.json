@@ -67,6 +67,17 @@
             },
             "default": "./dist/cjs/api/resources/runs/exports.js"
         },
+        "./audio": {
+            "import": {
+                "types": "./dist/esm/audio/index.d.mts",
+                "default": "./dist/esm/audio/index.mjs"
+            },
+            "require": {
+                "types": "./dist/cjs/audio/index.d.ts",
+                "default": "./dist/cjs/audio/index.js"
+            },
+            "default": "./dist/cjs/audio/index.js"
+        },
         "./package.json": "./package.json"
     },
     "files": [

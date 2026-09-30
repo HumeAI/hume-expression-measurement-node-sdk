@@ -203,6 +203,32 @@ function topExpression(result: ExpressionMeasurement.VoiceMeasurementResult): st
 | `error` | yes | yes | A rejected frame or a failed session, with a `code` and whether it is `retryable`. |
 | `session.closed` | yes | yes | The last message. States why the session ended and totals what was received and produced. |
 
+## Audio helpers
+
+`@humeai/expression-measurement-node/audio` converts audio at any sample rate from 1 kHz and any channel count into frames for the realtime voice endpoint. It is written in TypeScript and installs nothing beyond this package.
+
+### Resampler
+
+`Resampler` converts a stream you already have, block by block. Pass each block to `process`, then call `flush` after the last one. Blocks can be bytes, as an `ArrayBuffer`, `Uint8Array`, or `Buffer`, which are read as little-endian and may end partway through a sample frame, or an `Int16Array`, `Float32Array`, or `Float64Array` that matches `sampleFormat`. Channels are averaged to mono.
+
+The resampler holds back a little audio as filter history, 4 ms at input rates of 16 kHz and above and up to 64 ms at 1 kHz, so `process` can return an empty result for a short block. The endpoint rejects empty frames, so check before sending. It also rejects frames longer than 10 seconds, so pass a long recording in blocks of about 100 ms rather than in one call, and pace the sends for a recording longer than 30 seconds.
+
+```typescript
+import { Resampler } from "@humeai/expression-measurement-node/audio";
+
+const resampler = new Resampler({ sampleRate: 48000, channels: 2, sampleFormat: "int16" });
+for await (const block of blocks) {
+    const pcm = resampler.process(block);
+    if (pcm.length > 0) {
+        socket.sendAudioFrame(pcm);
+    }
+}
+const rest = resampler.flush();
+if (rest.length > 0) {
+    socket.sendAudioFrame(rest);
+}
+```
+
 ## Scores
 
 Every measurement is a list of scores, each pairing a `name` with a `probability` from 0 to 1 that the expression or quality is present. Scores are sorted by descending probability, and only those judged present are returned, so arrays vary in length and may be empty. Voice results carry `expressions`, each filtered against a threshold set for that expression, and `voiceAttributes`, which include only scores of 0.85 or above. Face results carry `expressions` and `descriptions` for each face, which include only scores above 0.1. [Scores](https://dev.hume.ai/docs/expression-measurement/scores) explains how to read them.
