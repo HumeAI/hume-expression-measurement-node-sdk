@@ -248,9 +248,11 @@ function besselI0(x: number): number {
     return sum;
 }
 
-// Resamples a mono stream to 16 kHz. Output sample k sits at input position k * step, so each output
-// depends only on the input around that position and a stream converts to the same samples however
-// it is split into blocks.
+// Resamples a mono stream to 16 kHz. Output sample k sits at input position k * step and sums the
+// input within the kernel's reach of that position. Each block adds its part to the outputs it
+// reaches, so between blocks the filter keeps only the sums of outputs still waiting for input, and
+// its memory does not grow with the input rate. The terms of each output are added in input order,
+// so a stream converts to the same samples however it is split into blocks.
 class Filter {
     private readonly kernel: Float64Array = getKernel();
     // Input samples per output sample.
@@ -259,9 +261,9 @@ class Filter {
     private readonly scale: number;
     // How many input samples either side of an output sample the kernel reaches.
     private readonly reach: number;
-    // Input from absolute sample index `historyStart` on, kept while an unproduced output needs it.
-    private history: Float64Array = new Float64Array(0);
-    private historyStart = 0;
+    // The sum for output k is at index k % length. Long enough for every output from `produced`
+    // to the last one the input has reached.
+    private readonly sums: Float64Array;
     private received = 0;
     private produced = 0;
 
@@ -269,21 +271,33 @@ class Filter {
         this.step = sampleRate / SAMPLE_RATE;
         this.scale = Math.min(1, SAMPLE_RATE / sampleRate);
         this.reach = HALF_WIDTH / this.scale;
+        this.sums = new Float64Array(Math.ceil((2 * this.reach) / this.step) + 4);
     }
 
     public push(samples: Float64Array): Float64Array {
-        const keepFrom = Math.max(this.historyStart, Math.ceil(this.produced * this.step - this.reach));
-        const kept = this.history.subarray(keepFrom - this.historyStart);
-        this.history = new Float64Array(kept.length + samples.length);
-        this.history.set(kept);
-        this.history.set(samples, kept.length);
-        this.historyStart = keepFrom;
+        const start = this.received;
         this.received += samples.length;
         const outputs: number[] = [];
-        // An output is ready once the input reaches past the far edge of its kernel.
-        while (this.produced * this.step + this.reach < this.received) {
-            outputs.push(this.output(this.produced));
-            this.produced++;
+        for (let k = this.produced; ; k++) {
+            const position = k * this.step;
+            const first = Math.max(Math.ceil(position - this.reach), start);
+            const last = Math.min(Math.floor(position + this.reach), this.received - 1);
+            if (first > last) {
+                break;
+            }
+            const slot = k % this.sums.length;
+            let sum = this.sums[slot];
+            for (let n = first; n <= last; n++) {
+                const offset = Math.abs(position - n) * this.scale * TABLE_STEPS;
+                const i = Math.floor(offset);
+                const weight = this.kernel[i] + (this.kernel[i + 1] - this.kernel[i]) * (offset - i);
+                sum += samples[n - start] * weight;
+            }
+            this.sums[slot] = sum;
+            // An output is ready once the input reaches past the far edge of its kernel.
+            if (position + this.reach < this.received) {
+                outputs.push(this.take());
+            }
         }
         return Float64Array.from(outputs);
     }
@@ -295,28 +309,20 @@ class Filter {
         const total = Math.round(this.received / this.step);
         const outputs: number[] = [];
         while (this.produced < total) {
-            outputs.push(this.output(this.produced));
-            this.produced++;
+            outputs.push(this.take());
         }
-        this.history = new Float64Array(0);
-        this.historyStart = 0;
+        this.sums.fill(0);
         this.received = 0;
         this.produced = 0;
         return Float64Array.from(outputs);
     }
 
-    private output(index: number): number {
-        const position = index * this.step;
-        const first = Math.max(Math.ceil(position - this.reach), 0);
-        const last = Math.min(Math.floor(position + this.reach), this.received - 1);
-        let sum = 0;
-        for (let n = first; n <= last; n++) {
-            const offset = Math.abs(position - n) * this.scale * TABLE_STEPS;
-            const i = Math.floor(offset);
-            const weight = this.kernel[i] + (this.kernel[i + 1] - this.kernel[i]) * (offset - i);
-            sum += this.history[n - this.historyStart] * weight;
-        }
-        return sum * this.scale;
+    private take(): number {
+        const slot = this.produced % this.sums.length;
+        const value = this.sums[slot] * this.scale;
+        this.sums[slot] = 0;
+        this.produced++;
+        return value;
     }
 }
 

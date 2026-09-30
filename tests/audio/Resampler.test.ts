@@ -81,14 +81,20 @@ describe("Resampler", () => {
         expect(rms(middle(out))).toBeLessThan(1e-3);
     });
 
-    it("converts a stream split into blocks to the same bytes as the whole stream", () => {
-        const audio = seededNoise(48000, 0);
-        const whole = new Resampler({ sampleRate: 48000, channels: 1, sampleFormat: "float32" });
-        const split = new Resampler({ sampleRate: 48000, channels: 1, sampleFormat: "float32" });
+    // At 1 MHz the kernel reaches 4000 input samples either side, so an output spans several blocks.
+    it.each([
+        1000, 48000, 1000000,
+    ])("converts a stream split into blocks to the same bytes as the whole stream at %i Hz", (sampleRate) => {
+        const audio = seededNoise(sampleRate / 10, 0);
+        const whole = new Resampler({ sampleRate, channels: 1, sampleFormat: "float32" });
+        const split = new Resampler({ sampleRate, channels: 1, sampleFormat: "float32" });
+        const third = Math.floor(audio.length / 3);
 
         const expected = concat(whole.process(audio), whole.flush());
         const actual = concat(
-            ...[0, 1000, 1001, 5800].map((start, i, starts) => split.process(audio.subarray(start, starts[i + 1]))),
+            ...[0, 1, 2, third, third + 1, 2 * third].map((start, i, starts) =>
+                split.process(audio.subarray(start, starts[i + 1])),
+            ),
             split.flush(),
         );
 
