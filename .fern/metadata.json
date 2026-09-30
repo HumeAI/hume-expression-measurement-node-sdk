@@ -7,9 +7,9 @@
         "generateWebSocketClients": true,
         "noSerdeLayer": false
     },
-    "originGitCommit": "cc7c75156bef9b0d0f4539ec86fb92ca85f91738",
+    "originGitCommit": "275dd741595a083ec0787a6f8f8aacb1bc480707",
     "originGitCommitIsDirty": false,
     "invokedBy": "ci",
     "ciProvider": "github",
-    "sdkVersion": "0.0.118"
+    "sdkVersion": "0.0.119"
 }
