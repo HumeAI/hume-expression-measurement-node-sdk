@@ -5,11 +5,34 @@
     "generatorConfig": {
         "namespaceExport": "ExpressionMeasurement",
         "generateWebSocketClients": true,
-        "noSerdeLayer": false
+        "noSerdeLayer": false,
+        "extraPeerDependencies": {
+            "decibri": "^5.7.0"
+        },
+        "extraPeerDependenciesMeta": {
+            "decibri": {
+                "optional": true
+            }
+        },
+        "packageJson": {
+            "exports": {
+                "./audio": {
+                    "import": {
+                        "types": "./dist/esm/audio/index.d.mts",
+                        "default": "./dist/esm/audio/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/audio/index.d.ts",
+                        "default": "./dist/cjs/audio/index.js"
+                    },
+                    "default": "./dist/cjs/audio/index.js"
+                }
+            }
+        }
     },
-    "originGitCommit": "275dd741595a083ec0787a6f8f8aacb1bc480707",
+    "originGitCommit": "8fb4a98170c9f335ebd6d1b54e9c251a47f8dfb3",
     "originGitCommitIsDirty": false,
     "invokedBy": "ci",
     "ciProvider": "github",
-    "sdkVersion": "0.0.119"
+    "sdkVersion": "0.0.127"
 }

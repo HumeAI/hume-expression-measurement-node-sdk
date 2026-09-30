@@ -1,6 +1,6 @@
 {
     "name": "@humeai/expression-measurement-node",
-    "version": "0.0.119",
+    "version": "0.0.127",
     "private": false,
     "repository": {
         "type": "git",
@@ -67,7 +67,18 @@
             },
             "default": "./dist/cjs/api/resources/runs/exports.js"
         },
-        "./package.json": "./package.json"
+        "./package.json": "./package.json",
+        "./audio": {
+            "import": {
+                "types": "./dist/esm/audio/index.d.mts",
+                "default": "./dist/esm/audio/index.mjs"
+            },
+            "require": {
+                "types": "./dist/cjs/audio/index.d.ts",
+                "default": "./dist/cjs/audio/index.js"
+            },
+            "default": "./dist/cjs/audio/index.js"
+        }
     },
     "files": [
         "dist",
@@ -91,6 +102,14 @@
     },
     "dependencies": {
         "ws": "^8.20.0"
+    },
+    "peerDependencies": {
+        "decibri": "^5.7.0"
+    },
+    "peerDependenciesMeta": {
+        "decibri": {
+            "optional": true
+        }
     },
     "devDependencies": {
         "webpack": "^5.105.4",
