@@ -4,3 +4,4 @@
 // 16-bit little-endian PCM, mono, 16 kHz.
 
 export { Resampler, type SampleFormat } from "./Resampler.js";
+export { iterWavFrames } from "./wav.js";

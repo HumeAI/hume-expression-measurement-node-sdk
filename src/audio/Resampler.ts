@@ -276,10 +276,13 @@ class Filter {
         return Float64Array.from(outputs);
     }
 
-    // Produces every output that falls within the input, reading silence past its end, and resets.
+    // Produces the rest of the stream, reading silence past the end of the input, and resets. The
+    // stream's length is rounded to the nearest output sample, so input shorter than half an output
+    // sample converts to nothing.
     public finish(): Float64Array {
+        const total = Math.round(this.received / this.step);
         const outputs: number[] = [];
-        while (this.produced * this.step < this.received) {
+        while (this.produced < total) {
             outputs.push(this.output(this.produced));
             this.produced++;
         }

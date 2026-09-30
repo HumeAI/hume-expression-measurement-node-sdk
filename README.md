@@ -205,9 +205,25 @@ function topExpression(result: ExpressionMeasurement.VoiceMeasurementResult): st
 
 ## Audio helpers
 
-`@humeai/expression-measurement-node/audio` converts audio at any sample rate from 1 kHz and any channel count into frames for the realtime voice endpoint. It is written in TypeScript and installs nothing beyond this package.
+`@humeai/expression-measurement-node/audio` reads WAV files and converts audio at any sample rate from 1 kHz and any channel count into frames for the realtime voice endpoint. It is written in TypeScript and installs nothing beyond this package.
 
-### Resampler
+### WAV files
+
+`iterWavFrames` reads 8, 16, 24, or 32-bit integer and 32 or 64-bit floating-point WAV at any sample rate from 1 kHz and any channel count and yields 100 ms frames. It replaces the file loop in the [realtime quickstart](#quickstart-realtime):
+
+```typescript
+import { iterWavFrames } from "@humeai/expression-measurement-node/audio";
+
+await socket.waitForOpen();
+for await (const frame of iterWavFrames("recording.wav")) {
+    socket.sendAudioFrame(frame);
+}
+socket.sendVoiceSessionClose({ type: "session.close" });
+```
+
+Frames are produced as fast as the file is read, so pace the sends for a file longer than 30 seconds. Compressed WAV files make iteration throw an error with an ffmpeg command that converts them.
+
+### Other sources
 
 `Resampler` converts a stream you already have, block by block. Pass each block to `process`, then call `flush` after the last one. Blocks can be bytes, as an `ArrayBuffer`, `Uint8Array`, or `Buffer`, which are read as little-endian and may end partway through a sample frame, or an `Int16Array`, `Float32Array`, or `Float64Array` that matches `sampleFormat`. Channels are averaged to mono.
 
