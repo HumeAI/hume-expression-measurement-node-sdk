@@ -92,9 +92,11 @@ interface Iteration {
  * any earlier one. A running loop yields everything recorded while its body runs, including while
  * it waits, so a push-to-talk loop that skips the audio between presses starts a new `for await`
  * for each press. After `close`, a loop that is still running yields the rest of the audio and
- * then ends. If the recording stops on its own before then, for example because the device was
- * disconnected, the loop throws. The loop also throws if more than 10 seconds of recorded audio
- * builds up waiting for it, and the waiting audio is discarded.
+ * then ends. If the recording stops on its own before then, which some audio systems do when the
+ * device is disconnected, the loop throws. Others stop delivering audio without reporting it, as
+ * macOS does when a Bluetooth device switches off, and the loop then waits until `close`. To bound
+ * a recording, call `close` from a timer. The loop also throws if more than 10 seconds of recorded
+ * audio builds up waiting for it, and the waiting audio is discarded.
  *
  * On macOS the first recording triggers a permission prompt for the terminal or app running Node.
  * If access is denied, recording fails or records silence.
