@@ -67,8 +67,8 @@ export function normalizeClientOptions<T extends BaseClientOptions = BaseClientO
         {
             "X-Fern-Language": "JavaScript",
             "X-Fern-SDK-Name": "@humeai/expression-measurement-node",
-            "X-Fern-SDK-Version": "0.0.113",
-            "User-Agent": "@humeai/expression-measurement-node/0.0.113",
+            "X-Fern-SDK-Version": "0.0.118",
+            "User-Agent": "@humeai/expression-measurement-node/0.0.118",
             "X-Fern-Runtime": core.RUNTIME.type,
             "X-Fern-Runtime-Version": core.RUNTIME.version,
         },
