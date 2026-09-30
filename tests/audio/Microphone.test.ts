@@ -267,6 +267,20 @@ describe("Microphone", () => {
         );
     });
 
+    it("throws when the stream stops on its own even if the microphone is closed afterward", async () => {
+        at16k();
+        const mic = await open({ frameMs: 10 });
+        const frames = mic[Symbol.asyncIterator]();
+        stream().record(constant(0.25));
+        stream().fail(new Error("decibri: audio device error: The device is no longer available"));
+        await mic.close();
+
+        expect(await nextFrame(frames)).toEqual(pcm(0.25));
+        await expect(withTimeout(frames.next())).rejects.toThrow(
+            "The audio stream from Built-in Microphone stopped, for example because the device was disconnected.",
+        );
+    });
+
     it("throws when more than 10 seconds of audio builds up", async () => {
         at16k();
         const mic = await open({ frameMs: 10 });

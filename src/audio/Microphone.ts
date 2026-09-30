@@ -131,6 +131,8 @@ export class Microphone implements AsyncIterable<Uint8Array> {
     // decibri's count reads 0 once the recording stops, so the highest value seen is kept.
     private overruns = 0;
     private finished = false;
+    // Set only when `close` stops the recording, so a recording that stopped on its own still makes
+    // the loop throw if `close` is called afterward.
     private closing = false;
     private stopError: Error | undefined;
     private waiters: Array<() => void> = [];
@@ -204,14 +206,14 @@ export class Microphone implements AsyncIterable<Uint8Array> {
 
     /**
      * Stops recording. A `for await` loop that is still running yields the audio recorded before
-     * this call and then ends.
+     * this call and then ends. If the recording had already stopped on its own, the loop throws
+     * instead of ending.
      *
      * @throws {Error} decibri failed to stop. The recording is released either way.
      */
     public async close(): Promise<void> {
-        const recording = !this.finished && !this.closing;
-        this.closing = true;
-        if (recording) {
+        if (!this.finished && !this.closing) {
+            this.closing = true;
             this.countOverruns();
             try {
                 this.source.stop();
