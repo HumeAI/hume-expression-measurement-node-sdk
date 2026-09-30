@@ -103,6 +103,14 @@
     "dependencies": {
         "ws": "^8.20.0"
     },
+    "peerDependencies": {
+        "decibri": "^5.7.0"
+    },
+    "peerDependenciesMeta": {
+        "decibri": {
+            "optional": true
+        }
+    },
     "devDependencies": {
         "webpack": "^5.105.4",
         "ts-loader": "^9.5.4",

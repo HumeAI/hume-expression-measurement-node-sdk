@@ -205,7 +205,67 @@ function topExpression(result: ExpressionMeasurement.VoiceMeasurementResult): st
 
 ## Audio helpers
 
-`@humeai/expression-measurement-node/audio` reads WAV files and converts audio at any sample rate from 1 kHz and any channel count into frames for the realtime voice endpoint. It is written in TypeScript and installs nothing beyond this package.
+`@humeai/expression-measurement-node/audio` records from a microphone, reads WAV files, and converts audio at any sample rate from 1 kHz and any channel count into frames for the realtime voice endpoint. The WAV reader and the resampler are written in TypeScript and need nothing beyond this package.
+
+### Microphone
+
+`Microphone` records through [decibri](https://www.npmjs.com/package/decibri), an optional peer dependency. Install it alongside the SDK:
+
+```bash
+npm install decibri
+```
+
+decibri is licensed under the Apache License 2.0. Its platform packages include ONNX Runtime, licensed under MIT, which accounts for most of their size, about 40 MB on macOS. decibri provides native addons for Windows and Linux (glibc) on x64 and arm64 and for macOS on arm64. On Linux it also needs the ALSA library, for example `sudo apt-get install libasound2` on Debian and Ubuntu. If decibri is missing or cannot load, `Microphone.open()` throws a `MissingDependencyError` whose message says what to install.
+
+`Microphone.open()` records from the default input device, or the one you pass as `device`, and yields 100 ms frames ready to send. This example records for 10 seconds while printing measurements as they arrive, then closes the session.
+
+```typescript
+import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
+import { Microphone } from "@humeai/expression-measurement-node/audio";
+
+const client = new ExpressionMeasurementClient();
+
+// Opening the microphone first means a missing or busy device fails before a session starts.
+const microphone = await Microphone.open();
+try {
+    const socket = await client.voice.connect({ reconnectAttempts: 0 });
+    socket.on("message", (message) => {
+        switch (message.type) {
+            case "measurement.result": {
+                const top = message.expressions
+                    .slice(0, 3)
+                    .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
+                    .join(", ");
+                console.log(`utterance ${message.utteranceId}, ${message.audioStartMs} to ${message.audioEndMs} ms: ${top}`);
+                break;
+            }
+            case "error":
+                console.error(`${message.code}: ${message.message}`);
+                break;
+            case "session.closed":
+                socket.close();
+                break;
+        }
+    });
+    await socket.waitForOpen();
+
+    console.log(`Recording from ${microphone.deviceName} for 10 seconds`);
+    let framesSent = 0;
+    for await (const frame of microphone) {
+        socket.sendAudioFrame(frame);
+        framesSent++;
+        // 100 frames of 100 ms is 10 seconds.
+        if (framesSent === 100) {
+            break;
+        }
+    }
+    socket.sendVoiceSessionClose({ type: "session.close" });
+} finally {
+    await microphone.close();
+}
+```
+
+The device records at its own sample rate, and the SDK converts its audio to 16 kHz mono. Each `for await` yields only audio recorded after it starts, so a push-to-talk loop that starts a new `for await` for each press never sends audio recorded between presses. If the loop body is too slow and more than 10 seconds of audio builds up, the loop throws. An unknown device, or a name that matches several devices, throws an error that lists the available input devices. On macOS, the first recording asks permission for the terminal or app running Node; if access is denied, recording fails or records silence.
 
 ### WAV files
 

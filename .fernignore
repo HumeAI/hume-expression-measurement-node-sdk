@@ -5,3 +5,4 @@ README.md
 .gitattributes
 src/audio
 tests/audio
+tests/__mocks__/decibri.ts
