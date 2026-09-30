@@ -65,6 +65,7 @@ export class FakeStream extends EventEmitter {
     // Ends the stream the way decibri does when the device fails.
     public fail(error: Error): void {
         this.destroyed = true;
+        this.overrunCount = 0;
         this.emit("error", error);
         this.emit("close");
     }
@@ -74,6 +75,8 @@ export class FakeStream extends EventEmitter {
             throw fake.failOnStop;
         }
         this.stopped = true;
+        // decibri releases the stream its count lives on.
+        this.overrunCount = 0;
         setImmediate(() => {
             this.emit("end");
             this.emit("close");

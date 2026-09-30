@@ -306,6 +306,26 @@ describe("Microphone", () => {
 
         expect([await nextFrame(frames), await nextFrame(frames)]).toEqual([pcm(0.25), pcm(0.5)]);
         expect(mic.inputOverflows).toBe(1);
+        await mic.close();
+        expect(mic.inputOverflows).toBe(1);
+    });
+
+    it("counts audio decibri discarded after the last block it delivered", async () => {
+        const mic = await open();
+        stream().record(constant(0.25));
+        stream().overrunCount = 2;
+        await mic.close();
+
+        expect(mic.inputOverflows).toBe(2);
+    });
+
+    it("keeps the count of discarded audio after the device fails", async () => {
+        const mic = await open();
+        stream().overrunCount = 3;
+        stream().record(constant(0.25));
+        stream().fail(new Error("decibri: audio device error: The device is no longer available"));
+
+        expect(mic.inputOverflows).toBe(3);
     });
 
     it.each([

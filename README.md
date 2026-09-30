@@ -215,7 +215,7 @@ function topExpression(result: ExpressionMeasurement.VoiceMeasurementResult): st
 npm install decibri
 ```
 
-decibri is licensed under the Apache License 2.0. Its platform packages include ONNX Runtime, licensed under MIT, which accounts for most of their size, about 40 MB on macOS. decibri provides native addons for Windows and Linux (glibc) on x64 and arm64 and for macOS on arm64. On Linux it also needs the ALSA library, for example `sudo apt-get install libasound2` on Debian and Ubuntu. If decibri is missing or cannot load, `Microphone.open()` throws a `MissingDependencyError` whose message says what to install.
+decibri is licensed under the Apache License 2.0. Its platform packages include ONNX Runtime, licensed under MIT, which accounts for most of their size, about 40 MB on macOS. decibri provides native addons for Windows and Linux (glibc) on x64 and arm64 and for macOS on arm64. On Linux it also needs the ALSA library: `sudo apt-get install libasound2t64` on Ubuntu 24.04, Debian 13 and later, or `sudo apt-get install libasound2` on earlier releases of Debian and Ubuntu. If decibri is missing or cannot load, `Microphone.open()` throws a `MissingDependencyError` whose message says what to install.
 
 `Microphone.open()` records from the default input device, or the one you pass as `device`, and yields 100 ms frames ready to send. This example records for 10 seconds while printing measurements as they arrive, then closes the session.
 
@@ -287,7 +287,7 @@ Frames are produced as fast as the file is read, so pace the sends for a file lo
 
 `Resampler` converts a stream you already have, block by block. Pass each block to `process`, then call `flush` after the last one. Blocks can be bytes, as an `ArrayBuffer`, `Uint8Array`, or `Buffer`, which are read as little-endian and may end partway through a sample frame, or an `Int16Array`, `Float32Array`, or `Float64Array` that matches `sampleFormat`. Channels are averaged to mono.
 
-The resampler holds back a little audio as filter history, 4 ms at input rates of 16 kHz and above and up to 64 ms at 1 kHz, so `process` can return an empty result for a short block. The endpoint rejects empty frames, so check before sending. It also rejects frames longer than 10 seconds, so pass a long recording in blocks of about 100 ms rather than in one call, and pace the sends for a recording longer than 30 seconds.
+At input rates other than 16 kHz, the resampler holds back a little audio as filter history, 4 ms at input rates above 16 kHz and up to 64 ms at 1 kHz, so `process` can return an empty result for a short block. The endpoint rejects empty frames, so check before sending. It also rejects frames longer than 10 seconds, so pass a long recording in blocks of about 100 ms rather than in one call, and pace the sends for a recording longer than 30 seconds.
 
 ```typescript
 import { Resampler } from "@humeai/expression-measurement-node/audio";

@@ -58,6 +58,7 @@ interface Format {
  *
  * @param path Path to the WAV file. A named pipe works too.
  *
+ * @throws {TypeError} frameMs is not an integer.
  * @throws {RangeError} frameMs is out of range.
  * @throws {Error} From iteration, if the file is not a WAV file this reader supports, such as a
  * compressed or RF64 file. Convert other files first, for example with

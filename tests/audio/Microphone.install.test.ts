@@ -36,7 +36,7 @@ describe("Microphone without a working decibri", () => {
 
         await expect(openMicrophone()).rejects.toMatchObject({
             name: "MissingDependencyError",
-            message: expect.stringContaining("sudo apt-get install libasound2"),
+            message: expect.stringContaining("sudo apt-get install libasound2t64"),
         });
     });
 

@@ -60,6 +60,11 @@ export class Resampler {
     private pending: Uint8Array = EMPTY_BYTES;
     private readonly filter: Filter | undefined;
 
+    /**
+     * @throws {TypeError} sampleRate is not a number, channels is not an integer, or sampleFormat is
+     * not one of the supported formats.
+     * @throws {RangeError} sampleRate or channels is out of range.
+     */
     constructor({ sampleRate, channels, sampleFormat = "int16" }: Resampler.Options) {
         if (typeof sampleRate !== "number") {
             throw new TypeError(`sampleRate must be a number, got ${describe(sampleRate)}.`);
@@ -90,13 +95,19 @@ export class Resampler {
      * as little-endian and may end partway through a sample frame. An `Int16Array`, `Float32Array`
      * or `Float64Array` must match `sampleFormat` and hold whole frames.
      *
-     * @returns Signed 16-bit little-endian PCM, mono, 16 kHz. The resampler holds back 64 samples at
-     * the lower of the input rate and 16 kHz as filter history: 4 ms at input rates of 16 kHz and
-     * above, 8 ms at 8 kHz, and 64 ms at 1 kHz. The result can therefore be shorter than the input
-     * or empty. The realtime voice endpoint rejects empty frames and frames longer than 10 seconds,
+     * @returns Signed 16-bit little-endian PCM, mono, 16 kHz. At input rates other than 16 kHz, the
+     * resampler holds back 64 samples at the lower of the input rate and 16 kHz as filter history:
+     * 4 ms at input rates above 16 kHz, 8 ms at 8 kHz, and 64 ms at 1 kHz. Audio at 16 kHz is not
+     * held back. The result can therefore be shorter than the input or empty. The realtime voice endpoint rejects empty frames and frames longer than 10 seconds,
      * so check the result before sending it, and pass a long recording in blocks of about 100 ms
      * rather than in one call. The endpoint accepts the first 30 seconds of audio at once and then
      * 2 seconds of audio per second, so pace the sends for a longer recording.
+     *
+     * @throws {TypeError} audio is not one of the accepted types, or is an array that does not
+     * match `sampleFormat`.
+     * @throws {RangeError} audio is an array that does not hold whole frames.
+     * @throws {Error} audio is an array, but the previous block of bytes ended partway through a
+     * sample frame.
      */
     public process(audio: ArrayBuffer | Uint8Array | Int16Array | Float32Array | Float64Array): Uint8Array {
         const mono = this.toMono(audio);

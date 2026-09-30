@@ -22,7 +22,8 @@ const INSTALL_COMMAND = "npm install decibri";
 const NATIVE_ADDON_MISSING =
     "decibri is installed, but its native addon for this platform could not be loaded. decibri provides " +
     "one for Windows and Linux (glibc) on x64 and arm64 and for macOS on arm64. On Linux, the addon also " +
-    "needs the ALSA library, for example `sudo apt-get install libasound2` on Debian or Ubuntu. On a " +
+    "needs the ALSA library: `sudo apt-get install libasound2t64` on Ubuntu 24.04, Debian 13 and later, " +
+    "or `sudo apt-get install libasound2` on earlier releases of Debian and Ubuntu. On a " +
     "supported platform, reinstall decibri with optional dependencies enabled.";
 
 // decibri keeps delivering audio when the loop falls behind, so the audio waiting for it needs a cap.
@@ -125,6 +126,8 @@ export class Microphone implements AsyncIterable<Uint8Array> {
     private blocks: Uint8Array[] = [];
     private backlog = 0;
     private overflowed = false;
+    // decibri's count reads 0 once the recording stops, so the highest value seen is kept.
+    private overruns = 0;
     private finished = false;
     private closing = false;
     private stopError: Error | undefined;
@@ -157,6 +160,7 @@ export class Microphone implements AsyncIterable<Uint8Array> {
      *
      * @throws {MissingDependencyError} decibri is not installed, or its native addon cannot load on
      * this platform.
+     * @throws {TypeError} frameMs is not an integer.
      * @throws {RangeError} frameMs is out of range.
      * @throws {Error} The device does not exist, or its name matches more than one device. The
      * message lists the available input devices. The device list is read on every call, so a
@@ -186,12 +190,14 @@ export class Microphone implements AsyncIterable<Uint8Array> {
     }
 
     /**
-     * Number of blocks of audio decibri discarded since the microphone opened because its capture
-     * thread fell behind, which can happen when the computer is busy. Gaps the operating system's
-     * audio system causes are not counted. The frames do not show where a gap was.
+     * Number of blocks of audio decibri dropped since the microphone opened because its thread that
+     * passes audio from the device to Node fell behind, which can happen when the computer is busy.
+     * A slow `for await` loop does not cause these drops. Gaps the operating system's audio system
+     * causes are not counted. The frames do not show where a gap was. The count keeps its value
+     * after `close`.
      */
     public get inputOverflows(): number {
-        return this.source.overrunCount;
+        return this.countOverruns();
     }
 
     /**
@@ -204,6 +210,7 @@ export class Microphone implements AsyncIterable<Uint8Array> {
         const recording = !this.finished && !this.closing;
         this.closing = true;
         if (recording) {
+            this.countOverruns();
             try {
                 this.source.stop();
             } catch (error) {
@@ -313,6 +320,7 @@ export class Microphone implements AsyncIterable<Uint8Array> {
     }
 
     private onData(chunk: Uint8Array): void {
+        this.countOverruns();
         if (this.overflowed) {
             return;
         }
@@ -327,6 +335,11 @@ export class Microphone implements AsyncIterable<Uint8Array> {
             this.backlog += samples;
         }
         this.wake();
+    }
+
+    private countOverruns(): number {
+        this.overruns = Math.max(this.overruns, this.source.overrunCount);
+        return this.overruns;
     }
 
     private onClose(): void {
