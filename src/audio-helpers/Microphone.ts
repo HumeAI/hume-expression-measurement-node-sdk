@@ -102,7 +102,7 @@ interface Iteration {
  * If access is denied, recording fails or records silence.
  *
  * @example
- * import { Microphone } from "@humeai/expression-measurement-node/audio";
+ * import { Microphone } from "@humeai/expression-measurement-node/audio-helpers";
  *
  * const microphone = await Microphone.open();
  * try {

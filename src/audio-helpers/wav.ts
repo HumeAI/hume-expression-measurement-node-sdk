@@ -65,7 +65,7 @@ interface Format {
  * `ffmpeg -i input.wav -ac 1 -ar 16000 -sample_fmt s16 output.wav`.
  *
  * @example
- * import { iterWavFrames } from "@humeai/expression-measurement-node/audio";
+ * import { iterWavFrames } from "@humeai/expression-measurement-node/audio-helpers";
  *
  * for await (const frame of iterWavFrames("speech.wav")) {
  *     socket.sendAudioFrame(frame);

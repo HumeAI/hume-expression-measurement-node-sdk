@@ -1,6 +1,6 @@
 // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
 
-import { Microphone } from "../../src/audio/index";
+import { Microphone } from "../../src/audio-helpers/index";
 import { type FakeDevice, type FakeStream, fake } from "../__mocks__/decibri";
 
 vi.mock("decibri");

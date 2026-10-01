@@ -3,7 +3,7 @@
 // Each test loads the audio helpers anew, so each sees decibri installed or broken its own way.
 
 async function openMicrophone(): Promise<unknown> {
-    const { Microphone } = await import("../../src/audio/index");
+    const { Microphone } = await import("../../src/audio-helpers/index");
     return Microphone.open();
 }
 

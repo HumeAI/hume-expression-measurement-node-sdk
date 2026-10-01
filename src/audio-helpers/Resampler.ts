@@ -38,7 +38,7 @@ const EMPTY_BYTES = new Uint8Array(0);
  * Channels are averaged to mono before resampling. The result is rounded and clipped to 16 bits.
  *
  * @example
- * import { Resampler } from "@humeai/expression-measurement-node/audio";
+ * import { Resampler } from "@humeai/expression-measurement-node/audio-helpers";
  *
  * const resampler = new Resampler({ sampleRate: 48000, channels: 2 });
  * for await (const block of blocks) {

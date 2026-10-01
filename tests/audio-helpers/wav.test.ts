@@ -5,7 +5,7 @@ import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs";
 import { writeFile } from "fs/promises";
 import { tmpdir } from "os";
 import { join } from "path";
-import { iterWavFrames } from "../../src/audio/index";
+import { iterWavFrames } from "../../src/audio-helpers/index";
 
 interface WavOptions {
     tag: number;
