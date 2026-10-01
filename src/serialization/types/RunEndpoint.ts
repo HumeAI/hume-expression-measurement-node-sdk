@@ -5,8 +5,8 @@ import * as core from "../../core/index.js";
 import type * as serializers from "../index.js";
 
 export const RunEndpoint: core.serialization.Schema<serializers.RunEndpoint.Raw, ExpressionMeasurement.RunEndpoint> =
-    core.serialization.enum_(["voice", "face"]);
+    core.serialization.enum_(["audio", "video"]);
 
 export declare namespace RunEndpoint {
-    export type Raw = "voice" | "face";
+    export type Raw = "audio" | "video";
 }

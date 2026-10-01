@@ -1,6 +1,6 @@
 # Reference
-## voice
-<details><summary><code>client.voice.<a href="/src/api/resources/voice/client/Client.ts">measure</a>({ ...params }) -> ExpressionMeasurement.VoiceFileResponse</code></summary>
+## audio
+<details><summary><code>client.audio.<a href="/src/api/resources/audio/client/Client.ts">measure</a>({ ...params }) -> ExpressionMeasurement.AudioFileResponse</code></summary>
 <dl>
 <dd>
 
@@ -44,7 +44,7 @@ A request over the size limit is rejected with `audio_too_long`. Audio in MP3, F
 <dd>
 
 ```typescript
-await client.voice.measure({
+await client.audio.measure({
     file: fs.createReadStream("/path/to/your/file")
 });
 
@@ -62,7 +62,7 @@ await client.voice.measure({
 <dl>
 <dd>
 
-**request:** `ExpressionMeasurement.VoiceFileUpload` 
+**request:** `ExpressionMeasurement.AudioFileUpload` 
     
 </dd>
 </dl>
@@ -70,7 +70,7 @@ await client.voice.measure({
 <dl>
 <dd>
 
-**requestOptions:** `VoiceClient.RequestOptions` 
+**requestOptions:** `AudioClient.RequestOptions` 
     
 </dd>
 </dl>
@@ -82,8 +82,8 @@ await client.voice.measure({
 </dl>
 </details>
 
-## face
-<details><summary><code>client.face.<a href="/src/api/resources/face/client/Client.ts">measure</a>({ ...params }) -> ExpressionMeasurement.FaceFileResponse</code></summary>
+## video
+<details><summary><code>client.video.<a href="/src/api/resources/video/client/Client.ts">measure</a>({ ...params }) -> ExpressionMeasurement.VideoFileResponse</code></summary>
 <dl>
 <dd>
 
@@ -127,7 +127,7 @@ Before any image is measured, every image is checked: one that is not a JPEG, or
 <dd>
 
 ```typescript
-await client.face.measure({
+await client.video.measure({
     file: [fs.createReadStream("/path/to/your/file")]
 });
 
@@ -145,7 +145,7 @@ await client.face.measure({
 <dl>
 <dd>
 
-**request:** `ExpressionMeasurement.FaceFileUpload` 
+**request:** `ExpressionMeasurement.VideoFileUpload` 
     
 </dd>
 </dl>
@@ -153,7 +153,7 @@ await client.face.measure({
 <dl>
 <dd>
 
-**requestOptions:** `FaceClient.RequestOptions` 
+**requestOptions:** `VideoClient.RequestOptions` 
     
 </dd>
 </dl>
@@ -306,7 +306,7 @@ await client.runs.get({
 <dl>
 <dd>
 
-The problems the run reported, in order: frames it rejected and failures it hit. A run that went well has none. Only realtime sessions record them, except `video_recording_abandoned`, which a face file run can also record.
+The problems the run reported, in order: frames it rejected and failures it hit. A run that went well has none. Only realtime sessions record them, except `video_recording_abandoned`, which a video file run can also record.
 </dd>
 </dl>
 </dd>

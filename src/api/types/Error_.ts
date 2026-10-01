@@ -10,6 +10,6 @@ export interface Error_ {
     code: ExpressionMeasurement.ErrorCode;
     /** A human-readable description of the error, intended for logging and debugging. The wording may change; use `code` for programmatic handling. */
     message: string;
-    /** `false` for every error that ends the session. `true` for every error the session survives, except `internal_error` on the face endpoint, where it reports whether the failure was temporary and the frame is worth resending. */
+    /** `false` for every error that ends the session. `true` for every error the session survives, except `internal_error` on the video endpoint, where it reports whether the failure was temporary and the frame is worth resending. */
     retryable: boolean;
 }

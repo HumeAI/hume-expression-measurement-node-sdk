@@ -5,4 +5,4 @@ import type * as ExpressionMeasurement from "../index.js";
 /**
  * The configuration the run ran under, including defaults for any settings the request did not set.
  */
-export type RunConfig = ExpressionMeasurement.VoiceRunConfig | ExpressionMeasurement.FaceRunConfig;
+export type RunConfig = ExpressionMeasurement.AudioRunConfig | ExpressionMeasurement.VideoRunConfig;

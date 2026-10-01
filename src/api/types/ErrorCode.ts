@@ -5,20 +5,20 @@
  *
  * **Recoverable.** The message is rejected and the session continues.
  *
- * - `invalid_audio_frame`: the audio frame was empty, had an odd number of bytes, or held more than 10 seconds of audio. Check how you slice audio and keep sending. Voice only.
- * - `invalid_image_frame`: the frame was empty, was not a JPEG, or exceeded the pixel limit. Check the image and keep sending. Face only.
+ * - `invalid_audio_frame`: the audio frame was empty, had an odd number of bytes, or held more than 10 seconds of audio. Check how you slice audio and keep sending. Audio only.
+ * - `invalid_image_frame`: the frame was empty, was not a JPEG, or exceeded the pixel limit. Check the image and keep sending. Video only.
  * - `message_invalid`: a text message was not valid JSON, had no `type`, or had an unrecognized `type`. Correct the message and keep sending.
- * - `rate_limited`: media arrived faster than the send rate and was not processed. Voice: wait briefly and send the same frame again, so that the stream stays continuous. Face: from a live camera, drop the frame and send the next; from a recording, wait briefly and send the same frame again.
- * - `overloaded`: the server is at capacity and did not process the frame. From a live camera, drop the frame and send the next; from a recording, wait briefly and send the same frame again. Face only.
+ * - `rate_limited`: media arrived faster than the send rate and was not processed. Audio: wait briefly and send the same frame again, so that the stream stays continuous. Video: from a live camera, drop the frame and send the next; from a recording, wait briefly and send the same frame again.
+ * - `overloaded`: the server is at capacity and did not process the frame. From a live camera, drop the frame and send the next; from a recording, wait briefly and send the same frame again. Video only.
  *
  * **Depends on the endpoint.**
  *
- * - `internal_error`: the server failed while processing media. Voice: the session ends as for a session-ending error; open a new connection. Face: the frame is skipped and the session continues; resend it if you need a result for it. Five consecutive failures end the session; frames that are rejected or have no faces to measure do not reset the count.
+ * - `internal_error`: the server failed while processing media. Audio: the session ends as for a session-ending error; open a new connection. Video: the frame is skipped and the session continues; resend it if you need a result for it. Five consecutive failures end the session; frames that are rejected or have no faces to measure do not reset the count.
  *
  * **Session-ending.** `error` is followed by `session.closed` with `reason` `error`, and the connection closes with code 1008.
  *
  * - `config_invalid`: a `session.update` contained an unrecognized field or an unsupported value, or arrived after you started sending media. Correct the message and open a new connection.
- * - `message_too_large`: a message exceeded the size limit. Reduce the frame size and open a new connection. Face only.
+ * - `message_too_large`: a message exceeded the size limit. Reduce the frame size and open a new connection. Video only.
  */
 export const ErrorCode = {
     InvalidAudioFrame: "invalid_audio_frame",

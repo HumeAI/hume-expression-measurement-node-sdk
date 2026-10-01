@@ -7,10 +7,10 @@
  *
  * **`400 Bad Request`**, something in the request needs correcting.
  *
- * - `message_invalid`: the multipart body could not be read, is missing its `file` part, or carries a part with another name. Voice takes exactly one `file` part; face takes one or more. File endpoints only.
+ * - `message_invalid`: the multipart body could not be read, is missing its `file` part, or carries a part with another name. Audio takes exactly one `file` part; video takes one or more. File endpoints only.
  * - `config_invalid`: the `config` part is not valid JSON, names a field the endpoint does not recognize, holds a value outside its range, or appears more than once. File endpoints only.
- * - `audio_decode_failed`: the audio could not be decoded: a WAV file that is truncated or malformed, or at another sample rate, channel count or sample format, or with the extensible WAV header, or a file that is empty or is not a whole number of 16-bit samples. Voice only.
- * - `image_decode_failed`: an image could not be decoded. Face only.
+ * - `audio_decode_failed`: the audio could not be decoded: a WAV file that is truncated or malformed, or at another sample rate, channel count or sample format, or with the extensible WAV header, or a file that is empty or is not a whole number of 16-bit samples. Audio only.
+ * - `image_decode_failed`: an image could not be decoded. Video only.
  * - `invalid_request`: a query parameter has a value the endpoint does not accept, or `cursor` is not one the endpoint issued. Run endpoints only.
  *
  * **`403 Forbidden`**
@@ -27,8 +27,8 @@
  *
  * **`413 Content Too Large`**, the request exceeds a size limit.
  *
- * - `audio_too_long`: the request body is over the size limit. Voice only.
- * - `image_too_large`: the request body or one image is over the size limit, or an image has more pixels than the endpoint accepts. Face only.
+ * - `audio_too_long`: the request body is over the size limit. Audio only.
+ * - `image_too_large`: the request body or one image is over the size limit, or an image has more pixels than the endpoint accepts. Video only.
  *
  * **`415 Unsupported Media Type`**, the media is in a format the endpoint does not accept.
  *
