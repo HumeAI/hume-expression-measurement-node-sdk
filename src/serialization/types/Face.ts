@@ -4,16 +4,16 @@ import type * as ExpressionMeasurement from "../../api/index.js";
 import * as core from "../../core/index.js";
 import type * as serializers from "../index.js";
 import { BoundingBox } from "./BoundingBox.js";
-import { FaceDescriptionScore } from "./FaceDescriptionScore.js";
-import { FaceExpressionScore } from "./FaceExpressionScore.js";
+import { VideoDescriptionScore } from "./VideoDescriptionScore.js";
+import { VideoExpressionScore } from "./VideoExpressionScore.js";
 
 export const Face: core.serialization.ObjectSchema<serializers.Face.Raw, ExpressionMeasurement.Face> =
     core.serialization.object({
         faceId: core.serialization.property("face_id", core.serialization.number()),
         bbox: BoundingBox,
         confidence: core.serialization.number(),
-        expressions: core.serialization.list(FaceExpressionScore),
-        descriptions: core.serialization.list(FaceDescriptionScore),
+        expressions: core.serialization.list(VideoExpressionScore),
+        descriptions: core.serialization.list(VideoDescriptionScore),
     });
 
 export declare namespace Face {
@@ -21,7 +21,7 @@ export declare namespace Face {
         face_id: number;
         bbox: BoundingBox.Raw;
         confidence: number;
-        expressions: FaceExpressionScore.Raw[];
-        descriptions: FaceDescriptionScore.Raw[];
+        expressions: VideoExpressionScore.Raw[];
+        descriptions: VideoDescriptionScore.Raw[];
     }
 }

@@ -12,7 +12,7 @@ export interface Face {
     /** Confidence that the bounding box contains a face. Always at or above the configured `threshold`. Unrelated to the expression scores. */
     confidence: number;
     /** Expressions detected on the face, such as `amusement`, `interest` and `surprise (positive)`, in descending order of probability, then by name. Only scores above 0.1 are included, so the array may be empty. `probability` is the chance a human rater would name the expression for this face, independently for each expression. */
-    expressions: ExpressionMeasurement.FaceExpressionScore[];
+    expressions: ExpressionMeasurement.VideoExpressionScore[];
     /** Visible facial actions, such as `smile`, `jaw drop` and `wide-eyed`, in descending order of probability, then by name. Only scores above 0.1 are included, so the array may be empty. */
-    descriptions: ExpressionMeasurement.FaceDescriptionScore[];
+    descriptions: ExpressionMeasurement.VideoDescriptionScore[];
 }

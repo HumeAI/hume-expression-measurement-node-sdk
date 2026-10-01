@@ -1,4 +1,4 @@
-export * from "./face/client/socket/index.js";
-export * as face from "./face/index.js";
-export * from "./voice/client/socket/index.js";
-export * as voice from "./voice/index.js";
+export * from "./audio/client/socket/index.js";
+export * as audio from "./audio/index.js";
+export * from "./video/client/socket/index.js";
+export * as video from "./video/index.js";

@@ -3,12 +3,12 @@
 import type * as ExpressionMeasurement from "../../api/index.js";
 import * as core from "../../core/index.js";
 import type * as serializers from "../index.js";
-import { FaceRunConfig } from "./FaceRunConfig.js";
-import { VoiceRunConfig } from "./VoiceRunConfig.js";
+import { AudioRunConfig } from "./AudioRunConfig.js";
+import { VideoRunConfig } from "./VideoRunConfig.js";
 
 export const RunConfig: core.serialization.Schema<serializers.RunConfig.Raw, ExpressionMeasurement.RunConfig> =
-    core.serialization.undiscriminatedUnion([VoiceRunConfig, FaceRunConfig]);
+    core.serialization.undiscriminatedUnion([AudioRunConfig, VideoRunConfig]);
 
 export declare namespace RunConfig {
-    export type Raw = VoiceRunConfig.Raw | FaceRunConfig.Raw;
+    export type Raw = AudioRunConfig.Raw | VideoRunConfig.Raw;
 }
