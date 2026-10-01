@@ -90,25 +90,42 @@ generations:
     cli_version: unknown
     generator_versions:
       fernapi/fern-typescript-sdk: 3.97.1
-current_generation: 7bdfe06c4ec2381d3142b7fadbb5a7520f4dd05c
+  - commit_sha: 2ad3f27635b20bb25e9dde6de55453d70a70e696
+    tree_hash: 02e17478df1a32440cbe5cc256e9e312a5b7621d
+    timestamp: 2026-10-01T20:24:18.047Z
+    cli_version: unknown
+    generator_versions:
+      fernapi/fern-typescript-sdk: 3.97.1
+current_generation: 2ad3f27635b20bb25e9dde6de55453d70a70e696
 patches:
   - id: patch-62342be9
-    content_hash: sha256:781163e17974ad952015fb2b56b33047ba3ffb16a5805a566f7add618a458ba6
+    content_hash: sha256:bb476b314efb9311e75dbd0d32f092b5c7f44e287ca730c48bc4d9dc0dab74a8
     original_commit: 62342be9abcd1d674f31509854cd6ff37a0b8477
     original_message: add a TypeScript Resampler under the audio subpath that converts any PCM stream to 16 kHz mono s16le for the realtime voice endpoint
     original_author: zach <zachary.greathouse@hume.ai>
-    base_generation: 7bdfe06c4ec2381d3142b7fadbb5a7520f4dd05c
+    base_generation: 2ad3f27635b20bb25e9dde6de55453d70a70e696
     files:
       - package.json
     patch_content: |
       diff --git a/package.json b/package.json
-      index aca6c16..30354ff 100644
+      index 44dc123..8f26058 100644
       --- a/package.json
       +++ b/package.json
-      @@ -67,6 +67,17 @@
+      @@ -67,6 +67,28 @@
                    },
                    "default": "./dist/cjs/api/resources/runs/exports.js"
                },
+      +        "./audio-helpers": {
+      +            "import": {
+      +                "types": "./dist/esm/audio-helpers/index.d.mts",
+      +                "default": "./dist/esm/audio-helpers/index.mjs"
+      +            },
+      +            "require": {
+      +                "types": "./dist/cjs/audio-helpers/index.d.ts",
+      +                "default": "./dist/cjs/audio-helpers/index.js"
+      +            },
+      +            "default": "./dist/cjs/audio-helpers/index.js"
+      +        },
       +        "./audio": {
       +            "import": {
       +                "types": "./dist/esm/audio/index.d.mts",
@@ -120,14 +137,14 @@ patches:
       +            },
       +            "default": "./dist/cjs/audio/index.js"
       +        },
-               "./package.json": "./package.json"
-           },
-           "files": [
+               "./package.json": "./package.json",
+               "./audio-helpers": {
+                   "import": {
     theirs_snapshot:
       package.json: |
         {
             "name": "@humeai/expression-measurement-node",
-            "version": "0.0.129",
+            "version": "0.0.132",
             "private": false,
             "repository": {
                 "type": "git",
@@ -163,14 +180,14 @@ patches:
                 },
                 "./audio": {
                     "import": {
-                        "types": "./dist/esm/audio/index.d.mts",
-                        "default": "./dist/esm/audio/index.mjs"
+                        "types": "./dist/esm/api/resources/audio/exports.d.mts",
+                        "default": "./dist/esm/api/resources/audio/exports.mjs"
                     },
                     "require": {
-                        "types": "./dist/cjs/audio/index.d.ts",
-                        "default": "./dist/cjs/audio/index.js"
+                        "types": "./dist/cjs/api/resources/audio/exports.d.ts",
+                        "default": "./dist/cjs/api/resources/audio/exports.js"
                     },
-                    "default": "./dist/cjs/audio/index.js"
+                    "default": "./dist/cjs/api/resources/audio/exports.js"
                 },
                 "./video": {
                     "import": {
@@ -194,6 +211,17 @@ patches:
                     },
                     "default": "./dist/cjs/api/resources/runs/exports.js"
                 },
+                "./audio-helpers": {
+                    "import": {
+                        "types": "./dist/esm/audio-helpers/index.d.mts",
+                        "default": "./dist/esm/audio-helpers/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/audio-helpers/index.d.ts",
+                        "default": "./dist/cjs/audio-helpers/index.js"
+                    },
+                    "default": "./dist/cjs/audio-helpers/index.js"
+                },
                 "./audio": {
                     "import": {
                         "types": "./dist/esm/audio/index.d.mts",
@@ -205,7 +233,18 @@ patches:
                     },
                     "default": "./dist/cjs/audio/index.js"
                 },
-                "./package.json": "./package.json"
+                "./package.json": "./package.json",
+                "./audio-helpers": {
+                    "import": {
+                        "types": "./dist/esm/audio-helpers/index.d.mts",
+                        "default": "./dist/esm/audio-helpers/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/audio-helpers/index.d.ts",
+                        "default": "./dist/cjs/audio-helpers/index.js"
+                    },
+                    "default": "./dist/cjs/audio-helpers/index.js"
+                }
             },
             "files": [
                 "dist",
@@ -261,24 +300,36 @@ patches:
             },
             "sideEffects": false
         }
+    user_owned: true
   - id: patch-dfd5138f
-    content_hash: sha256:305fb5141e9bcdb6547aba06088ff7d88b9830f65a81c1c902046c6b9f1ed006
+    content_hash: sha256:bffa724550091c52e2310879b9fe632cd0eba718eacfc08fcfd65d2e4ae82c23
     original_commit: dfd5138f5af7141fb21cb2855ab3bc90e252144d
     original_message: add a Microphone that records through the optional decibri peer dependency and yields 16 kHz frames, with MissingDependencyError for a missing or unloadable decibri
     original_author: zach <zachary.greathouse@hume.ai>
-    base_generation: 7bdfe06c4ec2381d3142b7fadbb5a7520f4dd05c
+    base_generation: 2ad3f27635b20bb25e9dde6de55453d70a70e696
     files:
       - package.json
       - pnpm-lock.yaml
     patch_content: |
       diff --git a/package.json b/package.json
-      index aca6c16..30354ff 100644
+      index 44dc123..8f26058 100644
       --- a/package.json
       +++ b/package.json
-      @@ -67,6 +67,17 @@
+      @@ -67,6 +67,28 @@
                    },
                    "default": "./dist/cjs/api/resources/runs/exports.js"
                },
+      +        "./audio-helpers": {
+      +            "import": {
+      +                "types": "./dist/esm/audio-helpers/index.d.mts",
+      +                "default": "./dist/esm/audio-helpers/index.mjs"
+      +            },
+      +            "require": {
+      +                "types": "./dist/cjs/audio-helpers/index.d.ts",
+      +                "default": "./dist/cjs/audio-helpers/index.js"
+      +            },
+      +            "default": "./dist/cjs/audio-helpers/index.js"
+      +        },
       +        "./audio": {
       +            "import": {
       +                "types": "./dist/esm/audio/index.d.mts",
@@ -290,9 +341,9 @@ patches:
       +            },
       +            "default": "./dist/cjs/audio/index.js"
       +        },
-               "./package.json": "./package.json"
-           },
-           "files": [
+               "./package.json": "./package.json",
+               "./audio-helpers": {
+                   "import": {
       diff --git a/pnpm-lock.yaml b/pnpm-lock.yaml
       index 50c1873..e7d9d03 100644
       --- a/pnpm-lock.yaml
@@ -701,7 +752,7 @@ patches:
       package.json: |
         {
             "name": "@humeai/expression-measurement-node",
-            "version": "0.0.129",
+            "version": "0.0.132",
             "private": false,
             "repository": {
                 "type": "git",
@@ -737,14 +788,14 @@ patches:
                 },
                 "./audio": {
                     "import": {
-                        "types": "./dist/esm/audio/index.d.mts",
-                        "default": "./dist/esm/audio/index.mjs"
+                        "types": "./dist/esm/api/resources/audio/exports.d.mts",
+                        "default": "./dist/esm/api/resources/audio/exports.mjs"
                     },
                     "require": {
-                        "types": "./dist/cjs/audio/index.d.ts",
-                        "default": "./dist/cjs/audio/index.js"
+                        "types": "./dist/cjs/api/resources/audio/exports.d.ts",
+                        "default": "./dist/cjs/api/resources/audio/exports.js"
                     },
-                    "default": "./dist/cjs/audio/index.js"
+                    "default": "./dist/cjs/api/resources/audio/exports.js"
                 },
                 "./video": {
                     "import": {
@@ -768,6 +819,17 @@ patches:
                     },
                     "default": "./dist/cjs/api/resources/runs/exports.js"
                 },
+                "./audio-helpers": {
+                    "import": {
+                        "types": "./dist/esm/audio-helpers/index.d.mts",
+                        "default": "./dist/esm/audio-helpers/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/audio-helpers/index.d.ts",
+                        "default": "./dist/cjs/audio-helpers/index.js"
+                    },
+                    "default": "./dist/cjs/audio-helpers/index.js"
+                },
                 "./audio": {
                     "import": {
                         "types": "./dist/esm/audio/index.d.mts",
@@ -779,7 +841,18 @@ patches:
                     },
                     "default": "./dist/cjs/audio/index.js"
                 },
-                "./package.json": "./package.json"
+                "./package.json": "./package.json",
+                "./audio-helpers": {
+                    "import": {
+                        "types": "./dist/esm/audio-helpers/index.d.mts",
+                        "default": "./dist/esm/audio-helpers/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/audio-helpers/index.d.ts",
+                        "default": "./dist/cjs/audio-helpers/index.js"
+                    },
+                    "default": "./dist/cjs/audio-helpers/index.js"
+                }
             },
             "files": [
                 "dist",
@@ -2691,3 +2764,2447 @@ patches:
               yargs-parser: 21.1.1
 
           yoctocolors-cjs@2.1.3: {}
+    user_owned: true
+  - id: patch-c90d46b8
+    content_hash: sha256:bb476b314efb9311e75dbd0d32f092b5c7f44e287ca730c48bc4d9dc0dab74a8
+    original_commit: c90d46b8afc1f6863959c434aa6fde7dd93ff44a
+    original_message: move the hand-written audio helpers to the audio-helpers subpath so the generated audio resource can own the ./audio export
+    original_author: zach <zachary.greathouse@hume.ai>
+    base_generation: 2ad3f27635b20bb25e9dde6de55453d70a70e696
+    files:
+      - package.json
+      - src/audio-helpers/Microphone.ts
+      - src/audio-helpers/MissingDependencyError.ts
+      - src/audio-helpers/Resampler.ts
+      - src/audio-helpers/index.ts
+      - src/audio-helpers/pcm.ts
+      - src/audio-helpers/wav.ts
+      - tests/audio-helpers/Microphone.install.test.ts
+      - tests/audio-helpers/Microphone.test.ts
+      - tests/audio-helpers/Resampler.test.ts
+      - tests/audio-helpers/wav.test.ts
+    patch_content: |
+      diff --git a/package.json b/package.json
+      index 44dc123..8f26058 100644
+      --- a/package.json
+      +++ b/package.json
+      @@ -67,6 +67,28 @@
+                   },
+                   "default": "./dist/cjs/api/resources/runs/exports.js"
+               },
+      +        "./audio-helpers": {
+      +            "import": {
+      +                "types": "./dist/esm/audio-helpers/index.d.mts",
+      +                "default": "./dist/esm/audio-helpers/index.mjs"
+      +            },
+      +            "require": {
+      +                "types": "./dist/cjs/audio-helpers/index.d.ts",
+      +                "default": "./dist/cjs/audio-helpers/index.js"
+      +            },
+      +            "default": "./dist/cjs/audio-helpers/index.js"
+      +        },
+      +        "./audio": {
+      +            "import": {
+      +                "types": "./dist/esm/audio/index.d.mts",
+      +                "default": "./dist/esm/audio/index.mjs"
+      +            },
+      +            "require": {
+      +                "types": "./dist/cjs/audio/index.d.ts",
+      +                "default": "./dist/cjs/audio/index.js"
+      +            },
+      +            "default": "./dist/cjs/audio/index.js"
+      +        },
+               "./package.json": "./package.json",
+               "./audio-helpers": {
+                   "import": {
+    theirs_snapshot:
+      package.json: |
+        {
+            "name": "@humeai/expression-measurement-node",
+            "version": "0.0.132",
+            "private": false,
+            "repository": {
+                "type": "git",
+                "url": "git+https://github.com/HumeAI/hume-expression-measurement-node-sdk.git"
+            },
+            "license": "MIT",
+            "type": "commonjs",
+            "main": "./dist/cjs/index.js",
+            "module": "./dist/esm/index.mjs",
+            "types": "./dist/cjs/index.d.ts",
+            "exports": {
+                ".": {
+                    "import": {
+                        "types": "./dist/esm/index.d.mts",
+                        "default": "./dist/esm/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/index.d.ts",
+                        "default": "./dist/cjs/index.js"
+                    },
+                    "default": "./dist/cjs/index.js"
+                },
+                "./serialization": {
+                    "import": {
+                        "types": "./dist/esm/serialization/index.d.mts",
+                        "default": "./dist/esm/serialization/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/serialization/index.d.ts",
+                        "default": "./dist/cjs/serialization/index.js"
+                    },
+                    "default": "./dist/cjs/serialization/index.js"
+                },
+                "./audio": {
+                    "import": {
+                        "types": "./dist/esm/api/resources/audio/exports.d.mts",
+                        "default": "./dist/esm/api/resources/audio/exports.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/api/resources/audio/exports.d.ts",
+                        "default": "./dist/cjs/api/resources/audio/exports.js"
+                    },
+                    "default": "./dist/cjs/api/resources/audio/exports.js"
+                },
+                "./video": {
+                    "import": {
+                        "types": "./dist/esm/api/resources/video/exports.d.mts",
+                        "default": "./dist/esm/api/resources/video/exports.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/api/resources/video/exports.d.ts",
+                        "default": "./dist/cjs/api/resources/video/exports.js"
+                    },
+                    "default": "./dist/cjs/api/resources/video/exports.js"
+                },
+                "./runs": {
+                    "import": {
+                        "types": "./dist/esm/api/resources/runs/exports.d.mts",
+                        "default": "./dist/esm/api/resources/runs/exports.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/api/resources/runs/exports.d.ts",
+                        "default": "./dist/cjs/api/resources/runs/exports.js"
+                    },
+                    "default": "./dist/cjs/api/resources/runs/exports.js"
+                },
+                "./audio-helpers": {
+                    "import": {
+                        "types": "./dist/esm/audio-helpers/index.d.mts",
+                        "default": "./dist/esm/audio-helpers/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/audio-helpers/index.d.ts",
+                        "default": "./dist/cjs/audio-helpers/index.js"
+                    },
+                    "default": "./dist/cjs/audio-helpers/index.js"
+                },
+                "./audio": {
+                    "import": {
+                        "types": "./dist/esm/audio/index.d.mts",
+                        "default": "./dist/esm/audio/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/audio/index.d.ts",
+                        "default": "./dist/cjs/audio/index.js"
+                    },
+                    "default": "./dist/cjs/audio/index.js"
+                },
+                "./package.json": "./package.json",
+                "./audio-helpers": {
+                    "import": {
+                        "types": "./dist/esm/audio-helpers/index.d.mts",
+                        "default": "./dist/esm/audio-helpers/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/audio-helpers/index.d.ts",
+                        "default": "./dist/cjs/audio-helpers/index.js"
+                    },
+                    "default": "./dist/cjs/audio-helpers/index.js"
+                }
+            },
+            "files": [
+                "dist",
+                "reference.md",
+                "README.md",
+                "LICENSE"
+            ],
+            "scripts": {
+                "format": "biome format --write --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "format:check": "biome format --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "lint": "biome lint --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "lint:fix": "biome lint --fix --unsafe --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "check": "biome check --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "check:fix": "biome check --fix --unsafe --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "build": "pnpm build:cjs && pnpm build:esm",
+                "build:cjs": "tsc --project ./tsconfig.cjs.json",
+                "build:esm": "tsc --project ./tsconfig.esm.json && node scripts/rename-to-esm-files.js dist/esm",
+                "test": "vitest",
+                "test:unit": "vitest --project unit",
+                "test:wire": "vitest --project wire"
+            },
+            "dependencies": {
+                "ws": "^8.20.0"
+            },
+            "peerDependencies": {
+                "decibri": "^5.7.0"
+            },
+            "peerDependenciesMeta": {
+                "decibri": {
+                    "optional": true
+                }
+            },
+            "devDependencies": {
+                "webpack": "^5.105.4",
+                "ts-loader": "^9.5.4",
+                "@types/ws": "^8.18.1",
+                "vitest": "^4.1.1",
+                "msw": "2.11.2",
+                "@types/node": "^20.0.0",
+                "typescript": "~5.9.3",
+                "@biomejs/biome": "2.4.10"
+            },
+            "browser": {
+                "fs": false,
+                "os": false,
+                "path": false,
+                "stream": false,
+                "crypto": false
+            },
+            "packageManager": "pnpm@10.33.0",
+            "engines": {
+                "node": ">=18.0.0"
+            },
+            "sideEffects": false
+        }
+      src/audio-helpers/Microphone.ts: |
+        // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
+
+        import { MissingDependencyError } from "./MissingDependencyError.js";
+        import { checkFrameMs, FrameBuffer } from "./pcm.js";
+        import { Resampler } from "./Resampler.js";
+
+        export declare namespace Microphone {
+            export interface Options {
+                /**
+                 * The input device, as an index from decibri's `Microphone.devices()` or a case-insensitive
+                 * substring of its name. A name that matches one device exactly selects it even if it is
+                 * also part of other names. The system's default input device when omitted.
+                 */
+                device?: number | string;
+                /** Duration of each frame in milliseconds, from 1 to 10000. 100 by default. */
+                frameMs?: number;
+            }
+        }
+
+        const INSTALL_COMMAND = "npm install decibri";
+
+        const NATIVE_ADDON_MISSING =
+            "decibri is installed, but its native addon for this platform could not be loaded. decibri provides " +
+            "one for Windows and Linux (glibc) on x64 and arm64 and for macOS on arm64. On Linux, the addon also " +
+            "needs the ALSA library: `sudo apt-get install libasound2t64` on Ubuntu 24.04, Debian 13 and later, " +
+            "or `sudo apt-get install libasound2` on earlier releases of Debian and Ubuntu. On a " +
+            "supported platform, reinstall decibri with optional dependencies enabled.";
+
+        // decibri keeps delivering audio when the loop falls behind, so the audio waiting for it needs a cap.
+        const MAX_BACKLOG_SECONDS = 10;
+
+        // decibri's default of 1600 frames per block is 200 ms at 8 kHz, which would delay every frame.
+        const BLOCK_SECONDS = 0.02;
+
+        // A token only `Microphone.open` holds, so the constructor cannot be called from outside this module.
+        const OPEN = Symbol("Microphone.open");
+
+        // The parts of decibri 5 this helper uses. It ships its own types, but it is an optional peer
+        // dependency, so the SDK compiles without it.
+        interface DecibriDevice {
+            index: number;
+            name: string;
+            id: string;
+            defaultSampleRate: number;
+            isDefault: boolean;
+        }
+
+        interface DecibriStream {
+            on(event: "data", listener: (chunk: Uint8Array) => void): unknown;
+            on(event: "error", listener: (error: Error) => void): unknown;
+            on(event: "close", listener: () => void): unknown;
+            stop(): void;
+            destroy(): unknown;
+            readonly overrunCount: number;
+        }
+
+        interface Decibri {
+            Microphone: {
+                devices(): DecibriDevice[];
+                open(options: {
+                    device: number | { id: string };
+                    sampleRate: number;
+                    channels: number;
+                    dtype: "float32";
+                    framesPerBuffer: number;
+                }): Promise<DecibriStream>;
+            };
+        }
+
+        interface Iteration {
+            id: number;
+            resampler: Resampler;
+            frames: FrameBuffer;
+            ready: Uint8Array[];
+            flushed: boolean;
+            reading: boolean;
+            ended: boolean;
+        }
+
+        /**
+         * Records from an input device and yields frames ready to send with `sendAudioFrame`: signed
+         * 16-bit little-endian PCM, mono, 16 kHz. Recording goes through the decibri package, an optional
+         * peer dependency: `npm install decibri`.
+         *
+         * The device is opened at its own default sample rate and converted with `Resampler`, so any
+         * microphone works whatever its native format. A device with more than one channel is recorded as
+         * the average of its channels.
+         *
+         * Open one with `Microphone.open` and close it with `close` when done.
+         *
+         * Each `for await` loop yields only audio recorded after it starts, and starting a new one ends
+         * any earlier one. A running loop yields everything recorded while its body runs, including while
+         * it waits, so a push-to-talk loop that skips the audio between presses starts a new `for await`
+         * for each press. After `close`, a loop that is still running yields the rest of the audio and
+         * then ends. If the recording stops on its own before then, which some audio systems do when the
+         * device is disconnected, the loop throws. Others stop delivering audio without reporting it, as
+         * macOS does when a Bluetooth device switches off, and the loop then waits until `close`. To bound
+         * a recording, call `close` from a timer. The loop also throws if more than 10 seconds of recorded
+         * audio builds up waiting for it, and the waiting audio is discarded.
+         *
+         * On macOS the first recording triggers a permission prompt for the terminal or app running Node.
+         * If access is denied, recording fails or records silence.
+         *
+         * @example
+         * import { Microphone } from "@humeai/expression-measurement-node/audio-helpers";
+         *
+         * const microphone = await Microphone.open();
+         * try {
+         *     for await (const frame of microphone) {
+         *         socket.sendAudioFrame(frame);
+         *     }
+         * } finally {
+         *     await microphone.close();
+         * }
+         */
+        export class Microphone implements AsyncIterable<Uint8Array> {
+            /** Name of the input device being recorded. */
+            public readonly deviceName: string;
+            /** Sample rate, in Hz, the device records at before conversion to 16 kHz. */
+            public readonly deviceSampleRate: number;
+
+            private readonly source: DecibriStream;
+            private readonly frameMs: number;
+            private readonly maxBacklog: number;
+            // Numbers each `for await`, so an earlier one can tell it was replaced.
+            private iteration = 0;
+            // Blocks of float32 samples in the order decibri delivered them.
+            private blocks: Uint8Array[] = [];
+            private backlog = 0;
+            private overflowed = false;
+            // decibri's count reads 0 once the recording stops, so the highest value seen is kept.
+            private overruns = 0;
+            private finished = false;
+            // Set only when `close` stops the recording, so a recording that stopped on its own still makes
+            // the loop throw if `close` is called afterward.
+            private closing = false;
+            private stopError: Error | undefined;
+            private waiters: Array<() => void> = [];
+            private readonly closed: Promise<void>;
+            private resolveClosed: () => void = () => {};
+
+            // Private, and guarded by a token for JavaScript callers, because a Microphone must be opened.
+            private constructor(token: symbol, source: DecibriStream, device: DecibriDevice, frameMs: number) {
+                if (token !== OPEN) {
+                    throw new TypeError("Open a Microphone with `await Microphone.open()`.");
+                }
+                this.source = source;
+                this.deviceName = device.name;
+                this.deviceSampleRate = device.defaultSampleRate;
+                this.frameMs = frameMs;
+                this.maxBacklog = device.defaultSampleRate * MAX_BACKLOG_SECONDS;
+                this.closed = new Promise((resolve) => {
+                    this.resolveClosed = resolve;
+                });
+                source.on("data", (chunk) => this.onData(chunk));
+                source.on("error", (error) => {
+                    this.stopError = error;
+                });
+                source.on("close", () => this.onClose());
+            }
+
+            /**
+             * Starts recording.
+             *
+             * @throws {MissingDependencyError} decibri is not installed, or its native addon cannot load on
+             * this platform.
+             * @throws {TypeError} frameMs is not an integer.
+             * @throws {RangeError} frameMs is out of range.
+             * @throws {Error} The device does not exist, or its name matches more than one device. The
+             * message lists the available input devices. The device list is read on every call, so a
+             * device connected since the last call is found. An error from decibri itself means the device
+             * exists but could not be opened.
+             */
+            public static async open({ device, frameMs = 100 }: Microphone.Options = {}): Promise<Microphone> {
+                checkFrameMs(frameMs);
+                const decibri = await loadDecibri();
+                const info = findInputDevice(decibri.Microphone.devices(), device);
+                const source = await decibri.Microphone.open({
+                    // A device with no stable ID can only be selected by index.
+                    device: info.id !== "" ? { id: info.id } : info.index,
+                    sampleRate: info.defaultSampleRate,
+                    channels: 1,
+                    dtype: "float32",
+                    framesPerBuffer: Math.min(Math.max(Math.round(info.defaultSampleRate * BLOCK_SECONDS), 64), 65536),
+                });
+                const microphone = new Microphone(OPEN, source, info, frameMs);
+                // decibri starts capture once a data listener is attached and reports a failure to start as
+                // an error event, which arrives before the next turn of the event loop.
+                await new Promise((resolve) => setImmediate(resolve));
+                if (microphone.finished && microphone.stopError !== undefined) {
+                    throw microphone.stopError;
+                }
+                return microphone;
+            }
+
+            /**
+             * Number of blocks of audio decibri dropped since the microphone opened because its thread that
+             * passes audio from the device to Node fell behind, which can happen when the computer is busy.
+             * A slow `for await` loop does not cause these drops. Gaps the operating system's audio system
+             * causes are not counted. The frames do not show where a gap was. The count keeps its value
+             * after `close`.
+             */
+            public get inputOverflows(): number {
+                return this.countOverruns();
+            }
+
+            /**
+             * Stops recording. A `for await` loop that is still running yields the audio recorded before
+             * this call and then ends. If the recording had already stopped on its own, the loop throws
+             * instead of ending.
+             *
+             * @throws {Error} decibri failed to stop. The recording is released either way.
+             */
+            public async close(): Promise<void> {
+                if (!this.finished && !this.closing) {
+                    this.closing = true;
+                    this.countOverruns();
+                    try {
+                        this.source.stop();
+                    } catch (error) {
+                        this.source.destroy();
+                        this.onClose();
+                        throw error;
+                    }
+                }
+                await this.closed;
+            }
+
+            public [Symbol.asyncIterator](): AsyncIterableIterator<Uint8Array> {
+                this.iteration++;
+                this.blocks = [];
+                this.backlog = 0;
+                this.overflowed = false;
+                this.wake();
+                const state: Iteration = {
+                    id: this.iteration,
+                    // A resampler or frame buffer reused from an earlier iteration would yield some of its audio first.
+                    resampler: new Resampler({ sampleRate: this.deviceSampleRate, channels: 1, sampleFormat: "float32" }),
+                    frames: new FrameBuffer(this.frameMs),
+                    ready: [],
+                    flushed: false,
+                    reading: false,
+                    ended: false,
+                };
+                const iterator: AsyncIterableIterator<Uint8Array> = {
+                    next: () => this.next(state),
+                    return: async () => {
+                        state.ended = true;
+                        this.wake();
+                        return { done: true, value: undefined };
+                    },
+                    [Symbol.asyncIterator]: () => iterator,
+                };
+                return iterator;
+            }
+
+            private async next(state: Iteration): Promise<IteratorResult<Uint8Array, undefined>> {
+                if (state.ended) {
+                    return { done: true, value: undefined };
+                }
+                if (state.reading) {
+                    throw new Error(
+                        `Another caller is already waiting for a frame from ${this.deviceName}, ` +
+                            "and only one caller at a time can read from a microphone.",
+                    );
+                }
+                state.reading = true;
+                try {
+                    const frame = await this.read(state);
+                    if (frame === undefined) {
+                        state.ended = true;
+                        return { done: true, value: undefined };
+                    }
+                    return { done: false, value: frame };
+                } catch (error) {
+                    state.ended = true;
+                    throw error;
+                } finally {
+                    state.reading = false;
+                }
+            }
+
+            private async read(state: Iteration): Promise<Uint8Array | undefined> {
+                while (true) {
+                    // Checked before every frame, so an iteration that was returned, replaced or overflowed
+                    // yields none of the frames it has already converted.
+                    if (state.ended || state.id !== this.iteration) {
+                        return undefined;
+                    }
+                    if (this.overflowed) {
+                        throw new Error(
+                            `More than ${MAX_BACKLOG_SECONDS} seconds of audio from ${this.deviceName} built up waiting ` +
+                                "for the `for await` loop, which means the loop body is too slow for live audio.",
+                        );
+                    }
+                    const frame = state.ready.shift();
+                    if (frame !== undefined) {
+                        return frame;
+                    }
+                    // Taken only once the converted frames are used up, so audio the loop has not reached
+                    // stays in the backlog and counts toward the cap.
+                    const block = this.blocks.shift();
+                    if (block !== undefined) {
+                        this.backlog -= block.length / 4;
+                        state.ready.push(...state.frames.push(state.resampler.process(block)));
+                    } else if (!this.finished) {
+                        await new Promise<void>((resolve) => this.waiters.push(resolve));
+                    } else if (!state.flushed) {
+                        state.flushed = true;
+                        state.ready.push(...state.frames.push(state.resampler.flush()));
+                        const rest = state.frames.finish();
+                        if (rest !== undefined) {
+                            state.ready.push(rest);
+                        }
+                    } else if (this.closing) {
+                        return undefined;
+                    } else {
+                        const reported = this.stopError === undefined ? "" : ` decibri reported: ${this.stopError.message}`;
+                        throw new Error(
+                            `The audio stream from ${this.deviceName} stopped, for example because the device was ` +
+                                `disconnected.${reported}`,
+                        );
+                    }
+                }
+            }
+
+            private onData(chunk: Uint8Array): void {
+                this.countOverruns();
+                if (this.overflowed) {
+                    return;
+                }
+                const samples = chunk.length / 4;
+                if (this.backlog + samples > this.maxBacklog) {
+                    // Released here, because a loop that fell behind may never read again.
+                    this.blocks = [];
+                    this.backlog = 0;
+                    this.overflowed = true;
+                } else {
+                    this.blocks.push(chunk);
+                    this.backlog += samples;
+                }
+                this.wake();
+            }
+
+            private countOverruns(): number {
+                this.overruns = Math.max(this.overruns, this.source.overrunCount);
+                return this.overruns;
+            }
+
+            private onClose(): void {
+                this.finished = true;
+                this.resolveClosed();
+                this.wake();
+            }
+
+            private wake(): void {
+                const waiters = this.waiters;
+                this.waiters = [];
+                for (const resolve of waiters) {
+                    resolve();
+                }
+            }
+        }
+
+        async function loadDecibri(): Promise<Decibri> {
+            try {
+                // The name is not a literal, so the SDK type-checks without decibri installed.
+                const name: string = "decibri";
+                return (await import(name)) as Decibri;
+            } catch (error) {
+                const code = (error as { code?: unknown }).code;
+                const message = error instanceof Error ? error.message : "";
+                if ((code === "MODULE_NOT_FOUND" || code === "ERR_MODULE_NOT_FOUND") && message.includes("'decibri'")) {
+                    throw new MissingDependencyError(
+                        `The \`decibri\` package is required to record from a microphone. Install it: ${INSTALL_COMMAND}`,
+                        error,
+                    );
+                }
+                if (message.startsWith("Cannot find native binding")) {
+                    throw new MissingDependencyError(NATIVE_ADDON_MISSING, error);
+                }
+                throw error;
+            }
+        }
+
+        function findInputDevice(devices: DecibriDevice[], device: number | string | undefined): DecibriDevice {
+            let matches: DecibriDevice[];
+            let reason: string;
+            if (device === undefined) {
+                matches = devices.filter((info) => info.isDefault);
+                reason = "There is no default input device";
+            } else if (typeof device === "number") {
+                matches = devices.filter((info) => info.index === device);
+                reason = `There is no input device with index ${device}`;
+            } else {
+                const query = device.toLowerCase();
+                const exact = devices.filter((info) => info.name.toLowerCase() === query);
+                matches = exact.length === 1 ? exact : devices.filter((info) => info.name.toLowerCase().includes(query));
+                reason =
+                    matches.length === 0
+                        ? `No input device matches ${JSON.stringify(device)}`
+                        : `${JSON.stringify(device)} matches more than one input device`;
+            }
+            if (matches.length === 1) {
+                return matches[0];
+            }
+            const available =
+                devices.length === 0
+                    ? "No input devices are available."
+                    : `Available input devices: ${devices.map((info) => `${info.index}: ${info.name}`).join("; ")}.`;
+            throw new Error(`${reason}. ${available}`);
+        }
+      src/audio-helpers/MissingDependencyError.ts: |
+        // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
+
+        /**
+         * Thrown when a package an audio helper needs is not installed or cannot load on this platform.
+         * The message says how to install what is missing.
+         */
+        export class MissingDependencyError extends Error {
+            /** The error from loading the package. */
+            public readonly cause: unknown;
+
+            constructor(message: string, cause: unknown) {
+                super(message);
+                this.name = "MissingDependencyError";
+                this.cause = cause;
+            }
+        }
+      src/audio-helpers/Resampler.ts: |
+        // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
+
+        import { checkInteger, describe, MIN_SAMPLE_RATE, SAMPLE_RATE } from "./pcm.js";
+
+        export type SampleFormat = "int16" | "float32" | "float64";
+
+        export declare namespace Resampler {
+            export interface Options {
+                /** Sample rate of the input, in Hz, at least 1000. Need not be an integer. */
+                sampleRate: number;
+                /** Number of channels in the input. */
+                channels: number;
+                /**
+                 * Encoding of the input, "int16" by default. "int16" is signed 16-bit PCM, and "float32"
+                 * and "float64" are floating point with full scale at -1.0 and 1.0.
+                 */
+                sampleFormat?: SampleFormat;
+            }
+        }
+
+        // The largest rate a WAV header can declare.
+        const MAX_SAMPLE_RATE = 2 ** 32 - 1;
+
+        const SAMPLE_FORMATS: readonly SampleFormat[] = ["int16", "float32", "float64"];
+
+        const SAMPLE_BYTES: Record<SampleFormat, number> = { int16: 2, float32: 4, float64: 8 };
+
+        const EMPTY_BYTES = new Uint8Array(0);
+
+        /**
+         * Converts PCM audio at any sample rate from 1 kHz and any channel count to the format the
+         * realtime voice endpoint accepts: signed 16-bit little-endian PCM, mono, 16 kHz.
+         *
+         * Pass successive blocks of one stream to `process`, then call `flush` once after the last block.
+         * Filter state carries over between calls, so a stream converts to the same bytes whether it
+         * arrives in one block or many. After `flush` the resampler is ready for a new stream.
+         *
+         * Channels are averaged to mono before resampling. The result is rounded and clipped to 16 bits.
+         *
+         * @example
+         * import { Resampler } from "@humeai/expression-measurement-node/audio-helpers";
+         *
+         * const resampler = new Resampler({ sampleRate: 48000, channels: 2 });
+         * for await (const block of blocks) {
+         *     const pcm = resampler.process(block);
+         *     if (pcm.length > 0) {
+         *         socket.sendAudioFrame(pcm);
+         *     }
+         * }
+         * const rest = resampler.flush();
+         * if (rest.length > 0) {
+         *     socket.sendAudioFrame(rest);
+         * }
+         */
+        export class Resampler {
+            private readonly channels: number;
+            private readonly sampleFormat: SampleFormat;
+            private readonly frameBytes: number;
+            // Bytes left over from a block that ended partway through a sample frame.
+            private pending: Uint8Array = EMPTY_BYTES;
+            private readonly filter: Filter | undefined;
+
+            /**
+             * @throws {TypeError} sampleRate is not a number, channels is not an integer, or sampleFormat is
+             * not one of the supported formats.
+             * @throws {RangeError} sampleRate or channels is out of range.
+             */
+            constructor({ sampleRate, channels, sampleFormat = "int16" }: Resampler.Options) {
+                if (typeof sampleRate !== "number") {
+                    throw new TypeError(`sampleRate must be a number, got ${describe(sampleRate)}.`);
+                }
+                // Written so that NaN fails the check.
+                if (!(sampleRate >= MIN_SAMPLE_RATE && sampleRate <= MAX_SAMPLE_RATE)) {
+                    throw new RangeError(
+                        `sampleRate must be between ${MIN_SAMPLE_RATE} and ${MAX_SAMPLE_RATE}, got ${sampleRate}.`,
+                    );
+                }
+                checkInteger("channels", channels);
+                if (channels < 1) {
+                    throw new RangeError(`channels must be at least 1, got ${channels}.`);
+                }
+                if (SAMPLE_FORMATS.indexOf(sampleFormat) === -1) {
+                    throw new TypeError(`sampleFormat must be "int16", "float32" or "float64", got ${describe(sampleFormat)}.`);
+                }
+                this.channels = channels;
+                this.sampleFormat = sampleFormat;
+                this.frameBytes = SAMPLE_BYTES[sampleFormat] * channels;
+                this.filter = sampleRate === SAMPLE_RATE ? undefined : new Filter(sampleRate);
+            }
+
+            /**
+             * Converts the next block of the stream.
+             *
+             * @param audio Interleaved PCM. Bytes, as an `ArrayBuffer`, `Uint8Array` or `Buffer`, are read
+             * as little-endian and may end partway through a sample frame. An `Int16Array`, `Float32Array`
+             * or `Float64Array` must match `sampleFormat` and hold whole frames.
+             *
+             * @returns Signed 16-bit little-endian PCM, mono, 16 kHz. At input rates other than 16 kHz, the
+             * resampler holds back 64 samples at the lower of the input rate and 16 kHz as filter history:
+             * 4 ms at input rates above 16 kHz, 8 ms at 8 kHz, and 64 ms at 1 kHz. Audio at 16 kHz is not
+             * held back. The result can therefore be shorter than the input or empty. The realtime voice
+             * endpoint rejects empty frames and frames longer than 10 seconds, so check the result before
+             * sending it, and pass a long recording in blocks of about 100 ms rather than in one call. The
+             * endpoint accepts the first 30 seconds of audio at once and then 2 seconds of audio per
+             * second, so pace the sends for a longer recording.
+             *
+             * @throws {TypeError} audio is not one of the accepted types, or is an array that does not
+             * match `sampleFormat`.
+             * @throws {RangeError} audio is an array that does not hold whole frames.
+             * @throws {Error} audio is an array, but the previous block of bytes ended partway through a
+             * sample frame.
+             */
+            public process(audio: ArrayBuffer | Uint8Array | Int16Array | Float32Array | Float64Array): Uint8Array {
+                const mono = this.toMono(audio);
+                return toPcm16(this.filter === undefined ? mono : this.filter.push(mono));
+            }
+
+            /**
+             * Converts the audio held back as filter history and ends the stream.
+             *
+             * @returns The rest of the stream as signed 16-bit little-endian PCM, mono, 16 kHz. Can be empty.
+             *
+             * @throws {Error} The input ended partway through a sample frame. The resampler is reset either way.
+             */
+            public flush(): Uint8Array {
+                const leftover = this.pending.length;
+                const rest = this.filter === undefined ? new Float64Array(0) : this.filter.finish();
+                this.pending = EMPTY_BYTES;
+                if (leftover > 0) {
+                    throw new Error(
+                        `The input ended ${leftover} bytes into a sample frame of ${this.frameBytes} bytes. ` +
+                            "Every frame holds one sample per channel.",
+                    );
+                }
+                return toPcm16(rest);
+            }
+
+            private toMono(audio: ArrayBuffer | Uint8Array | Int16Array | Float32Array | Float64Array): Float64Array {
+                if (audio instanceof Int16Array || audio instanceof Float32Array || audio instanceof Float64Array) {
+                    return this.samplesToMono(audio);
+                }
+                if (audio instanceof ArrayBuffer) {
+                    return this.bytesToMono(new Uint8Array(audio));
+                }
+                if (audio instanceof Uint8Array) {
+                    return this.bytesToMono(audio);
+                }
+                throw new TypeError(
+                    "audio must be an ArrayBuffer, Uint8Array, Buffer, Int16Array, Float32Array or Float64Array, " +
+                        `got ${describe(audio)}.`,
+                );
+            }
+
+            private samplesToMono(samples: Int16Array | Float32Array | Float64Array): Float64Array {
+                const expected = { int16: Int16Array, float32: Float32Array, float64: Float64Array }[this.sampleFormat];
+                if (!(samples instanceof expected)) {
+                    throw new TypeError(
+                        `An array passed to a Resampler with sampleFormat "${this.sampleFormat}" must be an ` +
+                            `${expected.name}, got ${samples.constructor.name}.`,
+                    );
+                }
+                if (this.pending.length > 0) {
+                    throw new Error(
+                        "The previous block of bytes ended partway through a sample frame, so the next block must be " +
+                            "bytes that complete it, not an array.",
+                    );
+                }
+                if (samples.length % this.channels !== 0) {
+                    throw new RangeError(
+                        `An array must hold whole frames of ${this.channels} samples, got ${samples.length} samples.`,
+                    );
+                }
+                const scale = this.sampleFormat === "int16" ? 1 / 32768 : 1;
+                const mono = new Float64Array(samples.length / this.channels);
+                for (let frame = 0; frame < mono.length; frame++) {
+                    let sum = 0;
+                    for (let channel = 0; channel < this.channels; channel++) {
+                        sum += samples[frame * this.channels + channel];
+                    }
+                    mono[frame] = (sum / this.channels) * scale;
+                }
+                return mono;
+            }
+
+            private bytesToMono(bytes: Uint8Array): Float64Array {
+                let data = bytes;
+                if (this.pending.length > 0) {
+                    data = new Uint8Array(this.pending.length + bytes.length);
+                    data.set(this.pending);
+                    data.set(bytes, this.pending.length);
+                }
+                const frames = Math.floor(data.length / this.frameBytes);
+                const usable = frames * this.frameBytes;
+                // Copied, because the caller may reuse its buffer for the next block.
+                this.pending = data.slice(usable);
+                const view = new DataView(data.buffer, data.byteOffset, usable);
+                const read = {
+                    int16: (offset: number) => view.getInt16(offset, true) / 32768,
+                    float32: (offset: number) => view.getFloat32(offset, true),
+                    float64: (offset: number) => view.getFloat64(offset, true),
+                }[this.sampleFormat];
+                const sampleBytes = SAMPLE_BYTES[this.sampleFormat];
+                const mono = new Float64Array(frames);
+                for (let frame = 0; frame < frames; frame++) {
+                    let sum = 0;
+                    for (let channel = 0; channel < this.channels; channel++) {
+                        sum += read(frame * this.frameBytes + channel * sampleBytes);
+                    }
+                    mono[frame] = sum / this.channels;
+                }
+                return mono;
+            }
+        }
+
+        // The filter passes frequencies up to 90% of the Nyquist frequency of the lower of the two rates
+        // and attenuates by about 100 dB from that Nyquist frequency up. The kernel is a Kaiser-windowed
+        // sinc reaching HALF_WIDTH samples of the lower rate either side of each output sample.
+        const CUTOFF = 0.95;
+        const HALF_WIDTH = 64;
+        const KAISER_BETA = 10;
+        // Kernel values per sample of the lower rate. Positions between them are interpolated linearly.
+        const TABLE_STEPS = 1024;
+
+        let kernel: Float64Array | undefined;
+
+        function getKernel(): Float64Array {
+            if (kernel === undefined) {
+                // The two extra entries are zero, so interpolation at the edge of the kernel stays in bounds.
+                kernel = new Float64Array(HALF_WIDTH * TABLE_STEPS + 2);
+                const scale = besselI0(KAISER_BETA);
+                for (let i = 0; i <= HALF_WIDTH * TABLE_STEPS; i++) {
+                    const x = i / TABLE_STEPS;
+                    const window = besselI0(KAISER_BETA * Math.sqrt(1 - (x / HALF_WIDTH) ** 2)) / scale;
+                    const sinc = i === 0 ? 1 : Math.sin(Math.PI * CUTOFF * x) / (Math.PI * CUTOFF * x);
+                    kernel[i] = CUTOFF * sinc * window;
+                }
+            }
+            return kernel;
+        }
+
+        function besselI0(x: number): number {
+            let sum = 1;
+            let term = 1;
+            for (let k = 1; term > sum * 1e-17; k++) {
+                term *= (x / (2 * k)) ** 2;
+                sum += term;
+            }
+            return sum;
+        }
+
+        // Resamples a mono stream to 16 kHz. Output sample k sits at input position k * step and sums the
+        // input within the kernel's reach of that position. Each block adds its part to the outputs it
+        // reaches, so between blocks the filter keeps only the sums of outputs still waiting for input, and
+        // its memory does not grow with the input rate. The terms of each output are added in input order,
+        // so a stream converts to the same samples however it is split into blocks.
+        class Filter {
+            private readonly kernel: Float64Array = getKernel();
+            // Input samples per output sample.
+            private readonly step: number;
+            // Converts a distance in input samples to a distance in samples of the lower rate.
+            private readonly scale: number;
+            // How many input samples either side of an output sample the kernel reaches.
+            private readonly reach: number;
+            // The sum for output k is at index k % length. Long enough for every output from `produced`
+            // to the last one the input has reached.
+            private readonly sums: Float64Array;
+            private received = 0;
+            private produced = 0;
+
+            constructor(sampleRate: number) {
+                this.step = sampleRate / SAMPLE_RATE;
+                this.scale = Math.min(1, SAMPLE_RATE / sampleRate);
+                this.reach = HALF_WIDTH / this.scale;
+                this.sums = new Float64Array(Math.ceil((2 * this.reach) / this.step) + 4);
+            }
+
+            public push(samples: Float64Array): Float64Array {
+                const start = this.received;
+                this.received += samples.length;
+                const outputs: number[] = [];
+                for (let k = this.produced; ; k++) {
+                    const position = k * this.step;
+                    const first = Math.max(Math.ceil(position - this.reach), start);
+                    const last = Math.min(Math.floor(position + this.reach), this.received - 1);
+                    if (first > last) {
+                        break;
+                    }
+                    const slot = k % this.sums.length;
+                    let sum = this.sums[slot];
+                    for (let n = first; n <= last; n++) {
+                        const offset = Math.abs(position - n) * this.scale * TABLE_STEPS;
+                        const i = Math.floor(offset);
+                        const weight = this.kernel[i] + (this.kernel[i + 1] - this.kernel[i]) * (offset - i);
+                        sum += samples[n - start] * weight;
+                    }
+                    this.sums[slot] = sum;
+                    // An output is ready once the input reaches past the far edge of its kernel.
+                    if (position + this.reach < this.received) {
+                        outputs.push(this.take());
+                    }
+                }
+                return Float64Array.from(outputs);
+            }
+
+            // Produces the rest of the stream, reading silence past the end of the input, and resets. The
+            // stream's length is rounded to the nearest output sample, so input shorter than half an output
+            // sample converts to nothing.
+            public finish(): Float64Array {
+                const total = Math.round(this.received / this.step);
+                const outputs: number[] = [];
+                while (this.produced < total) {
+                    outputs.push(this.take());
+                }
+                this.sums.fill(0);
+                this.received = 0;
+                this.produced = 0;
+                return Float64Array.from(outputs);
+            }
+
+            private take(): number {
+                const slot = this.produced % this.sums.length;
+                const value = this.sums[slot] * this.scale;
+                this.sums[slot] = 0;
+                this.produced++;
+                return value;
+            }
+        }
+
+        function toPcm16(samples: Float64Array): Uint8Array {
+            const bytes = new Uint8Array(samples.length * 2);
+            const view = new DataView(bytes.buffer);
+            for (let i = 0; i < samples.length; i++) {
+                view.setInt16(i * 2, Math.min(Math.max(roundHalfToEven(samples[i] * 32768), -32768), 32767), true);
+            }
+            return bytes;
+        }
+
+        // Halves round to even, as in the Python SDK, so both convert audio that needs no resampling to the
+        // same bytes.
+        function roundHalfToEven(value: number): number {
+            const rounded = Math.round(value);
+            return rounded - value === 0.5 && rounded % 2 !== 0 ? rounded - 1 : rounded;
+        }
+      src/audio-helpers/index.ts: |
+        // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
+
+        // Helpers that turn audio into frames for the realtime voice endpoint, which accepts only signed
+        // 16-bit little-endian PCM, mono, 16 kHz.
+
+        export { Microphone } from "./Microphone.js";
+        export { MissingDependencyError } from "./MissingDependencyError.js";
+        export { Resampler, type SampleFormat } from "./Resampler.js";
+        export { iterWavFrames } from "./wav.js";
+      src/audio-helpers/pcm.ts: |
+        // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
+
+        export const SAMPLE_RATE = 16000;
+        const BYTES_PER_MS = (SAMPLE_RATE * 2) / 1000;
+
+        // The realtime voice endpoint rejects a frame holding more than 10 seconds of audio.
+        const MAX_FRAME_MS = 10_000;
+
+        // Every input sample becomes 16000 / rate output samples, so a small WAV file declaring a rate of
+        // 1 Hz would expand into a stream thousands of times its size.
+        export const MIN_SAMPLE_RATE = 1000;
+
+        export function checkInteger(name: string, value: number): number {
+            if (!Number.isInteger(value)) {
+                throw new TypeError(`${name} must be an integer, got ${describe(value)}.`);
+            }
+            return value;
+        }
+
+        export function checkFrameMs(frameMs: number): number {
+            checkInteger("frameMs", frameMs);
+            if (frameMs < 1 || frameMs > MAX_FRAME_MS) {
+                throw new RangeError(`frameMs must be between 1 and ${MAX_FRAME_MS}, got ${frameMs}.`);
+            }
+            return frameMs;
+        }
+
+        export function describe(value: unknown): string {
+            return typeof value === "string" ? JSON.stringify(value) : String(value);
+        }
+
+        // Cuts a stream of 16 kHz mono s16le bytes into frames of a fixed duration.
+        export class FrameBuffer {
+            private readonly frameBytes: number;
+            private buffer: Uint8Array = new Uint8Array(0);
+
+            constructor(frameMs: number) {
+                this.frameBytes = checkFrameMs(frameMs) * BYTES_PER_MS;
+            }
+
+            public push(pcm: Uint8Array): Uint8Array[] {
+                const data = new Uint8Array(this.buffer.length + pcm.length);
+                data.set(this.buffer);
+                data.set(pcm, this.buffer.length);
+                const frames: Uint8Array[] = [];
+                let offset = 0;
+                while (data.length - offset >= this.frameBytes) {
+                    // Copied, so that each frame's `buffer` holds that frame alone.
+                    frames.push(data.slice(offset, offset + this.frameBytes));
+                    offset += this.frameBytes;
+                }
+                this.buffer = data.slice(offset);
+                return frames;
+            }
+
+            public finish(): Uint8Array | undefined {
+                const rest = this.buffer;
+                this.buffer = new Uint8Array(0);
+                return rest.length > 0 ? rest : undefined;
+            }
+        }
+      src/audio-helpers/wav.ts: |
+        // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
+
+        import type { FileHandle } from "fs/promises";
+        import { FrameBuffer, MIN_SAMPLE_RATE } from "./pcm.js";
+        import { Resampler } from "./Resampler.js";
+
+        export declare namespace iterWavFrames {
+            export interface Options {
+                /** Duration of each frame in milliseconds, from 1 to 10000. 100 by default. */
+                frameMs?: number;
+            }
+        }
+
+        const FFMPEG_COMMAND = "ffmpeg -i input.wav -ac 1 -ar 16000 -sample_fmt s16 output.wav";
+
+        const PCM = 0x0001;
+        const IEEE_FLOAT = 0x0003;
+        const EXTENSIBLE = 0xfffe;
+        // An extensible header's subformat GUID is the format tag it stands for followed by these bytes.
+        const SUBFORMAT_GUID_SUFFIX = [0x00, 0x00, 0x00, 0x00, 0x10, 0x00, 0x80, 0x00, 0x00, 0xaa, 0x00, 0x38, 0x9b, 0x71];
+        // Writers that cannot seek back to fill in the size, such as ffmpeg writing to a pipe, leave this.
+        const UNKNOWN_SIZE = 0xffffffff;
+        const SAMPLE_WIDTHS: Record<number, number[]> = { [PCM]: [1, 2, 3, 4], [IEEE_FLOAT]: [4, 8] };
+        const SKIP_READ_BYTES = 64 * 1024;
+        // The read size follows from the header's sample rate and channel count, so a crafted header
+        // could otherwise request an enormous read.
+        const MAX_READ_BYTES = 1024 * 1024;
+        // The extensible header is all the reader parses. The rest of a longer fmt chunk is skipped,
+        // because its size comes from the file and can be arbitrarily large.
+        const FMT_READ_BYTES = 40;
+
+        interface Format {
+            tag: number;
+            channels: number;
+            sampleRate: number;
+            sampleWidth: number;
+        }
+
+        /**
+         * Reads a WAV file and yields it as frames ready to send with `sendAudioFrame`.
+         *
+         * The audio is converted to signed 16-bit little-endian PCM, mono, 16 kHz, from any sample rate
+         * of 1 kHz or more and any channel count. Integer PCM (8, 16, 24 or 32-bit, and narrower depths
+         * such as 12 or 20-bit stored in those widths) and floating point (32 or 64-bit) are supported,
+         * with either the basic or the extensible WAV header. Every frame holds `frameMs` milliseconds of
+         * audio except the last, which holds what remains. No frame is empty.
+         *
+         * An interrupted recording is read as far as it goes: up to the last whole sample if the file
+         * ends partway through one, and to the end of the file if its header still declares an empty
+         * file, as libsndfile leaves a recording it never closed.
+         *
+         * Frames are produced as fast as the file can be read. The realtime voice endpoint accepts the
+         * first 30 seconds of audio at once and then 2 seconds of audio per second, so pace the sends
+         * for a longer file.
+         *
+         * The file is opened when iteration starts, so errors about the file itself are thrown by the
+         * first `next()` rather than by this call.
+         *
+         * @param path Path to the WAV file. A named pipe works too.
+         *
+         * @throws {TypeError} frameMs is not an integer.
+         * @throws {RangeError} frameMs is out of range.
+         * @throws {Error} From iteration, if the file is not a WAV file this reader supports, such as a
+         * compressed or RF64 file. Convert other files first, for example with
+         * `ffmpeg -i input.wav -ac 1 -ar 16000 -sample_fmt s16 output.wav`.
+         *
+         * @example
+         * import { iterWavFrames } from "@humeai/expression-measurement-node/audio-helpers";
+         *
+         * for await (const frame of iterWavFrames("speech.wav")) {
+         *     socket.sendAudioFrame(frame);
+         * }
+         */
+        export function iterWavFrames(
+            path: string | URL,
+            { frameMs = 100 }: iterWavFrames.Options = {},
+        ): AsyncGenerator<Uint8Array, void, undefined> {
+            return readFrames(path, frameMs, new FrameBuffer(frameMs));
+        }
+
+        async function* readFrames(
+            path: string | URL,
+            frameMs: number,
+            frames: FrameBuffer,
+        ): AsyncGenerator<Uint8Array, void, undefined> {
+            const fs = await import("fs");
+            const reader = await Reader.open(fs.promises, path);
+            try {
+                const [format, dataSize] = await readHeader(reader, String(path));
+                const resampler = new Resampler({
+                    sampleRate: format.sampleRate,
+                    channels: format.channels,
+                    sampleFormat: "float64",
+                });
+                const frameBytes = format.sampleWidth * format.channels;
+                const samplesPerRead = Math.min(
+                    Math.max(1, Math.floor((format.sampleRate * frameMs) / 1000)),
+                    Math.max(1, Math.floor(MAX_READ_BYTES / frameBytes)),
+                );
+                const blockBytes = samplesPerRead * frameBytes;
+                let remaining = dataSize;
+                while (true) {
+                    const data = await reader.read(remaining === undefined ? blockBytes : Math.min(blockBytes, remaining));
+                    if (remaining !== undefined) {
+                        remaining -= data.length;
+                    }
+                    const usable = data.length - (data.length % frameBytes);
+                    if (usable > 0) {
+                        yield* frames.push(resampler.process(toFloat64(data.subarray(0, usable), format)));
+                    }
+                    if (data.length < blockBytes) {
+                        break;
+                    }
+                }
+                yield* frames.push(resampler.flush());
+            } finally {
+                await reader.close();
+            }
+            const rest = frames.finish();
+            if (rest !== undefined) {
+                yield rest;
+            }
+        }
+
+        class Reader {
+            private constructor(
+                private readonly handle: FileHandle,
+                // The offset of the next read in a regular file. A pipe cannot seek, so it is read in order.
+                private position: number | undefined,
+            ) {}
+
+            public static async open(fs: typeof import("fs").promises, path: string | URL): Promise<Reader> {
+                const handle = await fs.open(path, "r");
+                try {
+                    return new Reader(handle, (await handle.stat()).isFile() ? 0 : undefined);
+                } catch (error) {
+                    await handle.close();
+                    throw error;
+                }
+            }
+
+            // Returns fewer bytes than requested only at the end of the file. A single read from a pipe can
+            // return less while more is still coming.
+            public async read(size: number): Promise<Uint8Array> {
+                const buffer = new Uint8Array(size);
+                let filled = 0;
+                while (filled < size) {
+                    const { bytesRead } = await this.handle.read(buffer, filled, size - filled, this.position ?? null);
+                    if (bytesRead === 0) {
+                        break;
+                    }
+                    filled += bytesRead;
+                    if (this.position !== undefined) {
+                        this.position += bytesRead;
+                    }
+                }
+                return buffer.subarray(0, filled);
+            }
+
+            public async skip(size: number): Promise<void> {
+                if (this.position !== undefined) {
+                    this.position += size;
+                    return;
+                }
+                // Read in pieces, so a large chunk stays out of memory.
+                let left = size;
+                while (left > 0) {
+                    const skipped = (await this.read(Math.min(left, SKIP_READ_BYTES))).length;
+                    if (skipped === 0) {
+                        return;
+                    }
+                    left -= skipped;
+                }
+            }
+
+            public close(): Promise<void> {
+                return this.handle.close();
+            }
+        }
+
+        async function readHeader(reader: Reader, path: string): Promise<[Format, number | undefined]> {
+            const riff = await reader.read(12);
+            const riffId = ascii(riff.subarray(0, 4));
+            if (riffId === "RF64") {
+                throw unsupported(path, "RF64 files are not supported");
+            }
+            if (riff.length < 12 || riffId !== "RIFF" || ascii(riff.subarray(8, 12)) !== "WAVE") {
+                throw unsupported(path, "no RIFF WAVE header");
+            }
+            const riffSize = view(riff).getUint32(4, true);
+            let offset = riff.length;
+            let format: Format | undefined;
+            while (true) {
+                const header = await reader.read(8);
+                if (header.length < 8) {
+                    throw unsupported(path, "no data chunk");
+                }
+                offset += header.length;
+                const chunkId = ascii(header.subarray(0, 4));
+                const size = view(header).getUint32(4, true);
+                if (chunkId === "data") {
+                    if (format === undefined) {
+                        throw unsupported(path, "the data chunk comes before the fmt chunk");
+                    }
+                    // Writers such as libsndfile fill in the sizes only when they close the file, so a recording
+                    // that was never closed declares no audio in a RIFF chunk that ends before it. Any other file
+                    // that declares no audio has none, including one whose RIFF size is unknown, because chunks
+                    // such as metadata can follow the data.
+                    const unclosed = size === 0 && 8 + riffSize <= offset;
+                    return [format, unclosed || size === UNKNOWN_SIZE ? undefined : size];
+                }
+                // Chunks with an odd size are followed by a padding byte.
+                const paddedSize = size + (size % 2);
+                offset += paddedSize;
+                if (chunkId === "fmt ") {
+                    const body = await reader.read(Math.min(size, FMT_READ_BYTES));
+                    format = parseFormat(body, path);
+                    await reader.skip(paddedSize - body.length);
+                } else {
+                    await reader.skip(paddedSize);
+                }
+            }
+        }
+
+        function parseFormat(body: Uint8Array, path: string): Format {
+            if (body.length < 16) {
+                throw unsupported(path, "the fmt chunk is too short");
+            }
+            const fields = view(body);
+            let tag = fields.getUint16(0, true);
+            const channels = fields.getUint16(2, true);
+            const sampleRate = fields.getUint32(4, true);
+            const blockAlign = fields.getUint16(12, true);
+            const bits = fields.getUint16(14, true);
+            if (tag === EXTENSIBLE) {
+                if (body.length < 40 || SUBFORMAT_GUID_SUFFIX.some((byte, i) => body[26 + i] !== byte)) {
+                    throw unsupported(path, "unknown extensible subformat");
+                }
+                tag = fields.getUint16(24, true);
+            }
+            const widths = SAMPLE_WIDTHS[tag];
+            if (widths === undefined) {
+                throw unsupported(
+                    path,
+                    `format tag 0x${tag.toString(16).toUpperCase().padStart(4, "0")} is compressed or unknown`,
+                );
+            }
+            // Integer samples narrower than their container, such as 12-bit audio in 16 bits, fill its
+            // high bits and leave the low bits zero, so they decode correctly at the container's width.
+            const sampleWidth = Math.floor((bits + 7) / 8);
+            if (widths.indexOf(sampleWidth) === -1 || (tag === IEEE_FLOAT && bits !== sampleWidth * 8)) {
+                throw unsupported(path, `${bits}-bit ${tag === PCM ? "PCM" : "floating point"}`);
+            }
+            // The reader does not need the block size, and some writers leave it at 0 or 1. A block larger
+            // than one sample per channel means padded samples, which would be decoded wrongly.
+            if (channels < 1 || blockAlign > sampleWidth * channels) {
+                throw unsupported(path, "the fmt chunk is inconsistent");
+            }
+            if (sampleRate < MIN_SAMPLE_RATE) {
+                throw unsupported(path, `${sampleRate} Hz is below the minimum of ${MIN_SAMPLE_RATE} Hz`);
+            }
+            return { tag, channels, sampleRate, sampleWidth };
+        }
+
+        function unsupported(path: string, reason: string): Error {
+            return new Error(
+                `${path} is not a supported WAV file (${reason}). Convert it first, for example with: ${FFMPEG_COMMAND}`,
+            );
+        }
+
+        function ascii(bytes: Uint8Array): string {
+            return String.fromCharCode(...bytes);
+        }
+
+        function view(bytes: Uint8Array): DataView {
+            return new DataView(bytes.buffer, bytes.byteOffset, bytes.length);
+        }
+
+        function toFloat64(data: Uint8Array, format: Format): Float64Array {
+            const read = sampleReader(view(data), format);
+            const samples = new Float64Array(data.length / format.sampleWidth);
+            for (let i = 0; i < samples.length; i++) {
+                samples[i] = read(i * format.sampleWidth);
+            }
+            return samples;
+        }
+
+        function sampleReader(bytes: DataView, format: Format): (offset: number) => number {
+            if (format.tag === IEEE_FLOAT) {
+                return format.sampleWidth === 4
+                    ? (offset) => bytes.getFloat32(offset, true)
+                    : (offset) => bytes.getFloat64(offset, true);
+            }
+            switch (format.sampleWidth) {
+                case 1:
+                    // 8-bit WAV samples are unsigned, centered on 128.
+                    return (offset) => (bytes.getUint8(offset) - 128) / 128;
+                case 2:
+                    return (offset) => bytes.getInt16(offset, true) / 32768;
+                case 3:
+                    return (offset) => ((bytes.getInt8(offset + 2) << 16) | bytes.getUint16(offset, true)) / 2 ** 23;
+                default:
+                    return (offset) => bytes.getInt32(offset, true) / 2 ** 31;
+            }
+        }
+      tests/audio-helpers/Microphone.install.test.ts: |
+        // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
+
+        // Each test loads the audio helpers anew, so each sees decibri installed or broken its own way.
+
+        async function openMicrophone(): Promise<unknown> {
+            const { Microphone } = await import("../../src/audio-helpers/index");
+            return Microphone.open();
+        }
+
+        describe("Microphone without a working decibri", () => {
+            beforeEach(() => {
+                vi.resetModules();
+            });
+
+            afterEach(() => {
+                delete (globalThis as { decibriLoadError?: Error }).decibriLoadError;
+                vi.doUnmock("decibri");
+            });
+
+            function failToLoad(error: Error): void {
+                (globalThis as { decibriLoadError?: Error }).decibriLoadError = error;
+                vi.doMock("decibri");
+            }
+
+            it("names the install command when decibri is not installed", async () => {
+                failToLoad(Object.assign(new Error("Cannot find module 'decibri'"), { code: "MODULE_NOT_FOUND" }));
+
+                await expect(openMicrophone()).rejects.toMatchObject({
+                    name: "MissingDependencyError",
+                    message: expect.stringContaining("npm install decibri"),
+                });
+            });
+
+            it("names the system library when decibri's native addon cannot load", async () => {
+                failToLoad(new Error("Cannot find native binding. npm has a bug related to optional dependencies"));
+
+                await expect(openMicrophone()).rejects.toMatchObject({
+                    name: "MissingDependencyError",
+                    message: expect.stringContaining("sudo apt-get install libasound2t64"),
+                });
+            });
+
+            it("throws decibri's own error when it fails to load for another reason", async () => {
+                const failure = new Error("Native binding package version mismatch, expected 5.7.0 but got 5.6.0.");
+                failToLoad(failure);
+
+                await expect(openMicrophone()).rejects.toBe(failure);
+            });
+        });
+      tests/audio-helpers/Microphone.test.ts: |
+        // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
+
+        import { Microphone } from "../../src/audio-helpers/index";
+        import { type FakeDevice, type FakeStream, fake } from "../__mocks__/decibri";
+
+        vi.mock("decibri");
+
+        function device(name: string, overrides: Partial<FakeDevice> = {}): FakeDevice {
+            return {
+                index: 0,
+                name,
+                id: `coreaudio:${name}`,
+                maxInputChannels: 1,
+                defaultSampleRate: 48000,
+                isDefault: true,
+                ...overrides,
+            };
+        }
+
+        function tone(seconds = 1): Float32Array {
+            return Float32Array.from(
+                { length: Math.floor(48000 * seconds) },
+                (_, i) => 0.5 * Math.sin((2 * Math.PI * 1000 * i) / 48000),
+            );
+        }
+
+        function constant(value: number, samples = 160): Float32Array {
+            return new Float32Array(samples).fill(value);
+        }
+
+        function pcm(value: number): Uint8Array {
+            return new Uint8Array(new Int16Array(160).fill(Math.round(value * 32768)).buffer);
+        }
+
+        function stream(): FakeStream {
+            return fake.streams[0];
+        }
+
+        function withTimeout<T>(promise: Promise<T>, ms = 1000): Promise<T> {
+            return Promise.race([
+                promise,
+                new Promise<T>((_, reject) => setTimeout(() => reject(new Error(`Timed out after ${ms} ms`)), ms)),
+            ]);
+        }
+
+        async function nextFrame(frames: AsyncIterator<Uint8Array>): Promise<Uint8Array> {
+            const result = await withTimeout(frames.next());
+            if (result.done) {
+                throw new Error("The iteration ended.");
+            }
+            return result.value;
+        }
+
+        async function collect(microphone: Microphone): Promise<Uint8Array[]> {
+            const frames: Uint8Array[] = [];
+            for await (const frame of microphone) {
+                frames.push(frame);
+            }
+            return frames;
+        }
+
+        function tick(): Promise<void> {
+            return new Promise((resolve) => setImmediate(resolve));
+        }
+
+        function amplitudeAt(frequency: number, pcm: Uint8Array): number {
+            const view = new DataView(pcm.buffer, pcm.byteOffset, pcm.length);
+            let inPhase = 0;
+            let quadrature = 0;
+            const count = pcm.length / 2;
+            for (let i = 0; i < count; i++) {
+                const sample = view.getInt16(i * 2, true) / 32768;
+                inPhase += sample * Math.cos((2 * Math.PI * frequency * i) / 16000);
+                quadrature += sample * Math.sin((2 * Math.PI * frequency * i) / 16000);
+            }
+            return (2 * Math.hypot(inPhase, quadrature)) / count;
+        }
+
+        describe("Microphone", () => {
+            let microphone: Microphone | undefined;
+
+            beforeEach(() => {
+                fake.reset([device("Built-in Microphone")]);
+                microphone = undefined;
+            });
+
+            afterEach(async () => {
+                fake.failOnStop = undefined;
+                await microphone?.close();
+            });
+
+            async function open(options: Microphone.Options = {}): Promise<Microphone> {
+                microphone = await Microphone.open(options);
+                return microphone;
+            }
+
+            function at16k(): void {
+                fake.reset([device("Built-in Microphone", { defaultSampleRate: 16000 })]);
+            }
+
+            it("yields 16 kHz frames of the recorded audio", async () => {
+                const mic = await open({ frameMs: 100 });
+                expect([mic.deviceName, mic.deviceSampleRate]).toEqual(["Built-in Microphone", 48000]);
+                const frames = mic[Symbol.asyncIterator]();
+                const audio = tone();
+                for (let start = 0; start < audio.length; start += 480) {
+                    stream().record(audio.subarray(start, start + 480));
+                }
+                const received: Uint8Array[] = [];
+                for (let i = 0; i < 9; i++) {
+                    received.push(await nextFrame(frames));
+                }
+                await mic.close();
+
+                expect(received.map((frame) => frame.length)).toEqual(Array(9).fill(3200));
+                expect(amplitudeAt(1000, Buffer.concat(received.slice(1)))).toBeCloseTo(0.5, 2);
+                expect(stream().options).toEqual({
+                    device: { id: "coreaudio:Built-in Microphone" },
+                    sampleRate: 48000,
+                    channels: 1,
+                    dtype: "float32",
+                    framesPerBuffer: 960,
+                });
+                expect(stream().stopped).toBe(true);
+            });
+
+            it("wakes a waiting iteration when audio arrives", async () => {
+                at16k();
+                const frames = (await open({ frameMs: 10 }))[Symbol.asyncIterator]();
+                setTimeout(() => stream().record(constant(0.25)), 50);
+
+                expect(await nextFrame(frames)).toEqual(pcm(0.25));
+            });
+
+            it("yields all recorded audio before iteration ends on close", async () => {
+                const mic = await open({ frameMs: 100 });
+                const collecting = collect(mic);
+                await tick();
+                const audio = tone(0.82);
+                for (let start = 0; start < audio.length; start += 480) {
+                    stream().record(audio.subarray(start, start + 480));
+                }
+                await mic.close();
+                const frames = await withTimeout(collecting);
+
+                expect(frames.every((frame) => frame.length > 0)).toBe(true);
+                expect(Math.abs(frames.reduce((total, frame) => total + frame.length, 0) - 0.82 * 32000)).toBeLessThanOrEqual(
+                    2,
+                );
+            });
+
+            it("yields only audio recorded after an iteration starts", async () => {
+                at16k();
+                const mic = await open({ frameMs: 10 });
+                stream().record(constant(0.25));
+                setImmediate(() => stream().record(constant(0.5)));
+                const first = await nextFrame(mic[Symbol.asyncIterator]());
+                stream().record(constant(0.75));
+                setImmediate(() => stream().record(constant(-0.5)));
+                const second = await nextFrame(mic[Symbol.asyncIterator]());
+
+                expect([first, second]).toEqual([pcm(0.5), pcm(-0.5)]);
+            });
+
+            it("yields no audio held back by an earlier iteration", async () => {
+                // The resampler holds back audio only when it converts the sample rate, so the device records at 48 kHz.
+                const mic = await open({ frameMs: 10 });
+                const record100Ms = (value: number) => {
+                    for (let i = 0; i < 10; i++) {
+                        stream().record(constant(value, 480));
+                    }
+                };
+                setImmediate(() => record100Ms(0.5));
+                await nextFrame(mic[Symbol.asyncIterator]());
+                setImmediate(() => record100Ms(0));
+
+                expect(await nextFrame(mic[Symbol.asyncIterator]())).toEqual(pcm(0));
+            });
+
+            it("ends an earlier iteration when a new one starts", async () => {
+                const mic = await open();
+                const older = collect(mic);
+                await tick();
+                mic[Symbol.asyncIterator]();
+
+                expect(await withTimeout(older)).toEqual([]);
+            });
+
+            it("ends a replaced iteration without yielding its waiting audio", async () => {
+                at16k();
+                const mic = await open({ frameMs: 10 });
+                const older = mic[Symbol.asyncIterator]();
+                // A 30 ms block converts to three frames, so two are still unread when the new iteration starts.
+                stream().record(constant(0.25, 480));
+                stream().record(constant(0.25));
+                expect(await nextFrame(older)).toEqual(pcm(0.25));
+                mic[Symbol.asyncIterator]();
+
+                expect(await withTimeout(older.next())).toEqual({ done: true, value: undefined });
+            });
+
+            it("ends a waiting read when its iteration is returned", async () => {
+                at16k();
+                const frames = (await open({ frameMs: 10 }))[Symbol.asyncIterator]();
+                const waiting = frames.next();
+                await frames.return?.();
+                stream().record(constant(0.25));
+
+                expect(await withTimeout(waiting)).toEqual({ done: true, value: undefined });
+            });
+
+            it("rejects a second read while one is waiting", async () => {
+                at16k();
+                const frames = (await open({ frameMs: 10 }))[Symbol.asyncIterator]();
+                const waiting = frames.next();
+
+                await expect(frames.next()).rejects.toThrow(
+                    "Another caller is already waiting for a frame from Built-in Microphone",
+                );
+                stream().record(constant(0.25));
+                expect((await withTimeout(waiting)).value).toEqual(pcm(0.25));
+            });
+
+            it("ends iteration when the microphone closes", async () => {
+                const mic = await open();
+                const collecting = collect(mic);
+                await tick();
+                await mic.close();
+
+                expect(await withTimeout(collecting)).toEqual([]);
+                expect(await withTimeout(collect(mic))).toEqual([]);
+            });
+
+            it("ends iteration and releases the recording when stopping fails", async () => {
+                const mic = await open();
+                const collecting = collect(mic);
+                await tick();
+                fake.failOnStop = new Error("Failed to stop");
+
+                await expect(mic.close()).rejects.toThrow("Failed to stop");
+                expect(await withTimeout(collecting)).toEqual([]);
+                expect(stream().destroyed).toBe(true);
+            });
+
+            it("does not count audio left behind by ended iterations toward the cap", async () => {
+                at16k();
+                const mic = await open({ frameMs: 10 });
+                const recordOneSecond = () => {
+                    for (let i = 0; i < 100; i++) {
+                        stream().record(constant(0.25));
+                    }
+                };
+                // Each iteration leaves 0.99 seconds unread, so 20 of them would exceed the cap if kept.
+                for (let i = 0; i < 20; i++) {
+                    setImmediate(recordOneSecond);
+                    expect(await nextFrame(mic[Symbol.asyncIterator]())).toEqual(pcm(0.25));
+                }
+            });
+
+            it("throws when the stream stops on its own", async () => {
+                const mic = await open();
+                setImmediate(() => stream().fail(new Error("decibri: audio device error: The device is no longer available")));
+
+                await expect(withTimeout(collect(mic))).rejects.toThrow(
+                    "The audio stream from Built-in Microphone stopped, for example because the device was disconnected. " +
+                        "decibri reported: decibri: audio device error: The device is no longer available",
+                );
+            });
+
+            it("throws when the stream stops on its own even if the microphone is closed afterward", async () => {
+                at16k();
+                const mic = await open({ frameMs: 10 });
+                const frames = mic[Symbol.asyncIterator]();
+                stream().record(constant(0.25));
+                stream().fail(new Error("decibri: audio device error: The device is no longer available"));
+                await mic.close();
+
+                expect(await nextFrame(frames)).toEqual(pcm(0.25));
+                await expect(withTimeout(frames.next())).rejects.toThrow(
+                    "The audio stream from Built-in Microphone stopped, for example because the device was disconnected.",
+                );
+            });
+
+            it("throws when more than 10 seconds of audio builds up", async () => {
+                at16k();
+                const mic = await open({ frameMs: 10 });
+                const frames = mic[Symbol.asyncIterator]();
+                // Exactly 10 seconds, which is within the cap: a 30 ms block that converts to three frames,
+                // then 997 blocks of 10 ms.
+                stream().record(constant(0.25, 480));
+                for (let i = 0; i < 997; i++) {
+                    stream().record(constant(0.25));
+                }
+                expect(await nextFrame(frames)).toEqual(pcm(0.25));
+                for (let i = 0; i < 10; i++) {
+                    stream().record(constant(0.25));
+                }
+
+                // Thrown even though two frames of the 30 ms block are still unread.
+                await expect(frames.next()).rejects.toThrow("More than 10 seconds of audio from Built-in Microphone");
+                expect(await frames.next()).toEqual({ done: true, value: undefined });
+                stream().record(constant(0.5));
+                setImmediate(() => stream().record(constant(-0.5)));
+                expect(await nextFrame(mic[Symbol.asyncIterator]())).toEqual(pcm(-0.5));
+            });
+
+            it("throws when frames shorter than blocks let the loop fall behind", async () => {
+                at16k();
+                const frames = (await open({ frameMs: 10 }))[Symbol.asyncIterator]();
+
+                // Each 100 ms block converts to ten frames and the loop reads one frame per block, so it
+                // falls another 90 ms behind with every block.
+                await expect(
+                    (async () => {
+                        for (let i = 0; i < 200; i++) {
+                            stream().record(constant(0.25, 1600));
+                            await nextFrame(frames);
+                        }
+                    })(),
+                ).rejects.toThrow("More than 10 seconds of audio");
+            });
+
+            it("counts audio decibri discarded without ending the iteration", async () => {
+                at16k();
+                const mic = await open({ frameMs: 10 });
+                const frames = mic[Symbol.asyncIterator]();
+                stream().record(constant(0.25));
+                stream().overrunCount = 1;
+                stream().record(constant(0.5));
+
+                expect([await nextFrame(frames), await nextFrame(frames)]).toEqual([pcm(0.25), pcm(0.5)]);
+                expect(mic.inputOverflows).toBe(1);
+                await mic.close();
+                expect(mic.inputOverflows).toBe(1);
+            });
+
+            it("counts audio decibri discarded after the last block it delivered", async () => {
+                const mic = await open();
+                stream().record(constant(0.25));
+                stream().overrunCount = 2;
+                await mic.close();
+
+                expect(mic.inputOverflows).toBe(2);
+            });
+
+            it("keeps the count of discarded audio after the device fails", async () => {
+                const mic = await open();
+                stream().overrunCount = 3;
+                stream().record(constant(0.25));
+                stream().fail(new Error("decibri: audio device error: The device is no longer available"));
+
+                expect(mic.inputOverflows).toBe(3);
+            });
+
+            it.each([
+                [5, "There is no input device with index 5"],
+                ["Studio", 'No input device matches "Studio"'],
+                ["microphone", '"microphone" matches more than one input device'],
+                [undefined, "There is no default input device"],
+            ])("lists the input devices when %s cannot be used", async (selected, reason) => {
+                fake.reset([
+                    device("Built-in Microphone", { isDefault: false }),
+                    device("USB Microphone", { index: 1, isDefault: false }),
+                ]);
+
+                await expect(Microphone.open({ device: selected })).rejects.toThrow(
+                    `${reason}. Available input devices: 0: Built-in Microphone; 1: USB Microphone.`,
+                );
+                expect(fake.streams).toEqual([]);
+            });
+
+            it("says so when there are no input devices", async () => {
+                fake.reset([]);
+
+                await expect(Microphone.open()).rejects.toThrow(
+                    "There is no default input device. No input devices are available.",
+                );
+            });
+
+            it("selects a device whose whole name matches even if other names contain it", async () => {
+                fake.reset([device("Microphone"), device("USB Microphone", { index: 1, isDefault: false })]);
+
+                expect((await open({ device: "microphone" })).deviceName).toBe("Microphone");
+                expect(stream().options.device).toEqual({ id: "coreaudio:Microphone" });
+            });
+
+            it("selects a device without a stable ID by index", async () => {
+                fake.reset([device("Built-in Microphone"), device("USB Microphone", { index: 1, id: "", isDefault: false })]);
+
+                expect((await open({ device: "usb" })).deviceName).toBe("USB Microphone");
+                expect(stream().options.device).toBe(1);
+            });
+
+            it("rejects with decibri's error when the device fails to start", async () => {
+                const failure = new Error("Failed to open audio stream: the device is busy");
+                fake.failOnStart = failure;
+
+                await expect(Microphone.open()).rejects.toBe(failure);
+                expect(stream().destroyed).toBe(true);
+            });
+
+            it.each([0, 10001])("rejects a frame duration of %i before opening the device", async (frameMs) => {
+                await expect(Microphone.open({ frameMs })).rejects.toThrow("frameMs must be between 1 and 10000");
+                expect(fake.streams).toEqual([]);
+            });
+
+            it("points to open when constructed directly", () => {
+                expect(() => Reflect.construct(Microphone, [])).toThrow("await Microphone.open()");
+            });
+        });
+      tests/audio-helpers/Resampler.test.ts: |
+        // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
+
+        import { Resampler } from "../../src/audio-helpers/index";
+
+        function tone(frequency: number, sampleRate: number, seconds = 1, amplitude = 0.5): Float32Array {
+            const samples = new Float32Array(Math.floor(sampleRate * seconds));
+            for (let i = 0; i < samples.length; i++) {
+                samples[i] = amplitude * Math.sin((2 * Math.PI * frequency * i) / sampleRate);
+            }
+            return samples;
+        }
+
+        function concat(...parts: Uint8Array[]): Uint8Array {
+            const joined = new Uint8Array(parts.reduce((total, part) => total + part.length, 0));
+            let offset = 0;
+            for (const part of parts) {
+                joined.set(part, offset);
+                offset += part.length;
+            }
+            return joined;
+        }
+
+        function toSamples(pcm: Uint8Array): number[] {
+            const view = new DataView(pcm.buffer, pcm.byteOffset, pcm.length);
+            return Array.from({ length: pcm.length / 2 }, (_, i) => view.getInt16(i * 2, true));
+        }
+
+        function convert(resampler: Resampler, audio: Parameters<Resampler["process"]>[0]): number[] {
+            return toSamples(concat(resampler.process(audio), resampler.flush()));
+        }
+
+        function middle(samples: number[]): number[] {
+            const cut = Math.floor(samples.length / 10);
+            return samples.slice(cut, samples.length - cut).map((sample) => sample / 32768);
+        }
+
+        function rms(samples: number[]): number {
+            return Math.sqrt(samples.reduce((total, sample) => total + sample * sample, 0) / samples.length);
+        }
+
+        function amplitudeAt(frequency: number, samples: number[]): number {
+            let inPhase = 0;
+            let quadrature = 0;
+            samples.forEach((sample, i) => {
+                inPhase += sample * Math.cos((2 * Math.PI * frequency * i) / 16000);
+                quadrature += sample * Math.sin((2 * Math.PI * frequency * i) / 16000);
+            });
+            return (2 * Math.hypot(inPhase, quadrature)) / samples.length;
+        }
+
+        function seededNoise(length: number, seed: number): Float32Array {
+            let state = seed;
+            const samples = new Float32Array(length);
+            for (let i = 0; i < length; i++) {
+                state = (state + 0x6d2b79f5) | 0;
+                let t = Math.imul(state ^ (state >>> 15), 1 | state);
+                t ^= t + Math.imul(t ^ (t >>> 7), 61 | t);
+                samples[i] = ((t ^ (t >>> 14)) >>> 0) / 4294967296 - 0.5;
+            }
+            return samples;
+        }
+
+        describe("Resampler", () => {
+            it.each([8000, 11025, 44100, 48000])("keeps the frequency, level and duration of a tone at %i Hz", (sampleRate) => {
+                const out = convert(
+                    new Resampler({ sampleRate, channels: 1, sampleFormat: "float32" }),
+                    tone(1000, sampleRate),
+                );
+
+                expect(Math.abs(out.length - 16000)).toBeLessThanOrEqual(1);
+                expect(amplitudeAt(1000, middle(out))).toBeCloseTo(0.5, 2);
+                expect(rms(middle(out)) / (0.5 / Math.SQRT2)).toBeCloseTo(1, 2);
+            });
+
+            it("removes a tone above the output Nyquist frequency", () => {
+                const out = convert(
+                    new Resampler({ sampleRate: 48000, channels: 1, sampleFormat: "float32" }),
+                    tone(10000, 48000),
+                );
+
+                expect(rms(middle(out))).toBeLessThan(1e-3);
+            });
+
+            // At 1 MHz the kernel reaches 4000 input samples either side, so an output spans several blocks.
+            it.each([
+                1000, 48000, 1000000,
+            ])("converts a stream split into blocks to the same bytes as the whole stream at %i Hz", (sampleRate) => {
+                const audio = seededNoise(sampleRate / 10, 0);
+                const whole = new Resampler({ sampleRate, channels: 1, sampleFormat: "float32" });
+                const split = new Resampler({ sampleRate, channels: 1, sampleFormat: "float32" });
+                const third = Math.floor(audio.length / 3);
+
+                const expected = concat(whole.process(audio), whole.flush());
+                const actual = concat(
+                    ...[0, 1, 2, third, third + 1, 2 * third].map((start, i, starts) =>
+                        split.process(audio.subarray(start, starts[i + 1])),
+                    ),
+                    split.flush(),
+                );
+
+                expect(actual).toEqual(expected);
+            });
+
+            it("holds back 64 samples at the lower of the input rate and 16 kHz", () => {
+                const heldBack = (sampleRate: number) => {
+                    const resampler = new Resampler({ sampleRate, channels: 1, sampleFormat: "float32" });
+                    return 1600 - resampler.process(tone(100, sampleRate, 0.1)).length / 2;
+                };
+
+                expect(heldBack(1000)).toBe(1024);
+                expect(heldBack(8000)).toBe(128);
+                expect(heldBack(48000)).toBe(64);
+            });
+
+            it("passes 16 kHz mono int16 through unchanged", () => {
+                const pcm = Uint8Array.from(seededNoise(3200, 1), (sample) => Math.floor((sample + 0.5) * 256));
+                const resampler = new Resampler({ sampleRate: 16000, channels: 1 });
+
+                expect(concat(resampler.process(pcm), resampler.flush())).toEqual(pcm);
+            });
+
+            it("averages channels and accepts bytes that split a frame", () => {
+                const stereo = new Uint8Array(new Int16Array([1000, 3000, -32768, -32768, 101, 100]).buffer);
+                const resampler = new Resampler({ sampleRate: 16000, channels: 2 });
+
+                const pcm = concat(
+                    resampler.process(stereo.subarray(0, 3)),
+                    resampler.process(stereo.subarray(3)),
+                    resampler.flush(),
+                );
+
+                expect(toSamples(pcm)).toEqual([2000, -32768, 100]);
+            });
+
+            it("converts float64 arrays and float32 bytes like float32 arrays", () => {
+                const left = tone(1000, 44100);
+                const right = tone(300, 44100);
+                const stereo = new Float32Array(left.length * 2);
+                left.forEach((sample, i) => {
+                    stereo[i * 2] = sample;
+                    stereo[i * 2 + 1] = right[i];
+                });
+                const expected = convert(new Resampler({ sampleRate: 44100, channels: 2, sampleFormat: "float32" }), stereo);
+
+                const float64 = convert(
+                    new Resampler({ sampleRate: 44100, channels: 2, sampleFormat: "float64" }),
+                    Float64Array.from(stereo),
+                );
+                const bytes = convert(
+                    new Resampler({ sampleRate: 44100, channels: 2, sampleFormat: "float32" }),
+                    new Uint8Array(stereo.buffer),
+                );
+
+                expect(float64).toEqual(expected);
+                expect(bytes).toEqual(expected);
+            });
+
+            it("clips float input beyond full scale", () => {
+                const resampler = new Resampler({ sampleRate: 16000, channels: 1, sampleFormat: "float32" });
+
+                expect(convert(resampler, new Float32Array([1.5, -1.5, 0.25]))).toEqual([32767, -32768, 8192]);
+            });
+
+            it("rejects a stream that ends partway through a frame at flush and resets", () => {
+                const resampler = new Resampler({ sampleRate: 16000, channels: 2 });
+                resampler.process(new Uint8Array([1, 2, 3]));
+
+                expect(() => resampler.flush()).toThrow("3 bytes into a sample frame of 4 bytes");
+                expect(concat(resampler.process(new Uint8Array(4)), resampler.flush())).toEqual(new Uint8Array(2));
+            });
+
+            it("takes a new stream after flush", () => {
+                const resampler = new Resampler({ sampleRate: 48000, channels: 1, sampleFormat: "float32" });
+                const first = convert(resampler, tone(1000, 48000));
+
+                expect(convert(resampler, tone(1000, 48000))).toEqual(first);
+            });
+
+            it("takes a new stream after a flush that throws", () => {
+                const resampler = new Resampler({ sampleRate: 48000, channels: 1, sampleFormat: "float32" });
+                const audio = new Uint8Array(tone(1000, 48000).buffer);
+                resampler.process(audio);
+                resampler.process(new Uint8Array(1));
+
+                expect(() => resampler.flush()).toThrow("1 bytes into a sample frame of 4 bytes");
+                const expected = convert(new Resampler({ sampleRate: 48000, channels: 1, sampleFormat: "float32" }), audio);
+                expect(convert(resampler, audio)).toEqual(expected);
+            });
+
+            it("rejects an array of the wrong type or holding a partial frame", () => {
+                const resampler = new Resampler({ sampleRate: 16000, channels: 2 });
+
+                expect(() => resampler.process(new Float32Array(8))).toThrow(TypeError);
+                expect(() => resampler.process(new Float32Array(8))).toThrow("must be an Int16Array, got Float32Array");
+                expect(() => resampler.process(new Int16Array(3))).toThrow("whole frames of 2 samples, got 3 samples");
+            });
+
+            it("accepts a sample rate that is not an integer", () => {
+                const out = convert(
+                    new Resampler({ sampleRate: 47999.5, channels: 1, sampleFormat: "float32" }),
+                    tone(1000, 47999.5),
+                );
+
+                expect(Math.abs(out.length - 16000)).toBeLessThanOrEqual(1);
+                expect(amplitudeAt(1000, middle(out))).toBeCloseTo(0.5, 2);
+            });
+
+            it.each([999, 2 ** 32, Number.NaN, Number.POSITIVE_INFINITY])("rejects a sample rate of %d", (sampleRate) => {
+                expect(() => new Resampler({ sampleRate, channels: 1 })).toThrow(
+                    "sampleRate must be between 1000 and 4294967295",
+                );
+            });
+
+            it("rejects a sample rate that is not a number", () => {
+                expect(() => new Resampler({ sampleRate: "48000" as unknown as number, channels: 1 })).toThrow(
+                    'sampleRate must be a number, got "48000".',
+                );
+            });
+
+            it("rejects a channel count that is not an integer", () => {
+                expect(() => new Resampler({ sampleRate: 48000, channels: 2.5 })).toThrow(
+                    "channels must be an integer, got 2.5.",
+                );
+            });
+        });
+      tests/audio-helpers/wav.test.ts: |
+        // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
+
+        import { execFileSync } from "child_process";
+        import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "fs";
+        import { writeFile } from "fs/promises";
+        import { tmpdir } from "os";
+        import { join } from "path";
+        import { iterWavFrames } from "../../src/audio-helpers/index";
+
+        interface WavOptions {
+            tag: number;
+            sampleRate: number;
+            channels: number;
+            bits: number;
+            data: Uint8Array;
+            extensible?: boolean;
+            fmtExtra?: Uint8Array;
+            dataSize?: number;
+            afterData?: Uint8Array;
+            blockAlign?: number;
+            riffSize?: number;
+            // An odd-sized chunk before the data exercises the padding byte that follows it.
+            oddChunk?: boolean;
+        }
+
+        function uint32(value: number): Buffer {
+            const bytes = Buffer.alloc(4);
+            bytes.writeUInt32LE(value);
+            return bytes;
+        }
+
+        function wavBytes({
+            tag,
+            sampleRate,
+            channels,
+            bits,
+            data,
+            extensible = false,
+            fmtExtra = new Uint8Array(0),
+            dataSize,
+            afterData = new Uint8Array(0),
+            blockAlign = channels * Math.ceil(bits / 8),
+            riffSize,
+            oddChunk = true,
+        }: WavOptions): Buffer {
+            const fields = Buffer.alloc(16);
+            fields.writeUInt16LE(extensible ? 0xfffe : tag, 0);
+            fields.writeUInt16LE(channels, 2);
+            fields.writeUInt32LE(sampleRate, 4);
+            // The reader ignores the byte rate, so an overflowing value is truncated to fit its field.
+            fields.writeUInt32LE((sampleRate * blockAlign) % 2 ** 32, 8);
+            fields.writeUInt16LE(blockAlign, 12);
+            fields.writeUInt16LE(bits, 14);
+            const parts: Uint8Array[] = [fields];
+            if (extensible) {
+                const extension = Buffer.alloc(24);
+                extension.writeUInt16LE(22, 0);
+                extension.writeUInt16LE(bits, 2);
+                extension.writeUInt16LE(tag, 8);
+                Buffer.from("000000001000800000aa00389b71", "hex").copy(extension, 10);
+                parts.push(extension);
+            }
+            parts.push(fmtExtra);
+            const fmt = Buffer.concat(parts);
+            const info = Buffer.from("INFOISFT\x05\x00\x00\x00Lavf\x00", "latin1");
+            const body = Buffer.concat([
+                Buffer.from("WAVEfmt ", "latin1"),
+                uint32(fmt.length),
+                fmt,
+                Buffer.alloc(fmt.length % 2),
+                oddChunk
+                    ? Buffer.concat([Buffer.from("LIST", "latin1"), uint32(info.length), info, Buffer.alloc(1)])
+                    : Buffer.alloc(0),
+                Buffer.from("data", "latin1"),
+                uint32(dataSize ?? data.length),
+                data,
+                afterData,
+            ]);
+            return Buffer.concat([Buffer.from("RIFF", "latin1"), uint32(riffSize ?? body.length), body]);
+        }
+
+        // The header Python's wave module and most other writers produce: fmt and data chunks only.
+        function basicWavBytes(sampleRate: number, channels: number, sampleWidth: number, data: Uint8Array): Buffer {
+            return wavBytes({ tag: 1, sampleRate, channels, bits: sampleWidth * 8, data, oddChunk: false });
+        }
+
+        function int16Bytes(samples: number[]): Uint8Array {
+            return new Uint8Array(new Int16Array(samples).buffer);
+        }
+
+        function range(start: number, end: number): number[] {
+            return Array.from({ length: end - start }, (_, i) => start + i);
+        }
+
+        function seededBytes(length: number, seed: number): Uint8Array {
+            let state = seed;
+            return Uint8Array.from({ length }, () => {
+                state = (Math.imul(state, 1103515245) + 12345) >>> 0;
+                return state >>> 24;
+            });
+        }
+
+        function toSamples(pcm: Uint8Array): number[] {
+            const view = new DataView(pcm.buffer, pcm.byteOffset, pcm.length);
+            return Array.from({ length: pcm.length / 2 }, (_, i) => view.getInt16(i * 2, true));
+        }
+
+        async function collect(frames: AsyncIterable<Uint8Array>): Promise<Uint8Array[]> {
+            const collected: Uint8Array[] = [];
+            for await (const frame of frames) {
+                collected.push(frame);
+            }
+            return collected;
+        }
+
+        async function readAll(path: string, frameMs?: number): Promise<Uint8Array> {
+            return Buffer.concat(await collect(iterWavFrames(path, { frameMs })));
+        }
+
+        describe("iterWavFrames", () => {
+            let dir: string;
+
+            beforeEach(() => {
+                dir = mkdtempSync(join(tmpdir(), "wav-test-"));
+            });
+
+            afterEach(() => {
+                rmSync(dir, { recursive: true, force: true });
+            });
+
+            function write(name: string, bytes: Uint8Array): string {
+                const path = join(dir, name);
+                writeFileSync(path, bytes);
+                return path;
+            }
+
+            it("splits a 16 kHz mono 16-bit file into frames unchanged", async () => {
+                const pcm = seededBytes(8000, 0);
+                const path = write("speech.wav", basicWavBytes(16000, 1, 2, pcm));
+
+                const frames = await collect(iterWavFrames(path));
+
+                expect(frames.map((frame) => frame.length)).toEqual([3200, 3200, 1600]);
+                expect(Buffer.concat(frames)).toEqual(Buffer.from(pcm));
+            });
+
+            it("converts a 48 kHz stereo 24-bit file to 16 kHz mono", async () => {
+                const data = Buffer.alloc(48000 * 2 * 3);
+                for (let i = 0; i < 48000; i++) {
+                    const sample = Math.round(0.5 * Math.sin((2 * Math.PI * 440 * i) / 48000) * 2 ** 23);
+                    data.writeIntLE(sample, i * 6, 3);
+                    data.writeIntLE(sample, i * 6 + 3, 3);
+                }
+                const path = write("speech.wav", basicWavBytes(48000, 2, 3, data));
+
+                const frames = await collect(iterWavFrames(path, { frameMs: 250 }));
+                const out = toSamples(Buffer.concat(frames));
+
+                expect(frames.slice(0, -1).every((frame) => frame.length === 8000)).toBe(true);
+                expect(frames[frames.length - 1].length).toBeGreaterThan(0);
+                expect(frames[frames.length - 1].length).toBeLessThanOrEqual(8000);
+                expect(Math.abs(out.length - 16000)).toBeLessThanOrEqual(1);
+                expect(Math.max(...out.map(Math.abs)) / (0.5 * 32768)).toBeCloseTo(1, 2);
+            });
+
+            it("reads 8-bit samples as unsigned", async () => {
+                const path = write("speech.wav", basicWavBytes(16000, 1, 1, new Uint8Array([128, 255, 0])));
+
+                expect(toSamples(await readAll(path))).toEqual([0, 32512, -32768]);
+            });
+
+            it("reads an extensible header like the basic header", async () => {
+                const data = seededBytes(48000 * 2 * 3, 1);
+                const basic = write("basic.wav", basicWavBytes(48000, 2, 3, data));
+                const extensible = write(
+                    "extensible.wav",
+                    wavBytes({ tag: 1, sampleRate: 48000, channels: 2, bits: 24, data, extensible: true }),
+                );
+
+                expect(await collect(iterWavFrames(extensible))).toEqual(await collect(iterWavFrames(basic)));
+            });
+
+            it("skips bytes after the format fields", async () => {
+                const data = int16Bytes(range(-800, 800));
+                const path = write(
+                    "long-fmt.wav",
+                    wavBytes({
+                        tag: 1,
+                        sampleRate: 16000,
+                        channels: 1,
+                        bits: 16,
+                        data,
+                        extensible: true,
+                        fmtExtra: Uint8Array.from(range(0, 21)),
+                    }),
+                );
+
+                expect(await readAll(path)).toEqual(Buffer.from(data));
+            });
+
+            it.each([
+                [32, false],
+                [64, true],
+            ])("converts %i-bit floating point samples, extensible %s", async (bits, extensible) => {
+                const values = [0, 0.25, -0.5, 1.5];
+                const samples = bits === 32 ? new Float32Array(values) : new Float64Array(values);
+                const path = write(
+                    "float.wav",
+                    wavBytes({
+                        tag: 3,
+                        sampleRate: 16000,
+                        channels: 1,
+                        bits,
+                        data: new Uint8Array(samples.buffer),
+                        extensible,
+                    }),
+                );
+
+                expect(toSamples(await readAll(path))).toEqual([0, 8192, -16384, 32767]);
+            });
+
+            it("does not read chunks after the data as audio", async () => {
+                const pcm = int16Bytes(range(-800, 800));
+                const id3 = Buffer.concat([Buffer.from("id3 ", "latin1"), uint32(64), Uint8Array.from(range(0, 64))]);
+                const path = write(
+                    "tagged.wav",
+                    wavBytes({ tag: 1, sampleRate: 16000, channels: 1, bits: 16, data: pcm, afterData: id3 }),
+                );
+
+                expect(await readAll(path)).toEqual(Buffer.from(pcm));
+            });
+
+            it("reads data of unknown size to the end of the file", async () => {
+                const pcm = int16Bytes(range(-800, 800));
+                const path = write(
+                    "piped.wav",
+                    wavBytes({ tag: 1, sampleRate: 16000, channels: 1, bits: 16, data: pcm, dataSize: 0xffffffff }),
+                );
+
+                expect(await readAll(path)).toEqual(Buffer.from(pcm));
+            });
+
+            it("reads a recording that was never closed to the end of the file", async () => {
+                const pcm = int16Bytes(range(-800, 800));
+                // libsndfile writes a RIFF size of 8 and a data size of 0 when it opens a file, and the real sizes
+                // when it closes it.
+                const path = write(
+                    "killed.wav",
+                    wavBytes({ tag: 1, sampleRate: 16000, channels: 1, bits: 16, data: pcm, dataSize: 0, riffSize: 8 }),
+                );
+
+                expect(await readAll(path)).toEqual(Buffer.from(pcm));
+            });
+
+            it.each([
+                undefined,
+                0xffffffff,
+            ])("gives no frames for an empty data chunk followed by metadata, RIFF size %s", async (riffSize) => {
+                const id3 = Buffer.concat([Buffer.from("id3 ", "latin1"), uint32(64), Uint8Array.from(range(0, 64))]);
+                const path = write(
+                    "tagged.wav",
+                    wavBytes({
+                        tag: 1,
+                        sampleRate: 16000,
+                        channels: 1,
+                        bits: 16,
+                        data: new Uint8Array(0),
+                        afterData: id3,
+                        riffSize,
+                    }),
+                );
+
+                expect(await collect(iterWavFrames(path))).toEqual([]);
+            });
+
+            it.skipIf(process.platform === "win32")("reads a WAV from a named pipe", async () => {
+                const pcm = int16Bytes(range(-800, 800));
+                const wav = wavBytes({ tag: 1, sampleRate: 16000, channels: 1, bits: 16, data: pcm, dataSize: 0xffffffff });
+                const fifo = join(dir, "pipe");
+                execFileSync("mkfifo", [fifo]);
+
+                const writing = writeFile(fifo, wav);
+                const out = await readAll(fifo);
+                await writing;
+
+                expect(out).toEqual(Buffer.from(pcm));
+            });
+
+            it("reads a file ending partway through a sample to the last whole sample", async () => {
+                const pcm = int16Bytes([100, -200, 300]);
+                const path = write("interrupted.wav", basicWavBytes(16000, 1, 2, pcm));
+                writeFileSync(path, readFileSync(path).subarray(0, -1));
+
+                expect(await readAll(path)).toEqual(Buffer.from(pcm.subarray(0, 4)));
+            });
+
+            it("reads 12-bit samples from the high bits of 16-bit containers", async () => {
+                const data = int16Bytes([0, 1024, -2048, 2047].map((sample) => sample << 4));
+                const path = write("12-bit.wav", wavBytes({ tag: 1, sampleRate: 16000, channels: 1, bits: 12, data }));
+
+                expect(toSamples(await readAll(path))).toEqual([0, 16384, -32768, 32752]);
+            });
+
+            it("rejects a sample rate below 1 kHz with a conversion command", async () => {
+                const path = write(
+                    "crafted.wav",
+                    wavBytes({ tag: 1, sampleRate: 999, channels: 1, bits: 16, data: new Uint8Array(100) }),
+                );
+
+                await expect(readAll(path)).rejects.toThrow(/999 Hz is below the minimum of 1000 Hz.*ffmpeg -i input.wav/);
+            });
+
+            it.each([0, 1])("ignores a block size left at %i", async (blockAlign) => {
+                const pcm = int16Bytes(range(-800, 800));
+                const path = write(
+                    "speech.wav",
+                    wavBytes({ tag: 1, sampleRate: 16000, channels: 1, bits: 16, data: pcm, blockAlign }),
+                );
+
+                expect(await readAll(path)).toEqual(Buffer.from(pcm));
+            });
+
+            it("rejects a block size larger than one sample per channel", async () => {
+                const path = write(
+                    "padded.wav",
+                    wavBytes({ tag: 1, sampleRate: 16000, channels: 2, bits: 24, data: new Uint8Array(64), blockAlign: 8 }),
+                );
+
+                await expect(readAll(path)).rejects.toThrow("the fmt chunk is inconsistent");
+            });
+
+            it("rejects a floating point depth other than 32 or 64 bits", async () => {
+                const path = write(
+                    "float.wav",
+                    wavBytes({ tag: 3, sampleRate: 16000, channels: 1, bits: 31, data: new Uint8Array(16) }),
+                );
+
+                await expect(readAll(path)).rejects.toThrow("31-bit floating point");
+            });
+
+            it("reads a header declaring an enormous sample rate in bounded pieces", async () => {
+                // Reading 100 ms at this rate and channel count at once would need an allocation of hundreds of
+                // gigabytes, which fails.
+                const path = write(
+                    "crafted.wav",
+                    wavBytes({
+                        tag: 1,
+                        sampleRate: 0xffffffff,
+                        channels: 32767,
+                        bits: 16,
+                        data: new Uint8Array(32767 * 2 * 4),
+                        dataSize: 0xffffffff,
+                    }),
+                );
+
+                expect(await collect(iterWavFrames(path))).toEqual([]);
+            });
+
+            it("rejects a compressed WAV with a conversion command", async () => {
+                const path = write(
+                    "adpcm.wav",
+                    wavBytes({ tag: 2, sampleRate: 16000, channels: 1, bits: 4, data: new Uint8Array(100) }),
+                );
+
+                await expect(readAll(path)).rejects.toThrow(
+                    /format tag 0x0002.*ffmpeg -i input.wav -ac 1 -ar 16000 -sample_fmt s16/,
+                );
+            });
+
+            it("rejects an RF64 file with a conversion command", async () => {
+                const wav = wavBytes({ tag: 1, sampleRate: 16000, channels: 1, bits: 16, data: new Uint8Array(100) });
+                wav.write("RF64", 0, "latin1");
+                const path = write("long.wav", wav);
+
+                await expect(readAll(path)).rejects.toThrow(
+                    /RF64 files are not supported.*ffmpeg -i input.wav -ac 1 -ar 16000 -sample_fmt s16/,
+                );
+            });
+
+            it.each([0, 10001])("rejects a frame duration of %i at call time", (frameMs) => {
+                expect(() => iterWavFrames(join(dir, "unused.wav"), { frameMs })).toThrow(
+                    "frameMs must be between 1 and 10000",
+                );
+            });
+
+            it("rejects a frame duration that is not an integer at call time", () => {
+                expect(() => iterWavFrames(join(dir, "unused.wav"), { frameMs: 20.5 })).toThrow(
+                    "frameMs must be an integer, got 20.5.",
+                );
+            });
+        });
