@@ -1,6 +1,6 @@
 // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
 
-import { Resampler } from "../../src/audio/index";
+import { Resampler } from "../../src/audio-helpers/index";
 
 function tone(frequency: number, sampleRate: number, seconds = 1, amplitude = 0.5): Float32Array {
     const samples = new Float32Array(Math.floor(sampleRate * seconds));

@@ -36,14 +36,14 @@
         },
         "./audio": {
             "import": {
-                "types": "./dist/esm/audio/index.d.mts",
-                "default": "./dist/esm/audio/index.mjs"
+                "types": "./dist/esm/api/resources/audio/exports.d.mts",
+                "default": "./dist/esm/api/resources/audio/exports.mjs"
             },
             "require": {
-                "types": "./dist/cjs/audio/index.d.ts",
-                "default": "./dist/cjs/audio/index.js"
+                "types": "./dist/cjs/api/resources/audio/exports.d.ts",
+                "default": "./dist/cjs/api/resources/audio/exports.js"
             },
-            "default": "./dist/cjs/audio/index.js"
+            "default": "./dist/cjs/api/resources/audio/exports.js"
         },
         "./video": {
             "import": {
@@ -67,16 +67,16 @@
             },
             "default": "./dist/cjs/api/resources/runs/exports.js"
         },
-        "./audio": {
+        "./audio-helpers": {
             "import": {
-                "types": "./dist/esm/audio/index.d.mts",
-                "default": "./dist/esm/audio/index.mjs"
+                "types": "./dist/esm/audio-helpers/index.d.mts",
+                "default": "./dist/esm/audio-helpers/index.mjs"
             },
             "require": {
-                "types": "./dist/cjs/audio/index.d.ts",
-                "default": "./dist/cjs/audio/index.js"
+                "types": "./dist/cjs/audio-helpers/index.d.ts",
+                "default": "./dist/cjs/audio-helpers/index.js"
             },
-            "default": "./dist/cjs/audio/index.js"
+            "default": "./dist/cjs/audio-helpers/index.js"
         },
         "./package.json": "./package.json"
     },

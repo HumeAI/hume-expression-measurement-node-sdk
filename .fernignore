@@ -3,6 +3,6 @@ README.md
 .fern/replay.lock
 .fern/replay.yml
 .gitattributes
-src/audio
-tests/audio
+src/audio-helpers
+tests/audio-helpers
 tests/__mocks__/decibri.ts

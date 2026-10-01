@@ -205,7 +205,7 @@ function topExpression(result: ExpressionMeasurement.AudioMeasurementResult): st
 
 ## Audio helpers
 
-`@humeai/expression-measurement-node/audio` records from a microphone, reads WAV files, and converts audio at any sample rate from 1 kHz and any channel count into frames for the realtime audio endpoint. The WAV reader and the resampler are written in TypeScript and need nothing beyond this package.
+`@humeai/expression-measurement-node/audio-helpers` records from a microphone, reads WAV files, and converts audio at any sample rate from 1 kHz and any channel count into frames for the realtime audio endpoint. The WAV reader and the resampler are written in TypeScript and need nothing beyond this package.
 
 ### Microphone
 
@@ -221,7 +221,7 @@ decibri is licensed under the Apache License 2.0. Its platform packages include 
 
 ```typescript
 import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
-import { Microphone } from "@humeai/expression-measurement-node/audio";
+import { Microphone } from "@humeai/expression-measurement-node/audio-helpers";
 
 const client = new ExpressionMeasurementClient();
 
@@ -272,7 +272,7 @@ The device records at its own sample rate, and the SDK converts its audio to 16 
 `iterWavFrames` reads 8, 16, 24, or 32-bit integer and 32 or 64-bit floating-point WAV at any sample rate from 1 kHz and any channel count and yields 100 ms frames. It replaces the file loop in the [realtime quickstart](#quickstart-realtime):
 
 ```typescript
-import { iterWavFrames } from "@humeai/expression-measurement-node/audio";
+import { iterWavFrames } from "@humeai/expression-measurement-node/audio-helpers";
 
 await socket.waitForOpen();
 for await (const frame of iterWavFrames("recording.wav")) {
@@ -290,7 +290,7 @@ Frames are produced as fast as the file is read, so pace the sends for a file lo
 At input rates other than 16 kHz, the resampler holds back a little audio as filter history, 4 ms at input rates above 16 kHz and up to 64 ms at 1 kHz, so `process` can return an empty result for a short block. The endpoint rejects empty frames, so check before sending. It also rejects frames longer than 10 seconds, so pass a long recording in blocks of about 100 ms rather than in one call, and pace the sends for a recording longer than 30 seconds.
 
 ```typescript
-import { Resampler } from "@humeai/expression-measurement-node/audio";
+import { Resampler } from "@humeai/expression-measurement-node/audio-helpers";
 
 const resampler = new Resampler({ sampleRate: 48000, channels: 2, sampleFormat: "int16" });
 for await (const block of blocks) {
