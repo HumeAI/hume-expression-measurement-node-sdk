@@ -78,6 +78,17 @@
                 "default": "./dist/cjs/audio-helpers/index.js"
             },
             "default": "./dist/cjs/audio-helpers/index.js"
+        },
+        "./video-helpers": {
+            "import": {
+                "types": "./dist/esm/video-helpers/index.d.mts",
+                "default": "./dist/esm/video-helpers/index.mjs"
+            },
+            "require": {
+                "types": "./dist/cjs/video-helpers/index.d.ts",
+                "default": "./dist/cjs/video-helpers/index.js"
+            },
+            "default": "./dist/cjs/video-helpers/index.js"
         }
     },
     "files": [
