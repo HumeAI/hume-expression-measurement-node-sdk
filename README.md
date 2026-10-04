@@ -305,6 +305,86 @@ if (rest.length > 0) {
 }
 ```
 
+## Video helpers
+
+`@humeai/expression-measurement-node/video-helpers` streams JPEG frames to the realtime video endpoint. `streamVideo` sends frames within the send rate, handles rejected frames, and pairs every reply with the frame it answers. `iterVideoFrames` reads frames from a video file through ffmpeg, and `JpegSplitter` splits a stream of concatenated JPEG images, such as MJPEG, into single frames.
+
+### Streaming frames
+
+`streamVideo` takes a socket and any async iterable of frames, each a JPEG image as `data` with its time in milliseconds as `timestampMs`, and yields one reply per frame, in the order of the frames. A reply holds the frame's `timestampMs` and either the `result` that measured it or the `error` that rejected it. This example measures a video file:
+
+```typescript
+import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
+import { iterVideoFrames, streamVideo } from "@humeai/expression-measurement-node/video-helpers";
+
+const client = new ExpressionMeasurementClient();
+const socket = await client.video.connect({ reconnectAttempts: 0 });
+
+const stream = streamVideo(socket, iterVideoFrames("interview.mp4", { fps: 2 }));
+for await (const reply of stream) {
+    if (reply.result) {
+        for (const face of reply.result.faces) {
+            const top = face.expressions
+                .slice(0, 3)
+                .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
+                .join(", ");
+            console.log(`${reply.timestampMs} ms, face ${face.faceId}: ${top}`);
+        }
+    } else {
+        console.error(`${reply.timestampMs} ms: ${reply.error.code}`);
+    }
+}
+console.log(`${stream.closed?.produced.measurements} faces measured`);
+```
+
+The server accepts the first 30 frames immediately and then 30 per second. `streamVideo` sends the first 27 at once, keeping a few in reserve for uneven network timing, and paces the rest. How it handles a frame the server rejects with `rate_limited` or `overloaded` depends on the source:
+
+1. From a recording, the default, it waits and sends the frame again, starting at 100 ms and doubling up to 2 seconds while rejections continue, so every frame is measured. It also sends a frame once more after a retryable `internal_error`.
+2. From a live source, with `{ live: true }`, it yields the rejection and moves on, so results keep up with the source. A live frame that arrives when the send rate has no room is not sent at all, and `stream.droppedFrames` counts it.
+
+A frame over the 2 MB message limit would end the session, so it is never sent and is yielded as a `message_too_large` error. Frames that are not valid JPEGs or that exceed 8,294,400 pixels are rejected by the server with `invalid_image_frame`, and the session continues.
+
+When the frames run out, `streamVideo` closes the session, yields the remaining replies, and closes the socket. `stream.closed` then holds the `session.closed` message with the session's totals. If the session ends before the frames do, because of a session-ending error, an idle timeout, or a dropped connection, the loop throws a `SessionEndedError`. Its `closed` holds the `session.closed` message when one arrived, and its `code` names the error that ended the session, if there was one. Leaving the loop early also closes the socket.
+
+`streamVideo` takes over the socket's `message` handler, so read messages from the replies instead. The configuration locks at the first frame, so send any `session.update` before streaming. Frames are sent only while the loop asks for the next reply, so keep the loop body short.
+
+### Video files
+
+`iterVideoFrames` runs [ffmpeg](https://ffmpeg.org), which must be installed: `brew install ffmpeg` on macOS, `sudo apt install ffmpeg` on Debian or Ubuntu, or `winget install Gyan.FFmpeg` on Windows. It reads any format ffmpeg can decode and yields frames whose `timestampMs` is their position in the video. If ffmpeg is not on `PATH` or at `ffmpegPath`, iteration throws an `FfmpegNotFoundError` whose message says how to install it, and if ffmpeg fails, the error includes its output.
+
+| Option | Default | Purpose |
+|---|---|---|
+| `fps` | 5 | Frames taken per second of video, above 0 and at most 30. |
+| `maxWidth` | 1280 | Wider frames are scaled down to this width, keeping their shape. Narrower frames are left as they are. |
+| `realtime` | false | Produce frames no faster than the video plays, as a live source would. By default they are produced as fast as they are sent. |
+| `ffmpegPath` | `ffmpeg` on `PATH` | The ffmpeg executable to run. |
+
+Ending the loop early stops ffmpeg.
+
+### Live sources
+
+`streamVideo` measures frames from any source you can turn into an async iterable, such as a camera your application already captures. Encode each frame as a JPEG, give it a `timestampMs`, and pass `{ live: true }`. Keep frames to 30 per second or fewer, and around 1280 pixels wide.
+
+`JpegSplitter` turns a byte stream of concatenated JPEG images, such as ffmpeg's `image2pipe` output or the body of an MJPEG stream, into single images. Pass each chunk to `push`, which returns the images completed so far and holds back a partial one. This generator yields frames from such a stream, timed from when it starts:
+
+```typescript
+import { JpegSplitter, streamVideo, type VideoFrame } from "@humeai/expression-measurement-node/video-helpers";
+
+async function* framesFrom(mjpeg: AsyncIterable<Uint8Array>): AsyncGenerator<VideoFrame> {
+    const splitter = new JpegSplitter();
+    const start = Date.now();
+    for await (const chunk of mjpeg) {
+        for (const data of splitter.push(chunk)) {
+            yield { data, timestampMs: Date.now() - start };
+        }
+    }
+}
+
+for await (const reply of streamVideo(socket, framesFrom(mjpeg), { live: true })) {
+    console.log(reply.timestampMs, reply.result?.faces.length ?? reply.error?.code);
+}
+```
+
 ## Scores
 
 Every measurement contains lists of scores, each pairing a `name` with a `probability` from 0 to 1. Scores are sorted by descending probability, and each list includes only the scores that pass its cutoff, so lists vary in length and may be empty. Audio results carry `expressions`, each included when judged present against a threshold set for that expression, and `voiceAttributes`, included at 0.725 or above. Video results carry `expressions` and `descriptions` for each face, both included above 0.1. What `probability` denotes differs from list to list. [Scores](https://dev.hume.ai/expression-measurement/docs/scores) explains how to read them.
