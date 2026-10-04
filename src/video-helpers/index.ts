@@ -6,4 +6,6 @@
 export { FfmpegNotFoundError } from "./FfmpegNotFoundError.js";
 export { iterVideoFrames } from "./file.js";
 export { JpegSplitter } from "./JpegSplitter.js";
+export { SessionEndedError } from "./SessionEndedError.js";
+export { streamVideo, type VideoStream } from "./sender.js";
 export type { VideoFrame } from "./VideoFrame.js";
