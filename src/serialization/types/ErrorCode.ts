@@ -10,7 +10,6 @@ export const ErrorCode: core.serialization.Schema<serializers.ErrorCode.Raw, Exp
         "invalid_image_frame",
         "message_invalid",
         "rate_limited",
-        "overloaded",
         "config_invalid",
         "message_too_large",
         "internal_error",
@@ -22,7 +21,6 @@ export declare namespace ErrorCode {
         | "invalid_image_frame"
         | "message_invalid"
         | "rate_limited"
-        | "overloaded"
         | "config_invalid"
         | "message_too_large"
         | "internal_error";

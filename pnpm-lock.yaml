@@ -10,7 +10,7 @@ importers:
     dependencies:
       decibri:
         specifier: ^5.7.0
-        version: 5.7.0
+        version: 5.8.0
       ws:
         specifier: ^8.20.0
         version: 8.22.0
@@ -105,28 +105,28 @@ packages:
   '@bundled-es-modules/statuses@1.0.1':
     resolution: {integrity: sha512-yn7BklA5acgcBr+7w064fGV+SGIFySjCKpqjcWgBAIfrAkY+4GQTJJHQMeT3V/sgz23VTEVV8TtOmkvJAhFVfg==}
 
-  '@decibri/decibri-darwin-arm64@5.7.0':
-    resolution: {integrity: sha512-RkU5JXH3+ijxGtynnVECo3wtFWqzGKmCqw5e1Tn3Y6Y1njDmiz/r1xNotf6Iq43nJu+czDUTcOh6o2ZNVJvWyg==}
+  '@decibri/decibri-darwin-arm64@5.8.0':
+    resolution: {integrity: sha512-dv86BvRoP+IlS/ucJ73vGP/mzGgRcLvyoS0MxoCAkSnrlWKFhKzW6fbm7rqberIkODsiJPHjUfXuSIAd06KC+g==}
     cpu: [arm64]
     os: [darwin]
 
-  '@decibri/decibri-linux-arm64-gnu@5.7.0':
-    resolution: {integrity: sha512-9D8JLtl041mhGqqvrGiKMLq+Dxu+wKJ+8vFc32bESLkZUxCbtfHgSiMcyMdojYRab6NpbL7aK7mebad2WltHvw==}
+  '@decibri/decibri-linux-arm64-gnu@5.8.0':
+    resolution: {integrity: sha512-wlzVMVh5aWzVyZgaSNJ0ZfpUfyGsb+plNGdlEcg5bLZ5KFhnT5D/y9YBA+Q+NKLdyzO/mgrsuZpf9VS6ZDJHbw==}
     cpu: [arm64]
     os: [linux]
 
-  '@decibri/decibri-linux-x64-gnu@5.7.0':
-    resolution: {integrity: sha512-H0TpHaM2k8cG4Gy+JTw8Mb5HOWpw8YYhPEOxelcsXBdNeReGUudHZArAelwhoEJP/WOaqKkLiZoQT5Kn2r4VlA==}
+  '@decibri/decibri-linux-x64-gnu@5.8.0':
+    resolution: {integrity: sha512-+43s3AzpktZiDy2ws47v59TzUivhFo8TQYUKU/EcDdRRebYCnlEHGSeoSDkjI30lW4m85nURETfxEWsGbKtcGg==}
     cpu: [x64]
     os: [linux]
 
-  '@decibri/decibri-win32-arm64-msvc@5.7.0':
-    resolution: {integrity: sha512-jO0v5M2z17jrlubHYdddAzZIQ7S0TT5jCeY0+a3PAfbPynpY5D74qFilVxa7oRMzvldMzXnpYNP1q7zB+8yWCQ==}
+  '@decibri/decibri-win32-arm64-msvc@5.8.0':
+    resolution: {integrity: sha512-FS1yvuj0UpG9WDTG3JIcDR1UyGDBNKw+Ht7LVhqJDs4uoJmSnrMTTuHzqyY5QuznVE6jyFkTCIl+/XKku48GoA==}
     cpu: [arm64]
     os: [win32]
 
-  '@decibri/decibri-win32-x64-msvc@5.7.0':
-    resolution: {integrity: sha512-msAY4Ig2V19LdNFul1iD/p0NVXJWjEM7dF/6psh6BfNTz3pQKPB2yJatZR2p/MpggEBDY+P9bqm3eyg2upwVtw==}
+  '@decibri/decibri-win32-x64-msvc@5.8.0':
+    resolution: {integrity: sha512-pAmKh6fp3VLaOVD6bChCZFLqThM+pzohb/2BYDN99+3thrb9/cZYgfTocXZ/WjRuHHvR6ErjgQ1wed63unQKYQ==}
     cpu: [x64]
     os: [win32]
 
@@ -403,8 +403,8 @@ packages:
   '@xtuc/long@4.2.2':
     resolution: {integrity: sha512-NuHqBY1PB/D8xU6s/thBgOAiAP7HOYDQ32+BFZILJ8ivkUkAHQnWfn6WhL79Owj1qmUnoN/YPhktdIoucipkAQ==}
 
-  acorn@8.18.0:
-    resolution: {integrity: sha512-lGq+9yr1/GuAWaVYIHRjvvySG5/4VfKIvC8EWxStPdcDh/Ka7FG3twP6v4d5BkravUilhIAsG4Qj83t02LWUPQ==}
+  acorn@8.19.0:
+    resolution: {integrity: sha512-oJlA3XiRm7Cyk6qFD2Jn8ak9B7jSy0qy00ADO3+8dpT0LSjFihQYv4C02LFCSYJV3Q37xYwwRy5m+IpIiUzqWw==}
     engines: {node: '>=0.4.0'}
     hasBin: true
 
@@ -489,8 +489,8 @@ packages:
     resolution: {integrity: sha512-yki5XnKuf750l50uGTllt6kKILY4nQ1eNIQatoXEByZ5dWgnKqbnqmTrBE5B4N7lrMJKQ2ytWMiTO2o0v6Ew/w==}
     engines: {node: '>= 0.6'}
 
-  decibri@5.7.0:
-    resolution: {integrity: sha512-M2LoVPG6uEufk5x1oaFDP1ml/r04nTmgzZ1TKJrb2tCva8tkDLtWoujT9Nt5g2rXk3/52Ekymmp2aFs3lyco4Q==}
+  decibri@5.8.0:
+    resolution: {integrity: sha512-mAIFQ0jMmGj4UqF56UDHtX53PvUMpEE4odTUfhvR8ejG2VvohiSPc4hSk83IUNRxj1unrEuSeF0G6RPtaegR6Q==}
     engines: {node: '>=18.0.0'}
     cpu: [x64, arm64]
     os: [win32, darwin, linux]
@@ -499,8 +499,8 @@ packages:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
 
-  electron-to-chromium@1.5.443:
-    resolution: {integrity: sha512-TDJG36L9A3CWWwZ97HKaE+Iz1sW80pNp6sAU0owzCIV3Zc9eVyRqZK8Vz6NKuMIU8WjP0pIkoqCa0VRf/yFD0Q==}
+  electron-to-chromium@1.5.444:
+    resolution: {integrity: sha512-5ss/uJfoDYDHT0lfJzT6FbcskIzROIOPf0BbbFkGcvDzoJU7i//9GDrwwIHQVmIsrAGiF3ihpADBRIsrEFt1rQ==}
 
   emoji-regex@8.0.0:
     resolution: {integrity: sha512-MSjYzcWNOA0ewAHpz0MxpYFvwg6yjy1NG3xteoqz644VCo/RPgnr1/GGt+ic3iJTzQ8Eu3TdM14SawnVUmGE6A==}
@@ -663,8 +663,8 @@ packages:
     resolution: {integrity: sha512-aU5EJuIN2WDemCcAp2vFBfp/m4EAhWJnUNSSw0ixs7/kXbd6Pg64EmwJkNdFhB8aWt1sH2CTXrLxo/iAGV3oPQ==}
     engines: {node: '>= 0.6'}
 
-  minimizer-webpack-plugin@5.12.0:
-    resolution: {integrity: sha512-PCN1x1OzFeFB2GlP91s46q7Gz8Jf16Z7M45bzpoqrYZlh12QeY6tYVM5h299wbwy1DxnQ69VFmmh8Hb2Ff8mbw==}
+  minimizer-webpack-plugin@5.13.0:
+    resolution: {integrity: sha512-OO1NF2zHj6sf4CNv2AsUWYcS8WEwkVKQDXxxKzlOxx1Xl+WlqYtVC+oNlGNwGkLAOnpj277BSHypWwRtd9w4JQ==}
     engines: {node: '>= 10.13.0'}
     peerDependencies:
       '@minify-html/node': '*'
@@ -732,8 +732,8 @@ packages:
     resolution: {integrity: sha512-WWdIxpyjEn+FhQJQQv9aQAYlHoNVdzIzUySNV1gHUPDSdZJ3yZn7pAAbQcV7B56Mvu881q9FZV+0Vx2xC44VWA==}
     engines: {node: ^18.17.0 || >=20.5.0}
 
-  nanoid@3.3.19:
-    resolution: {integrity: sha512-Y2tUNy4ouw6tq5oDSKeQYGOyhkUBhNOcGV/02KC+6kd9eDGqdZd++mjMiIDilrBYvjEnCYvVtsuHCuP+okSfug==}
+  nanoid@3.3.20:
+    resolution: {integrity: sha512-uKdg2G3GNCKQn9byYOpxbGqrT2fGO5KRt5J/8b3pok8rT6qxGWF6hxMyJiEYtAf+FVyYuD9hRaDqX5uPFYJ4ZQ==}
     engines: {node: ^10 || ^12 || ^13.7 || ^14 || >=15.0.1}
     hasBin: true
 
@@ -761,8 +761,8 @@ packages:
     resolution: {integrity: sha512-qcJu88Q2IWqJsDD529JKMdwGm/dvInW4HvQnRwiH9JtihJvzGOscDtHE3x1pBKeUOTysQ8kVmLnJ2kJu7yhcGA==}
     engines: {node: '>=12'}
 
-  postcss@8.5.28:
-    resolution: {integrity: sha512-RRuzqDtt5Y9h3quz5hWhK+TPnsmVs6WwSU6LkJMeY4HstUEDuYTG8UJSdawMRzmzAtV+KEoG8N3Qg2qLy5vM/A==}
+  postcss@8.5.29:
+    resolution: {integrity: sha512-49cGhUbXj8Qenv0iTMxA1cFBzxXoctpC9Ujd77t1WcbJIr6nF/eI7g/8MgxrYldFRuAXvja7xQRwavoW7kgrxQ==}
     engines: {node: ^10 || ^12 || >=14}
 
   require-directory@2.1.1:
@@ -1088,19 +1088,19 @@ snapshots:
     dependencies:
       statuses: 2.0.2
 
-  '@decibri/decibri-darwin-arm64@5.7.0':
+  '@decibri/decibri-darwin-arm64@5.8.0':
     optional: true
 
-  '@decibri/decibri-linux-arm64-gnu@5.7.0':
+  '@decibri/decibri-linux-arm64-gnu@5.8.0':
     optional: true
 
-  '@decibri/decibri-linux-x64-gnu@5.7.0':
+  '@decibri/decibri-linux-x64-gnu@5.8.0':
     optional: true
 
-  '@decibri/decibri-win32-arm64-msvc@5.7.0':
+  '@decibri/decibri-win32-arm64-msvc@5.8.0':
     optional: true
 
-  '@decibri/decibri-win32-x64-msvc@5.7.0':
+  '@decibri/decibri-win32-x64-msvc@5.8.0':
     optional: true
 
   '@inquirer/ansi@1.0.2': {}
@@ -1364,7 +1364,7 @@ snapshots:
 
   '@xtuc/long@4.2.2': {}
 
-  acorn@8.18.0: {}
+  acorn@8.19.0: {}
 
   ajv-formats@3.0.1(ajv@8.20.0):
     optionalDependencies:
@@ -1396,7 +1396,7 @@ snapshots:
     dependencies:
       baseline-browser-mapping: 2.11.27
       caniuse-lite: 1.0.30001814
-      electron-to-chromium: 1.5.443
+      electron-to-chromium: 1.5.444
       node-releases: 2.0.57
       update-browserslist-db: 1.3.3(browserslist@4.29.3)
 
@@ -1433,17 +1433,17 @@ snapshots:
 
   cookie@0.7.2: {}
 
-  decibri@5.7.0:
+  decibri@5.8.0:
     optionalDependencies:
-      '@decibri/decibri-darwin-arm64': 5.7.0
-      '@decibri/decibri-linux-arm64-gnu': 5.7.0
-      '@decibri/decibri-linux-x64-gnu': 5.7.0
-      '@decibri/decibri-win32-arm64-msvc': 5.7.0
-      '@decibri/decibri-win32-x64-msvc': 5.7.0
+      '@decibri/decibri-darwin-arm64': 5.8.0
+      '@decibri/decibri-linux-arm64-gnu': 5.8.0
+      '@decibri/decibri-linux-x64-gnu': 5.8.0
+      '@decibri/decibri-win32-arm64-msvc': 5.8.0
+      '@decibri/decibri-win32-x64-msvc': 5.8.0
 
   detect-libc@2.1.2: {}
 
-  electron-to-chromium@1.5.443: {}
+  electron-to-chromium@1.5.444: {}
 
   emoji-regex@8.0.0: {}
 
@@ -1554,7 +1554,7 @@ snapshots:
 
   mime-db@1.54.0: {}
 
-  minimizer-webpack-plugin@5.12.0(webpack@5.111.1):
+  minimizer-webpack-plugin@5.13.0(webpack@5.111.1):
     dependencies:
       '@jridgewell/trace-mapping': 0.3.31
       jest-worker: 27.5.1
@@ -1590,7 +1590,7 @@ snapshots:
 
   mute-stream@2.0.0: {}
 
-  nanoid@3.3.19: {}
+  nanoid@3.3.20: {}
 
   node-releases@2.0.57: {}
 
@@ -1606,9 +1606,9 @@ snapshots:
 
   picomatch@4.0.7: {}
 
-  postcss@8.5.28:
+  postcss@8.5.29:
     dependencies:
-      nanoid: 3.3.19
+      nanoid: 3.3.20
       picocolors: 1.1.1
       source-map-js: 1.2.2
 
@@ -1692,7 +1692,7 @@ snapshots:
   terser@5.51.2:
     dependencies:
       '@jridgewell/source-map': 0.3.11
-      acorn: 8.18.0
+      acorn: 8.19.0
       commander: 2.20.3
       source-map-support: 0.5.21
 
@@ -1741,7 +1741,7 @@ snapshots:
     dependencies:
       lightningcss: 1.33.0
       picomatch: 4.0.7
-      postcss: 8.5.28
+      postcss: 8.5.29
       rolldown: 1.2.12
       tinyglobby: 0.2.17
     optionalDependencies:
@@ -1796,7 +1796,7 @@ snapshots:
       events: 3.3.0
       graceful-fs: 4.2.11
       mime-db: 1.54.0
-      minimizer-webpack-plugin: 5.12.0(webpack@5.111.1)
+      minimizer-webpack-plugin: 5.13.0(webpack@5.111.1)
       schema-utils: 4.5.0
       tapable: 2.3.3
       watchpack: 2.5.2

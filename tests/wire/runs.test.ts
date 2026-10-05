@@ -25,7 +25,7 @@ describe("RunsClient", () => {
                     ended_at: "2024-10-09T03:06:42Z",
                     bytes_received: 418302,
                     bytes_recorded: 418302,
-                    metered_seconds: 0.666666666,
+                    metered_seconds: 10,
                 },
                 {
                     run_id: "01926f3c-d33c-7c9f-9c91-4502d80834d5",
@@ -37,7 +37,7 @@ describe("RunsClient", () => {
                     ended_at: "2024-10-09T03:05:11Z",
                     bytes_received: 160000,
                     bytes_recorded: 160000,
-                    metered_seconds: 5,
+                    metered_seconds: 10,
                 },
                 {
                     run_id: "01926f3b-c943-7862-bce6-89e3ec968bf2",
@@ -49,7 +49,7 @@ describe("RunsClient", () => {
                     ended_at: "2024-10-09T03:04:05Z",
                     bytes_received: 1811673,
                     bytes_recorded: 627453,
-                    metered_seconds: 1.333333332,
+                    metered_seconds: 10,
                 },
                 {
                     run_id: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
@@ -82,7 +82,7 @@ describe("RunsClient", () => {
                     endedAt: new Date("2024-10-09T03:06:42.000Z"),
                     bytesReceived: 418302,
                     bytesRecorded: 418302,
-                    meteredSeconds: 0.666666666,
+                    meteredSeconds: 10,
                 },
                 {
                     runId: "01926f3c-d33c-7c9f-9c91-4502d80834d5",
@@ -94,7 +94,7 @@ describe("RunsClient", () => {
                     endedAt: new Date("2024-10-09T03:05:11.000Z"),
                     bytesReceived: 160000,
                     bytesRecorded: 160000,
-                    meteredSeconds: 5,
+                    meteredSeconds: 10,
                 },
                 {
                     runId: "01926f3b-c943-7862-bce6-89e3ec968bf2",
@@ -106,7 +106,7 @@ describe("RunsClient", () => {
                     endedAt: new Date("2024-10-09T03:04:05.000Z"),
                     bytesReceived: 1811673,
                     bytesRecorded: 627453,
-                    meteredSeconds: 1.333333332,
+                    meteredSeconds: 10,
                 },
                 {
                     runId: "01926f3a-5b1c-7d2e-8f40-3a9b7c1d2e5f",
@@ -206,28 +206,6 @@ describe("RunsClient", () => {
         await expect(async () => {
             return await client.runs.list();
         }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
-    });
-
-    test("list (6)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ExpressionMeasurementClient({
-            maxRetries: 0,
-            apiKey: "test",
-            environment: { base: server.baseUrl, production: server.baseUrl },
-        });
-
-        const rawResponseBody = {
-            type: "error",
-            code: "message_invalid",
-            message: "message",
-            request_id: "request_id",
-        };
-
-        server.mockEndpoint().get("/v1/expression/run").respondWith().statusCode(503).jsonBody(rawResponseBody).build();
-
-        await expect(async () => {
-            return await client.runs.list();
-        }).rejects.toThrow(ExpressionMeasurement.ServiceUnavailableError);
     });
 
     test("get (1)", async () => {
@@ -408,36 +386,6 @@ describe("RunsClient", () => {
                 runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
-    });
-
-    test("get (6)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ExpressionMeasurementClient({
-            maxRetries: 0,
-            apiKey: "test",
-            environment: { base: server.baseUrl, production: server.baseUrl },
-        });
-
-        const rawResponseBody = {
-            type: "error",
-            code: "message_invalid",
-            message: "message",
-            request_id: "request_id",
-        };
-
-        server
-            .mockEndpoint()
-            .get("/v1/expression/run/run_id")
-            .respondWith()
-            .statusCode(503)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.runs.get({
-                runId: "run_id",
-            });
-        }).rejects.toThrow(ExpressionMeasurement.ServiceUnavailableError);
     });
 
     test("list-events (1)", async () => {
@@ -644,35 +592,5 @@ describe("RunsClient", () => {
                 runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
-    });
-
-    test("list-events (7)", async () => {
-        const server = mockServerPool.createServer();
-        const client = new ExpressionMeasurementClient({
-            maxRetries: 0,
-            apiKey: "test",
-            environment: { base: server.baseUrl, production: server.baseUrl },
-        });
-
-        const rawResponseBody = {
-            type: "error",
-            code: "message_invalid",
-            message: "message",
-            request_id: "request_id",
-        };
-
-        server
-            .mockEndpoint()
-            .get("/v1/expression/run/run_id/events")
-            .respondWith()
-            .statusCode(503)
-            .jsonBody(rawResponseBody)
-            .build();
-
-        await expect(async () => {
-            return await client.runs.listEvents({
-                runId: "run_id",
-            });
-        }).rejects.toThrow(ExpressionMeasurement.ServiceUnavailableError);
     });
 });

@@ -26,13 +26,24 @@
                         "default": "./dist/cjs/audio-helpers/index.js"
                     },
                     "default": "./dist/cjs/audio-helpers/index.js"
+                },
+                "./video-helpers": {
+                    "import": {
+                        "types": "./dist/esm/video-helpers/index.d.mts",
+                        "default": "./dist/esm/video-helpers/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/video-helpers/index.d.ts",
+                        "default": "./dist/cjs/video-helpers/index.js"
+                    },
+                    "default": "./dist/cjs/video-helpers/index.js"
                 }
             }
         }
     },
-    "originGitCommit": "613e746ab71b15932239cbd5d5d0d3220b04bd56",
+    "originGitCommit": "ba386c9c63e81fe2a130db1073e17787b3939146",
     "originGitCommitIsDirty": false,
     "invokedBy": "ci",
     "ciProvider": "github",
-    "sdkVersion": "0.0.132"
+    "sdkVersion": "0.0.133"
 }
