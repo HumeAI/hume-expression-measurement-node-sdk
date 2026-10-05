@@ -37,9 +37,6 @@ class Session {
     }
 
     public readonly shouldReconnect = (event: core.CloseEvent): boolean => {
-        if (this.closeSent) {
-            return false;
-        }
         // A server that is shutting down may close with code 1000, which otherwise means the
         // session ended for good.
         if (this.closedReason === "server_shutdown") {
@@ -67,9 +64,15 @@ export class RealtimeWebSocket extends core.ReconnectingWebSocket {
 
     constructor(endpoint: Endpoint, args: core.ReconnectingWebSocket.Args) {
         const session = new Session(endpoint);
+        const shouldReconnect = args.options?.shouldReconnect ?? session.shouldReconnect;
         super({
             ...args,
-            options: { ...args.options, shouldReconnect: args.options?.shouldReconnect ?? session.shouldReconnect },
+            options: {
+                ...args.options,
+                // A close after `session.close` is final even under the caller's `shouldReconnect`,
+                // since the caller asked the session to end.
+                shouldReconnect: (event) => !session.closeSent && shouldReconnect(event),
+            },
         });
         this.session = session;
         // Registered before the socket wrapper's listeners, so a new session receives its config
@@ -110,7 +113,8 @@ export class RealtimeWebSocket extends core.ReconnectingWebSocket {
 
     // Errors are retried without consulting `shouldReconnect`. Until a session has opened, an
     // error may come from the caller's settings rather than an outage, and `waitForOpen` rejects on
-    // it either way, so a retry would only open a session nobody is waiting for.
+    // it either way, so a later open would start a session after the caller was told the
+    // connection failed.
     private readonly handleError = (event: core.ErrorEvent): void => {
         if (!this.opened || this.session.closeSent || isPermanentRefusal(event.message)) {
             this.close();

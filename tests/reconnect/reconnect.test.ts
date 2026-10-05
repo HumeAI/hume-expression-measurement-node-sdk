@@ -2,7 +2,7 @@
 
 import type { AddressInfo } from "net";
 import { type WebSocket, WebSocketServer } from "ws";
-import type { AudioSocket } from "../../src/api/resources/audio/exports";
+import type { AudioClient, AudioSocket } from "../../src/api/resources/audio/exports";
 import type { VideoSocket } from "../../src/api/resources/video/exports";
 import { ExpressionMeasurementClient, ReadyState } from "../../src/index";
 
@@ -287,13 +287,26 @@ describe("realtime reconnects", () => {
         await expectStopped(socket);
     });
 
-    it("does not reconnect after the caller sends session.close, even when the server then restarts", async () => {
-        const socket = await opened(client.audio.connect());
+    it.each<[string, AudioClient.ConnectArgs, (session: FakeSession) => void]>([
+        ["a server shutdown", {}, (session) => endWithReason(session, "server_shutdown")],
+        ["a restart", {}, (session) => session.client.close(1012)],
+        [
+            "a server shutdown, under a shouldReconnect that would reconnect",
+            { shouldReconnect: () => true },
+            (session) => endWithReason(session, "server_shutdown"),
+        ],
+        [
+            "a restart, under a shouldReconnect that would reconnect",
+            { shouldReconnect: () => true },
+            (session) => session.client.close(1012),
+        ],
+    ])("does not reconnect after the caller sends session.close and then %s", async (_, args, end) => {
+        const socket = await opened(client.audio.connect(args));
         socket.sendAudioSessionClose({ type: "session.close" });
         await server.until(() => server.sessions[0].received.length === 1);
 
         const closed = next(socket, "close");
-        server.sessions[0].client.close(1012);
+        end(server.sessions[0]);
         await closed;
 
         await expectStopped(socket);

@@ -287,7 +287,7 @@ Frames are produced as fast as the file is read, so pace the sends for a file lo
 
 `Resampler` converts a stream you already have, block by block. Pass each block to `process`, then call `flush` after the last one. Blocks can be bytes, as an `ArrayBuffer`, `Uint8Array`, or `Buffer`, which are read as little-endian and may end partway through a sample frame, or an `Int16Array`, `Float32Array`, or `Float64Array` that matches `sampleFormat`. Channels are averaged to mono.
 
-At input rates other than 16 kHz, the resampler holds back a little audio as filter history, 4 ms at input rates above 16 kHz and up to 64 ms at 1 kHz, so `process` can return an empty result for a short block. The endpoint rejects empty frames, so check before sending. It also rejects frames longer than 10 seconds, so pass a long recording in blocks of about 100 ms rather than in one call, and pace the sends for a recording longer than 30 seconds.
+At input rates other than 16 kHz, the resampler holds back a little audio as filter history, 4 ms at input rates above 16 kHz and up to 64 ms at 1 kHz, so `process` can return an empty result for a short block. The endpoint rejects empty frames, so check before sending. It also rejects frames longer than 10 seconds, so pass a long recording in blocks of about 100 ms rather than in one call, and pace the sends for a recording longer than 30 seconds. From a live stream, skip sending while the socket reconnects, as [Reconnecting](#reconnecting) describes.
 
 ```typescript
 import { Resampler } from "@humeai/expression-measurement-node/audio-helpers";
@@ -440,15 +440,15 @@ When a realtime connection ends unexpectedly, the socket connects again, which s
 
 Any other close is final, and so is a close after you send `session.close` or call `close()`. A failed first connection is not retried either, since a wrong URL or API key would fail the same way again: `waitForOpen()` rejects with the cause, and the socket closes.
 
-The first attempt waits 1 to 5 seconds, and later attempts wait longer, up to 10 seconds. An attempt that fails with a network error, a timeout, or a 408, 429, or 5xx status is retried, up to `reconnectAttempts` times. An attempt refused with any other 4xx status, such as 401 for an API key that is no longer valid, closes the socket. The socket does not report when it stops trying: each failed attempt fires the `error` event, and after the last one the socket stays closed.
+The first attempt waits 1 to 5 seconds, and later attempts wait longer, up to 10 seconds. An attempt that fails with a network error, a timeout, or a 408, 429, or 5xx status is retried, up to `reconnectAttempts` times. An attempt refused with any other 4xx status, such as 401 for an API key that is no longer valid, closes the socket. The socket does not report when it stops trying: each failed attempt fires the `error` event, and after the last one the socket stays closed. Nor does the `close` event mean the socket has stopped. It fires each time a connection ends before a reconnect, and with code 1000 just before the `error` event of each failed attempt.
 
-A new session does not continue the previous one. It has a new session ID, and so a new run, `session.created` arrives again, and IDs and times in its results start again from 0. Results for media that the previous session had received but not yet measured never arrive. The socket sends your latest `session.update` to the new session before anything else, so the session runs with your configuration, and then your `open` handler runs again.
+A new session does not continue the previous one. It has a new session ID, and so a new run, `session.created` arrives again, and IDs and times in its results start again from 0. Results for media that the previous session had received but not yet measured never arrive. The socket sends your latest `session.update` to the new session before your `open` handler runs again, so the session runs with your configuration, and the server confirms it with `session.updated` as usual.
 
-While the socket reconnects it is not open, and sending throws. A live source should skip frames until `socket.readyState` is `ReadyState.OPEN` again, as the [microphone example](#microphone) does. A recording loses whatever the previous session had not measured, so rather than skip frames, let the send's error end the loop, then send the recording again or [upload](#quickstart-upload) it.
+While the socket reconnects it is not open, and sending throws. A live source should skip frames until `socket.readyState` is `ReadyState.OPEN` again, as the [microphone example](#microphone) does. A recording loses whatever the previous session had not measured, so rather than skip frames, let the send's error end the loop and call `close()`, which stops the reconnect. Then send the recording again on a new connection or [upload](#quickstart-upload) it.
 
 `streamVideo` does not reconnect. When the session or the connection ends before the frames do, it closes the socket and throws a `SessionEndedError`.
 
-To turn reconnecting off, pass `reconnectAttempts: 0`. To choose which closes reconnect, pass `shouldReconnect`, which receives the close event and replaces the rules above for closes. Connection errors are handled as described either way.
+To turn reconnecting off, pass `reconnectAttempts: 0`. To choose which closes reconnect, pass `shouldReconnect`, which receives the close event and replaces the rules above for closes, except that a close after you send `session.close` is always final. Connection errors are handled as described either way.
 
 ## Runs
 

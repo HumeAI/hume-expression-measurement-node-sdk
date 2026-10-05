@@ -33,7 +33,7 @@ export declare namespace AudioClient {
         connectionTimeoutInSeconds?: number;
         /** A signal to abort the WebSocket connection. */
         abortSignal?: AbortSignal;
-        /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. Defaults to reconnecting after a `session.closed` with reason `server_shutdown`, after close codes 1001, 1006, 1011, 1012 and 1013, and after close code 1008 that follows an `internal_error`, unless `session.close` was sent. */
+        /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. A close after `session.close` was sent never reconnects. Defaults to reconnecting after a `session.closed` with reason `server_shutdown`, after close codes 1001, 1006, 1011, 1012 and 1013, and after close code 1008 that follows an `internal_error`. */
         shouldReconnect?: (event: core.CloseEvent) => boolean;
     }
 }
