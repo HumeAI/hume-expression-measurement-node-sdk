@@ -108,7 +108,13 @@ generations:
     cli_version: unknown
     generator_versions:
       fernapi/fern-typescript-sdk: 3.97.1
-current_generation: 1661864ed5e1d802794e0b37f0246db4143f0cf3
+  - commit_sha: ef6829bd11de0a597dbb78b53bbfb49a00d4fdf3
+    tree_hash: cec73e73aedb441401b786ceba9498d7849b817c
+    timestamp: 2026-10-05T22:19:17.374Z
+    cli_version: unknown
+    generator_versions:
+      fernapi/fern-typescript-sdk: 3.98.5
+current_generation: ef6829bd11de0a597dbb78b53bbfb49a00d4fdf3
 patches:
   - id: patch-950a3893
     content_hash: sha256:f69f4631c8f93affc02070117b1906867ef15aa7b0c535277aa0ba6c8161477e
@@ -2551,6 +2557,187 @@ patches:
               yargs-parser: 21.1.1
 
           yoctocolors-cjs@2.1.3: {}
+    status: unresolved
+  - id: patch-9109de34
+    content_hash: sha256:0fd9d66d28b316e1b2113d09a23ce7690771884529bff6ba4af5efb0837c2ad9
+    original_commit: 9109de34bd390bcc57ea747ea4c20b663faa7ba9
+    original_message: add the video helpers entry point with a JpegSplitter that splits concatenated JPEG streams by marker structure
+    original_author: zach <zachary.greathouse@hume.ai>
+    base_generation: cb068f729ae25e9f0ccaf20ea7b53ee6f518a9a2
+    files:
+      - package.json
+    patch_content: |
+      diff --git a/package.json b/package.json
+      index 44dc123..59e1927 100644
+      --- a/package.json
+      +++ b/package.json
+      @@ -78,6 +78,17 @@
+                       "default": "./dist/cjs/audio-helpers/index.js"
+                   },
+                   "default": "./dist/cjs/audio-helpers/index.js"
+      +        },
+      +        "./video-helpers": {
+      +            "import": {
+      +                "types": "./dist/esm/video-helpers/index.d.mts",
+      +                "default": "./dist/esm/video-helpers/index.mjs"
+      +            },
+      +            "require": {
+      +                "types": "./dist/cjs/video-helpers/index.d.ts",
+      +                "default": "./dist/cjs/video-helpers/index.js"
+      +            },
+      +            "default": "./dist/cjs/video-helpers/index.js"
+               }
+           },
+           "files": [
+    theirs_snapshot:
+      package.json: |
+        {
+            "name": "@humeai/expression-measurement-node",
+            "version": "0.0.132",
+            "private": false,
+            "repository": {
+                "type": "git",
+                "url": "git+https://github.com/HumeAI/hume-expression-measurement-node-sdk.git"
+            },
+            "license": "MIT",
+            "type": "commonjs",
+            "main": "./dist/cjs/index.js",
+            "module": "./dist/esm/index.mjs",
+            "types": "./dist/cjs/index.d.ts",
+            "exports": {
+                ".": {
+                    "import": {
+                        "types": "./dist/esm/index.d.mts",
+                        "default": "./dist/esm/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/index.d.ts",
+                        "default": "./dist/cjs/index.js"
+                    },
+                    "default": "./dist/cjs/index.js"
+                },
+                "./serialization": {
+                    "import": {
+                        "types": "./dist/esm/serialization/index.d.mts",
+                        "default": "./dist/esm/serialization/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/serialization/index.d.ts",
+                        "default": "./dist/cjs/serialization/index.js"
+                    },
+                    "default": "./dist/cjs/serialization/index.js"
+                },
+                "./audio": {
+                    "import": {
+                        "types": "./dist/esm/api/resources/audio/exports.d.mts",
+                        "default": "./dist/esm/api/resources/audio/exports.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/api/resources/audio/exports.d.ts",
+                        "default": "./dist/cjs/api/resources/audio/exports.js"
+                    },
+                    "default": "./dist/cjs/api/resources/audio/exports.js"
+                },
+                "./video": {
+                    "import": {
+                        "types": "./dist/esm/api/resources/video/exports.d.mts",
+                        "default": "./dist/esm/api/resources/video/exports.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/api/resources/video/exports.d.ts",
+                        "default": "./dist/cjs/api/resources/video/exports.js"
+                    },
+                    "default": "./dist/cjs/api/resources/video/exports.js"
+                },
+                "./runs": {
+                    "import": {
+                        "types": "./dist/esm/api/resources/runs/exports.d.mts",
+                        "default": "./dist/esm/api/resources/runs/exports.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/api/resources/runs/exports.d.ts",
+                        "default": "./dist/cjs/api/resources/runs/exports.js"
+                    },
+                    "default": "./dist/cjs/api/resources/runs/exports.js"
+                },
+                "./package.json": "./package.json",
+                "./audio-helpers": {
+                    "import": {
+                        "types": "./dist/esm/audio-helpers/index.d.mts",
+                        "default": "./dist/esm/audio-helpers/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/audio-helpers/index.d.ts",
+                        "default": "./dist/cjs/audio-helpers/index.js"
+                    },
+                    "default": "./dist/cjs/audio-helpers/index.js"
+                },
+                "./video-helpers": {
+                    "import": {
+                        "types": "./dist/esm/video-helpers/index.d.mts",
+                        "default": "./dist/esm/video-helpers/index.mjs"
+                    },
+                    "require": {
+                        "types": "./dist/cjs/video-helpers/index.d.ts",
+                        "default": "./dist/cjs/video-helpers/index.js"
+                    },
+                    "default": "./dist/cjs/video-helpers/index.js"
+                }
+            },
+            "files": [
+                "dist",
+                "reference.md",
+                "README.md",
+                "LICENSE"
+            ],
+            "scripts": {
+                "format": "biome format --write --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "format:check": "biome format --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "lint": "biome lint --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "lint:fix": "biome lint --fix --unsafe --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "check": "biome check --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "check:fix": "biome check --fix --unsafe --skip-parse-errors --no-errors-on-unmatched --max-diagnostics=none",
+                "build": "pnpm build:cjs && pnpm build:esm",
+                "build:cjs": "tsc --project ./tsconfig.cjs.json",
+                "build:esm": "tsc --project ./tsconfig.esm.json && node scripts/rename-to-esm-files.js dist/esm",
+                "test": "vitest",
+                "test:unit": "vitest --project unit",
+                "test:wire": "vitest --project wire"
+            },
+            "dependencies": {
+                "ws": "^8.20.0"
+            },
+            "peerDependencies": {
+                "decibri": "^5.7.0"
+            },
+            "peerDependenciesMeta": {
+                "decibri": {
+                    "optional": true
+                }
+            },
+            "devDependencies": {
+                "webpack": "^5.105.4",
+                "ts-loader": "^9.5.4",
+                "@types/ws": "^8.18.1",
+                "vitest": "^4.1.1",
+                "msw": "2.11.2",
+                "@types/node": "^20.0.0",
+                "typescript": "~5.9.3",
+                "@biomejs/biome": "2.4.10"
+            },
+            "browser": {
+                "fs": false,
+                "os": false,
+                "path": false,
+                "stream": false,
+                "crypto": false
+            },
+            "packageManager": "pnpm@10.33.0",
+            "engines": {
+                "node": ">=18.0.0"
+            },
+            "sideEffects": false
+        }
     status: unresolved
 dismissals:
   - patch_id: patch-62342be9
