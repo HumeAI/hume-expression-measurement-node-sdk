@@ -117,8 +117,15 @@ async function reopened(socket: AudioSocket | VideoSocket): Promise<void> {
     await open;
 }
 
+// Runs any pending reconnect delay, so a reconnect that should not happen opens and fails the
+// assertion rather than leaving the wait for an open pending until the test times out.
 async function expectStopped(socket: AudioSocket | VideoSocket): Promise<void> {
-    await expect(socket.waitForOpen()).rejects.toThrow("WebSocket closed before the connection was opened");
+    const outcome = socket.waitForOpen().then(
+        () => "reopened",
+        (e: unknown) => (e instanceof Error ? e.message : e),
+    );
+    await vi.advanceTimersToNextTimerAsync();
+    expect(await outcome).toBe("WebSocket closed before the connection was opened");
 }
 
 describe("realtime reconnects", () => {
