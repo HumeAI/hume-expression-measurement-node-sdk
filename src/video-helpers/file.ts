@@ -5,7 +5,7 @@ import type { VideoFrame } from "./VideoFrame.js";
 
 export declare namespace iterVideoFrames {
     export interface Options {
-        /** Frames per second to take from the video, above 0 and at most 30. 5 by default. */
+        /** Frames per second to take from the video, above 0 and at most 4. 3 by default. */
         fps?: number;
         /** Frames wider than this many pixels are scaled down to it, keeping their shape. 1280 by default. */
         maxWidth?: number;
@@ -47,7 +47,7 @@ export declare namespace iterVideoFrames {
  */
 export function iterVideoFrames(
     path: string,
-    { fps = 5, maxWidth = 1280, realtime = false, ffmpegPath = "ffmpeg" }: iterVideoFrames.Options = {},
+    { fps = 3, maxWidth = 1280, realtime = false, ffmpegPath = "ffmpeg" }: iterVideoFrames.Options = {},
 ): AsyncGenerator<VideoFrame, void, undefined> {
     const args = ffmpegArgs([...(realtime ? ["-re"] : []), "-i", path], checkFps(fps), checkMaxWidth(maxWidth));
     return readFrames(ffmpegPath, args, fps);

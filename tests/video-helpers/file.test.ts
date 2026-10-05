@@ -94,7 +94,7 @@ describe("iterVideoFrames", () => {
         const args = ffmpegArgs();
 
         expect(args[args.indexOf("-i") - 1]).toBe("-re");
-        expect(args[args.indexOf("-vf") + 1]).toBe("fps=5,scale='min(iw,1280)':-2");
+        expect(args[args.indexOf("-vf") + 1]).toBe("fps=3,scale='min(iw,1280)':-2");
     });
 
     it("yields the images written before ffmpeg fails, then throws its error output", async () => {
@@ -140,7 +140,7 @@ describe("iterVideoFrames", () => {
         expect(isRunning(Number(readFileSync(join(dir, "pid"), "utf8")))).toBe(false);
     });
 
-    it.each([0, -1, 30.5, Number.NaN])("rejects an fps of %s when called", (fps) => {
+    it.each([0, -1, 4.5, Number.NaN])("rejects an fps of %s when called", (fps) => {
         expect(() => iterVideoFrames("interview.mp4", { fps })).toThrow(RangeError);
     });
 

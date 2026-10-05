@@ -113,6 +113,30 @@ function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+// Answers like a server whose send rate is lower than documented: a burst of `burst` frames, then
+// `perSecond` frames per second, rejecting the rest with `rate_limited`.
+function limitedTo(perSecond: number, burst: number): () => Reply[] {
+    let allowance = burst;
+    let updatedAt = Date.now();
+    return () => {
+        const now = Date.now();
+        allowance = Math.min(burst, allowance + ((now - updatedAt) * perSecond) / 1000);
+        updatedAt = now;
+        if (allowance < 1) {
+            return [error("rate_limited")];
+        }
+        allowance -= 1;
+        return [RESULT];
+    };
+}
+
+async function* liveFrames(count: number, intervalMs: number): AsyncGenerator<VideoFrame> {
+    for (let id = 0; id < count; id++) {
+        yield frame(id);
+        await sleep(intervalMs);
+    }
+}
+
 describe("streamVideo", () => {
     let server: FakeServer | undefined;
 
@@ -167,12 +191,12 @@ describe("streamVideo", () => {
         await vi.waitFor(() => expect(server?.closeCodes).toEqual([1000]));
     });
 
-    it.each(["rate_limited", "overloaded"])("drops a live frame rejected with %s", async (code) => {
-        const socket = await connect((id) => (id === 1 ? [error(code)] : [RESULT]));
+    it("drops a live frame rejected with rate_limited", async () => {
+        const socket = await connect((id) => (id === 1 ? [error("rate_limited")] : [RESULT]));
 
         const replies = await collect(streamVideo(socket, framesOf(frame(0), frame(1), frame(2)), { live: true }));
 
-        expect(replies).toEqual(["0 result", `100 ${code}`, "200 result"]);
+        expect(replies).toEqual(["0 result", "100 rate_limited", "200 result"]);
         expect(server?.received).toEqual([0, 1, 2]);
     });
 
@@ -182,7 +206,7 @@ describe("streamVideo", () => {
                 return [error("rate_limited")];
             }
             if (id === 2 && attempt === 1) {
-                return [error("overloaded")];
+                return [error("rate_limited")];
             }
             return [RESULT];
         });
@@ -191,8 +215,35 @@ describe("streamVideo", () => {
 
         expect(replies).toEqual(["0 result", "100 result", "200 result", "300 result"]);
         expect(server?.received).toEqual([0, 1, 2, 3, 1, 2]);
+        // The first rejection halves the rate to 2 frames per second, so the first resend waits
+        // one frame at that rate. The second frame was sent before the first rejection arrived,
+        // so its rejection does not halve the rate again, which would double the wait.
         const arrivals = server?.arrivals ?? [];
-        expect(arrivals[4] - arrivals[1]).toBeGreaterThanOrEqual(90);
+        expect(arrivals[4] - arrivals[1]).toBeGreaterThanOrEqual(450);
+        expect(arrivals[4] - arrivals[1]).toBeLessThan(900);
+    });
+
+    it("slows a recording to a server rate lower than documented, rather than resending most frames", async () => {
+        const socket = await connect(limitedTo(2, 2));
+        const frames = Array.from({ length: 10 }, (_, id) => frame(id));
+
+        const replies = await collect(streamVideo(socket, framesOf(...frames)));
+
+        expect(replies).toEqual(frames.map((f) => `${f.timestampMs} result`));
+        // The first 7 frames go out before any reply, and the 5 beyond the server's burst are
+        // rejected. After that, few frames are sent only to be rejected.
+        expect(server?.received.length).toBeLessThanOrEqual(10 + 5 + 3);
+    }, 10_000);
+
+    it("drops live frames before sending them when the server rate is lower than documented", async () => {
+        const socket = await connect(limitedTo(2, 2));
+
+        const stream = streamVideo(socket, liveFrames(60, 33), { live: true });
+        const replies = await collect(stream);
+
+        const rejected = replies.filter((reply) => reply.endsWith("rate_limited")).length;
+        expect(rejected).toBeLessThan(8);
+        expect(stream.droppedFrames).toBeGreaterThan(45);
     });
 
     it("sends a recorded frame once more after a retryable internal error, but not a live one", async () => {
@@ -298,26 +349,26 @@ describe("streamVideo", () => {
         const socket = await connect(() => [RESULT]);
         await socket.waitForOpen();
         vi.useFakeTimers({ toFake: ["Date"] });
-        const frames = Array.from({ length: 40 }, (_, id) => frame(id));
+        const frames = Array.from({ length: 10 }, (_, id) => frame(id));
 
         const stream = streamVideo(socket, framesOf(...frames), { live: true });
         const replies = await collect(stream);
 
-        expect(replies).toHaveLength(27);
-        expect(stream.droppedFrames).toBe(13);
-        expect(server?.received).toEqual(frames.slice(0, 27).map((_, id) => id));
+        expect(replies).toHaveLength(7);
+        expect(stream.droppedFrames).toBe(3);
+        expect(server?.received).toEqual(frames.slice(0, 7).map((_, id) => id));
     });
 
-    it("sends the first 27 recorded frames at once and paces the rest to 30 per second", async () => {
+    it("sends the first 7 recorded frames at once and paces the rest to 4 per second", async () => {
         const socket = await connect(() => [RESULT]);
-        const frames = Array.from({ length: 36 }, (_, id) => frame(id));
+        const frames = Array.from({ length: 9 }, (_, id) => frame(id));
 
         const replies = await collect(streamVideo(socket, framesOf(...frames)));
 
-        expect(replies).toHaveLength(36);
+        expect(replies).toHaveLength(9);
         const arrivals = server?.arrivals ?? [];
-        expect(arrivals[26] - arrivals[0]).toBeLessThan(100);
-        expect(arrivals[35] - arrivals[0]).toBeGreaterThanOrEqual(250);
+        expect(arrivals[6] - arrivals[0]).toBeLessThan(100);
+        expect(arrivals[8] - arrivals[0]).toBeGreaterThanOrEqual(450);
     });
 
     it("closes the socket and stops the frames when the loop ends early", async () => {

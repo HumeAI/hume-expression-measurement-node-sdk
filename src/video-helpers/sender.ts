@@ -10,8 +10,8 @@ export declare namespace streamVideo {
     export interface Options {
         /**
          * Whether the frames come from a live source, such as a camera, rather than a recording.
-         * A live frame that the send rate or the server's capacity has no room for is dropped, so
-         * that results keep up with the source. A recorded frame waits and is sent again, so that
+         * A live frame that the send rate has no room for is dropped, so that results keep up
+         * with the source. A recorded frame waits and is sent again, so that
          * every frame is measured. False by default.
          */
         live?: boolean;
@@ -27,30 +27,27 @@ export declare namespace streamVideo {
 // is 2,000,000 or 2,097,152 bytes, so the smaller is used.
 const MAX_MESSAGE_BYTES = 2_000_000;
 
-// The server's send rate is the first 30 frames at once, then 30 per second. It also lets unused
-// allowance build up while the client pauses, but how far is not documented, so the client allows
-// no more than the first burst. The client keeps 3 frames of that in reserve: frames sent at
-// exactly the rate arrive unevenly, and the reserve absorbs up to 100 ms of that unevenness.
-const BURST_FRAMES = 27;
-const FRAMES_PER_SECOND = 30;
+// The documented send rate is the first 8 frames at once, then 4 per second. The server also lets
+// unused allowance build up while the client pauses, but how far is not documented, so the client
+// allows no more than the first burst. The client keeps 1 frame of that in reserve: frames sent at
+// exactly the rate arrive unevenly, and the reserve absorbs up to 250 ms of that unevenness.
+const BURST_FRAMES = 7;
+const FRAMES_PER_SECOND = 4;
 
-const INITIAL_BACKOFF_MS = 100;
-const MAX_BACKOFF_MS = 2000;
+// The slowest rate the client falls back to, so that a recorded frame waits at most 2 seconds
+// before it is sent again.
+const MIN_FRAMES_PER_SECOND = 0.5;
 
 // Every frame gets exactly one reply, in the order the frames were sent: a result or one of these
 // errors. Other errors answer text messages or end the session.
-const FRAME_ERRORS: ReadonlySet<string> = new Set([
-    "invalid_image_frame",
-    "rate_limited",
-    "overloaded",
-    "internal_error",
-]);
+const FRAME_ERRORS: ReadonlySet<string> = new Set(["invalid_image_frame", "rate_limited", "internal_error"]);
 
 interface Entry {
     // Position in the input, counting only frames that are sent or rejected before sending.
     index: number;
     frame: VideoFrame;
-    sentAt: number;
+    // Which send this was, counting from 1, or 0 before the frame is sent.
+    sendNumber: number;
     resent: boolean;
 }
 
@@ -58,11 +55,12 @@ interface Entry {
  * Streams frames to a realtime video session and yields the reply to each frame, paired with that
  * frame's `timestampMs`.
  *
- * Frames are sent no faster than the session's send rate allows. Frames the server rejects with
- * `rate_limited` or `overloaded` are dropped from a live source and sent again from a recording,
- * after a wait that grows from 100 ms to 2 s while rejections continue. A recorded frame that
- * fails with a retryable `internal_error` is sent once more. A frame over the 2 MB message limit
- * would end the session, so it is not sent and is yielded as a `message_too_large` error.
+ * Frames are sent no faster than the session's send rate allows. When the server rejects a frame
+ * with `rate_limited`, the rate is halved, down to one frame every 2 seconds, and
+ * it climbs back by one frame per second for each second of frames the server accepts. The
+ * rejected frame is dropped from a live source and sent again from a recording. A recorded frame
+ * that fails with a retryable `internal_error` is sent once more. A frame over the 2 MB message
+ * limit would end the session, so it is not sent and is yielded as a `message_too_large` error.
  *
  * Replies are yielded in the order of the frames. When the frames run out, the session is closed,
  * the remaining replies are yielded, and the socket is closed. `closed` then holds the session's
@@ -73,7 +71,7 @@ interface Entry {
  * the configuration locks at the first frame.
  *
  * @param socket A socket from `client.video.connect()`, open or still opening.
- * @param frames The frames to send, such as from `iterVideoFrames` or `Camera`.
+ * @param frames The frames to send, such as from `iterVideoFrames`.
  *
  * @throws {SessionEndedError} From iteration, if the session ends before the frames do, or the
  * connection closes without the session closing first.
@@ -177,12 +175,9 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
         let nextReply = 0;
         let closeSent = false;
         let lastError: ExpressionMeasurement.Error_ | undefined;
-        let backoffMs = 0;
-        let backoffStartedAt = Number.NEGATIVE_INFINITY;
-        let backoffUntil = 0;
 
-        const send = (entry: Entry) => {
-            entry.sentAt = Date.now();
+        const send = (entry: Entry, sendNumber: number) => {
+            entry.sendNumber = sendNumber;
             socket.sendImageFrame(entry.frame.data);
             inFlight.push(entry);
         };
@@ -198,13 +193,16 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
         };
         const accept = (frame: VideoFrame) => {
             if (frame.data.length > MAX_MESSAGE_BYTES) {
-                reject({ index: nextIndex++, frame, sentAt: 0, resent: false }, tooLarge(frame));
+                reject({ index: nextIndex++, frame, sendNumber: 0, resent: false }, tooLarge(frame));
             } else if (!this.live) {
-                waiting.push({ index: nextIndex++, frame, sentAt: 0, resent: false });
-            } else if (allowance.take(Date.now())) {
-                send({ index: nextIndex++, frame, sentAt: 0, resent: false });
+                waiting.push({ index: nextIndex++, frame, sendNumber: 0, resent: false });
             } else {
-                this.dropped++;
+                const sendNumber = allowance.take(Date.now());
+                if (sendNumber === undefined) {
+                    this.dropped++;
+                } else {
+                    send({ index: nextIndex++, frame, sendNumber: 0, resent: false }, sendNumber);
+                }
             }
         };
         const handle = (message: VideoSocket.Response) => {
@@ -216,9 +214,7 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
                 const entry = inFlight.shift();
                 if (entry !== undefined) {
                     replies.set(entry.index, { timestampMs: entry.frame.timestampMs, result: message });
-                    if (entry.sentAt >= backoffStartedAt) {
-                        backoffMs = 0;
-                    }
+                    allowance.speedUp(entry.sendNumber, Date.now());
                 }
                 return;
             }
@@ -233,15 +229,11 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
             if (entry === undefined) {
                 return;
             }
-            const busy = message.code === "rate_limited" || message.code === "overloaded";
-            if (!this.live && busy) {
-                // Frames sent before the wait began were rejected for the same reason, so they
-                // do not lengthen it.
-                if (entry.sentAt >= backoffStartedAt) {
-                    backoffMs = backoffMs === 0 ? INITIAL_BACKOFF_MS : Math.min(backoffMs * 2, MAX_BACKOFF_MS);
-                    backoffStartedAt = Date.now();
-                    backoffUntil = backoffStartedAt + backoffMs;
-                }
+            const limited = message.code === "rate_limited";
+            if (limited) {
+                allowance.slowDown(entry.sendNumber, Date.now());
+            }
+            if (!this.live && limited) {
                 sendLater(entry);
             } else if (!this.live && message.code === "internal_error" && message.retryable && !entry.resent) {
                 entry.resent = true;
@@ -302,12 +294,12 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
                 let waitMs: number | undefined;
                 if (waiting.length > 0) {
                     const now = Date.now();
-                    waitMs = Math.max(backoffUntil - now, allowance.delay(now));
+                    waitMs = allowance.delay(now);
                     const entry = waiting[0];
-                    if (waitMs <= 0) {
+                    const sendNumber = waitMs <= 0 ? allowance.take(now) : undefined;
+                    if (sendNumber !== undefined) {
                         waiting.shift();
-                        allowance.take(now);
-                        send(entry);
+                        send(entry, sendNumber);
                         continue;
                     }
                 } else if (!inputDone && !pulling) {
@@ -350,27 +342,60 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
     }
 }
 
-// Mirrors the server's allowance, so that frames are not sent only to be rejected.
+// Mirrors the server's allowance, so that frames are not sent only to be rejected. It starts at
+// the documented rate and adapts to the rate the server accepts: it halves on each rejection and
+// climbs back slowly while frames are accepted, so a server whose limit is lower than documented
+// rejects a few frames rather than most of them.
 class Allowance {
+    private rate = FRAMES_PER_SECOND;
     private frames = BURST_FRAMES;
     private updatedAt = Date.now();
+    private sends = 0;
+    // The number of sends before the last slowdown. Replies to those frames say nothing about the
+    // rate since then. Send numbers are used rather than times, which can tie.
+    private slowedAfter = 0;
 
     public delay(now: number): number {
         this.refill(now);
-        return this.frames >= 1 ? 0 : Math.ceil(((1 - this.frames) * 1000) / FRAMES_PER_SECOND);
+        return this.frames >= 1 ? 0 : Math.ceil(((1 - this.frames) * 1000) / this.rate);
     }
 
-    public take(now: number): boolean {
+    // Returns the send's number, counting from 1, or undefined when there is no room for it.
+    public take(now: number): number | undefined {
         this.refill(now);
         if (this.frames < 1) {
-            return false;
+            return undefined;
         }
         this.frames -= 1;
-        return true;
+        return ++this.sends;
+    }
+
+    // A rejection means the server's allowance was empty when the frame arrived.
+    public slowDown(sendNumber: number, now: number): void {
+        if (sendNumber <= this.slowedAfter) {
+            return;
+        }
+        this.rate = Math.max(MIN_FRAMES_PER_SECOND, this.rate / 2);
+        this.frames = 0;
+        this.updatedAt = now;
+        this.slowedAfter = this.sends;
+    }
+
+    // Adds one frame per second for each second of accepted frames.
+    public speedUp(sendNumber: number, now: number): void {
+        if (sendNumber <= this.slowedAfter || this.rate >= FRAMES_PER_SECOND) {
+            return;
+        }
+        this.refill(now);
+        this.rate = Math.min(FRAMES_PER_SECOND, this.rate + 1 / this.rate);
     }
 
     private refill(now: number): void {
-        this.frames = Math.min(BURST_FRAMES, this.frames + ((now - this.updatedAt) * FRAMES_PER_SECOND) / 1000);
+        // Once slowed, the client allows a burst of at most one second, since the server's burst
+        // may be as small as its rate.
+        const slowed = this.slowedAfter > 0;
+        const capacity = slowed ? Math.min(BURST_FRAMES, Math.max(1, this.rate)) : BURST_FRAMES;
+        this.frames = Math.min(capacity, this.frames + ((now - this.updatedAt) * this.rate) / 1000);
         this.updatedAt = now;
     }
 }

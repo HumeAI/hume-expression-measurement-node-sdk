@@ -5,8 +5,8 @@ import { checkInteger, describe } from "../audio-helpers/pcm.js";
 import { FfmpegNotFoundError } from "./FfmpegNotFoundError.js";
 import { JpegSplitter } from "./JpegSplitter.js";
 
-// The realtime video endpoint accepts 30 frames per second once its initial allowance is spent.
-const MAX_FPS = 30;
+// The realtime video endpoint accepts 4 frames per second once its initial allowance is spent.
+const MAX_FPS = 4;
 
 // ffmpeg's scaler fails at a width of 1, and a narrower frame is too small to hold a measurable face.
 const MIN_WIDTH = 16;

@@ -337,9 +337,9 @@ for await (const reply of stream) {
 console.log(`${stream.closed?.produced.measurements} faces measured`);
 ```
 
-The server accepts the first 30 frames immediately and then 30 per second. `streamVideo` sends the first 27 at once, keeping a few in reserve for uneven network timing, and paces the rest. How it handles a frame the server rejects with `rate_limited` or `overloaded` depends on the source:
+The server accepts the first 8 frames immediately and then 4 per second. `streamVideo` sends the first 7 at once, keeping one in reserve for uneven network timing, and paces the rest. When the server rejects a frame with `rate_limited`, `streamVideo` halves its send rate, down to one frame every 2 seconds, and raises it again gradually while frames are accepted, so a tighter limit than expected costs only a few rejected frames. What happens to the rejected frame depends on the source:
 
-1. From a recording, the default, it waits and sends the frame again, starting at 100 ms and doubling up to 2 seconds while rejections continue, so every frame is measured. It also sends a frame once more after a retryable `internal_error`.
+1. From a recording, the default, it sends the frame again once the lower rate allows, so every frame is measured. It also sends a frame once more after a retryable `internal_error`.
 2. From a live source, with `{ live: true }`, it yields the rejection and moves on, so results keep up with the source. A live frame that arrives when the send rate has no room is not sent at all, and `stream.droppedFrames` counts it.
 
 A frame over the 2 MB message limit would end the session, so it is never sent and is yielded as a `message_too_large` error. Frames that are not valid JPEGs or that exceed 8,294,400 pixels are rejected by the server with `invalid_image_frame`, and the session continues.
@@ -354,7 +354,7 @@ When the frames run out, `streamVideo` closes the session, yields the remaining 
 
 | Option | Default | Purpose |
 |---|---|---|
-| `fps` | 5 | Frames taken per second of video, above 0 and at most 30. |
+| `fps` | 3 | Frames taken per second of video, above 0 and at most 4. |
 | `maxWidth` | 1280 | Wider frames are scaled down to this width, keeping their shape. Narrower frames are left as they are. |
 | `realtime` | false | Produce frames no faster than the video plays, as a live source would. By default they are produced as fast as they are sent. |
 | `ffmpegPath` | `ffmpeg` on `PATH` | The ffmpeg executable to run. |
@@ -363,7 +363,7 @@ Ending the loop early stops ffmpeg.
 
 ### Live sources
 
-`streamVideo` measures frames from any source you can turn into an async iterable, such as a camera your application already captures. Encode each frame as a JPEG, give it a `timestampMs`, and pass `{ live: true }`. Keep frames to 30 per second or fewer, and around 1280 pixels wide.
+`streamVideo` measures frames from any source you can turn into an async iterable, such as a camera your application already captures. Encode each frame as a JPEG, give it a `timestampMs`, and pass `{ live: true }`. A camera usually produces more frames than the 4 per second the endpoint accepts; `streamVideo` sends what the send rate allows and counts the rest in `stream.droppedFrames`, so capturing fewer frames saves encoding work. Keep frames around 1280 pixels wide.
 
 `JpegSplitter` turns a byte stream of concatenated JPEG images, such as ffmpeg's `image2pipe` output or the body of an MJPEG stream, into single images. Pass each chunk to `push`, which returns the images completed so far and holds back a partial one. This generator yields frames from such a stream, timed from when it starts:
 
