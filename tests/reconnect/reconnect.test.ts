@@ -4,7 +4,7 @@ import type { AddressInfo } from "net";
 import { type WebSocket, WebSocketServer } from "ws";
 import type { AudioSocket } from "../../src/api/resources/audio/exports";
 import type { VideoSocket } from "../../src/api/resources/video/exports";
-import { ExpressionMeasurementClient } from "../../src/index";
+import { ExpressionMeasurementClient, ReadyState } from "../../src/index";
 
 type Endpoint = "audio" | "video";
 
@@ -222,6 +222,25 @@ describe("realtime reconnects", () => {
         server.sessions[0].client.close(1012);
         await closed;
         await reopened(socket);
+
+        await server.until(() => server.sessions[1]?.received.length === 2);
+        expect(server.sessions[1].received).toEqual([UPDATE_ON_WIRE, "frame"]);
+    });
+
+    it("lets a send loop skip frames until the socket reopens, by comparing readyState with ReadyState", async () => {
+        const socket = await openWithUpdate();
+        const sendIfOpen = () => {
+            if (socket.readyState === ReadyState.OPEN) {
+                socket.sendAudioFrame(new Uint8Array(2));
+            }
+        };
+
+        const closed = next(socket, "close");
+        server.sessions[0].client.close(1012);
+        await closed;
+        sendIfOpen();
+        await reopened(socket);
+        sendIfOpen();
 
         await server.until(() => server.sessions[1]?.received.length === 2);
         expect(server.sessions[1].received).toEqual([UPDATE_ON_WIRE, "frame"]);
