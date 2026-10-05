@@ -347,7 +347,7 @@ describe("streamVideo", () => {
             }
             return [RESULT];
         });
-        const close = vi.spyOn(socket, "close");
+        const close = vi.spyOn(socket.socket, "close");
         const replies = streamVideo(socket, framesOf(frame(0), frame(1)))[Symbol.asyncIterator]();
 
         await replies.next();
@@ -366,7 +366,7 @@ describe("streamVideo", () => {
             }
             return [RESULT];
         });
-        const close = vi.spyOn(socket, "close");
+        const close = vi.spyOn(socket.socket, "close");
         const replies = streamVideo(socket, framesOf(frame(0), frame(1)))[Symbol.asyncIterator]();
 
         await replies.next();
@@ -390,7 +390,7 @@ describe("streamVideo", () => {
 
         expect(thrown).toBeInstanceOf(SessionEndedError);
         expect((thrown as Error).message).toBe(
-            "The connection closed with code 1000 before the session ended: Invalid WebSocket frame: invalid UTF-8 sequence",
+            "The connection failed before the session ended: Invalid WebSocket frame: invalid UTF-8 sequence",
         );
     });
 
@@ -417,6 +417,20 @@ describe("streamVideo", () => {
 
         expect(thrown).toBeInstanceOf(Error);
         expect((thrown as Error).message).toBe("The connection did not open: Unexpected server response: 401");
+    });
+
+    it("leaves the caller's error and close handlers to see a failed connection once", async () => {
+        const socket = await connect(() => [RESULT], { refuse: true });
+        const onError = vi.fn();
+        const onClose = vi.fn();
+        socket.on("error", onError);
+        socket.on("close", onClose);
+
+        await collect(streamVideo(socket, framesOf(frame(0)))).catch(() => {});
+
+        expect(onError).toHaveBeenCalledTimes(1);
+        expect(onError.mock.calls[0][0]).toMatchObject({ message: "Unexpected server response: 401" });
+        expect(onClose).toHaveBeenCalledTimes(1);
     });
 
     it("throws an Error when the connection is aborted while opening", async () => {

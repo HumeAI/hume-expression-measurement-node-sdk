@@ -71,7 +71,7 @@ interface Entry {
  * the configuration locks at the first frame.
  *
  * @param socket A socket from `client.video.connect()`, open or still opening. A socket serves one
- * stream, because a new connection is a new session.
+ * stream, which closes it when it ends.
  * @param frames The frames to send, such as from `iterVideoFrames`.
  *
  * @throws {TypeError} If `frames` is not an async iterable.
@@ -143,12 +143,16 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
         const socket = this.socket;
         const messages: VideoSocket.Response[] = [];
         let closeCode: number | undefined;
-        let closeDetail: string | undefined;
+        let closeReason: string | undefined;
+        let connectionError: string | undefined;
         let socketClosed = false;
+        // Closes the underlying socket rather than the SDK's wrapper, whose `close` reports a close
+        // of its own and detaches the caller's handlers, so they would miss the real close and any
+        // error that caused it.
         const closeSocket = () => {
             if (!socketClosed) {
                 socketClosed = true;
-                socket.close();
+                socket.socket.close();
             }
         };
         const onMessage = (message: VideoSocket.Response) => {
@@ -163,16 +167,16 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
         const onOpen = () => this.wake();
         const onClose = (event: core.CloseEvent) => {
             closeCode ??= event.code;
-            closeDetail ??= event.reason || undefined;
+            closeReason ??= event.reason || undefined;
             // Closed at once, because the socket would otherwise reconnect when the connection drops
             // while the caller's loop is busy with a reply, and a new connection is a new session.
             closeSocket();
             this.wake();
         };
-        // On a connection error, the socket reports a close with code 1000 and then the error, so
-        // the error is the better explanation.
+        // On a connection error, the socket reports a close with code 1000 of its own and then the
+        // error, so the error is the better explanation.
         const onError = (event: core.ErrorEvent) => {
-            closeDetail = event.message;
+            connectionError ??= event.message;
             this.wake();
         };
         const waitForWake = (ms?: number) =>
@@ -282,9 +286,8 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
             // for example when the abort signal fires.
             while (socket.readyState !== ReadyState.OPEN) {
                 if (closeCode !== undefined) {
-                    throw new Error(
-                        `The connection did not open${closeDetail === undefined ? "." : `: ${closeDetail}`}`,
-                    );
+                    const detail = connectionError ?? closeReason;
+                    throw new Error(`The connection did not open${detail === undefined ? "." : `: ${detail}`}`);
                 }
                 await waitForWake();
             }
@@ -309,7 +312,9 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
                 }
                 if (closeCode !== undefined) {
                     throw new SessionEndedError(
-                        `The connection closed with code ${closeCode} before the session ended${closeDetail === undefined ? "." : `: ${closeDetail}`}`,
+                        connectionError !== undefined
+                            ? `The connection failed before the session ended: ${connectionError}`
+                            : `The connection closed with code ${closeCode} before the session ended${closeReason === undefined ? "." : `: ${closeReason}`}`,
                         undefined,
                         undefined,
                     );
