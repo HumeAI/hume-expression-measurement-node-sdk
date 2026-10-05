@@ -6,7 +6,6 @@
  * - `invalid_audio_frame`: an audio frame was rejected. Audio only.
  * - `invalid_image_frame`: an image frame was rejected, or face detection failed on a frame and the session reported `internal_error`. Video only.
  * - `rate_limited`: media arrived faster than the send rate and a frame was rejected.
- * - `overloaded`: the server was at capacity and a frame was rejected. Video only.
  * - `inference_failed`: a frame was skipped because its measurement failed, which the session reported as `internal_error`. Video only.
  * - `message_too_large`: a message exceeded the size limit and the session ended. Video only.
  * - `video_recording_abandoned`: the server stopped storing the run's frames or images; results were still delivered. Video only.
@@ -17,7 +16,6 @@ export const RunEventKind = {
     InvalidAudioFrame: "invalid_audio_frame",
     InvalidImageFrame: "invalid_image_frame",
     RateLimited: "rate_limited",
-    Overloaded: "overloaded",
     InferenceFailed: "inference_failed",
     MessageTooLarge: "message_too_large",
     VideoRecordingAbandoned: "video_recording_abandoned",
