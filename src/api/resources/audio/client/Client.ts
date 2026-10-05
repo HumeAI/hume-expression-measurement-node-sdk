@@ -52,11 +52,11 @@ export class AudioClient {
      *
      * ## How measurements are produced
      *
-     * The server detects when speech starts and stops. Each continuous stretch of speech is an **utterance**, listed in `utterances` with its span in the audio. Every measurement in `measurements` carries the `utterance_id` it belongs to, the span of audio it covers as `audio_start_ms` and `audio_end_ms`, and a `trigger` saying why it was produced. All times count from the start of the audio.
+     * The server detects when speech starts and stops. Each continuous stretch of speech is an **utterance**, listed in `utterances` with its span in the audio.
      *
-     * While an utterance is in progress, the server produces a measurement every `measurement_timer_ms` milliseconds of speech, with `trigger` set to `interval`. Each measurement covers the most recent 10 seconds of the utterance, or the whole utterance if it is shorter than that. Consecutive interval measurements therefore overlap; at the maximum `measurement_timer_ms` of 10000 they meet end to end instead. An interval measurement that falls as speech stops can end shortly after the utterance does, and no final measurement follows it.
-     *
-     * When an utterance ends, the server produces a final measurement with `trigger` set to `speech_ended`, unless less than one second of speech has passed since the previous measurement ended. Every utterance produces at least one measurement, because the final measurement is skipped only when an interval measurement ended less than one second before it. Audio that ends while speech is in progress ends the utterance.
+     * - **During speech:** a measurement is taken every `measurement_timer_ms` milliseconds of speech, with `trigger` set to `interval`.
+     * - **When speech ends:** a final measurement is taken with `trigger` set to `speech_ended`, unless the previous measurement ended less than one second earlier. Every utterance gets at least one measurement, and audio that ends during speech ends the utterance.
+     * - **Span:** each measurement covers the most recent 10 seconds of the utterance, or the whole utterance if it is shorter, so consecutive measurements can overlap. `audio_start_ms` and `audio_end_ms` give the span, counted from the start of the audio.
      *
      * ## Limits
      *
@@ -65,7 +65,12 @@ export class AudioClient {
      * | Request size | 25MB, the whole multipart body |
      * | Audio format | 16-bit PCM, 16 kHz, mono, as a WAV file or headerless samples |
      *
-     * A request over the size limit is rejected with `audio_too_long`. Audio in MP3, FLAC, Ogg, MP4 or a RIFF container other than WAV is rejected with `unsupported_media_type`; convert it before sending. Any other file with an even number of bytes is treated as headerless samples, so send only the formats listed here; an empty file, or one with an odd number of bytes, is rejected with `audio_decode_failed`. A WAV file that is truncated or malformed, is at another sample rate, channel count or sample format, or uses the extensible WAV header rather than plain PCM is rejected with `audio_decode_failed` rather than converted.
+     * The server does not convert audio, so send it in the format above.
+     *
+     * - **Too large:** a request over the size limit is rejected with `audio_too_long`.
+     * - **Unsupported formats:** MP3, FLAC, Ogg, MP4 or M4A, and RIFF files other than WAV, are rejected with `unsupported_media_type`. Convert them before sending.
+     * - **Wrong WAV format:** a WAV file at another sample rate, channel count or sample format, one that uses the extensible WAV header, or one that is truncated or malformed is rejected with `audio_decode_failed`.
+     * - **Anything else** is read as headerless samples rather than rejected, so check the format before sending. An empty file, or one with an odd number of bytes, is rejected with `audio_decode_failed`.
      *
      * @param {ExpressionMeasurement.AudioFileUpload} request
      * @param {AudioClient.RequestOptions} requestOptions - Request-specific configuration.
