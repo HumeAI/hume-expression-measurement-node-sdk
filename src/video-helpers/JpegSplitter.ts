@@ -27,18 +27,29 @@ type State = "seek" | "marker" | "scan";
  * dropped, and splitting resumes at the next start marker.
  *
  * @example
- * import { JpegSplitter } from "@humeai/expression-measurement-node/video-helpers";
+ * import { JpegSplitter, streamVideo, type VideoFrame } from "@humeai/expression-measurement-node/video-helpers";
  *
- * const splitter = new JpegSplitter();
- * for await (const chunk of ffmpeg.stdout) {
- *     for (const image of splitter.push(chunk)) {
- *         socket.sendImageFrame(image);
+ * async function* framesFrom(mjpeg: AsyncIterable<Uint8Array>): AsyncGenerator<VideoFrame> {
+ *     const splitter = new JpegSplitter();
+ *     const start = Date.now();
+ *     for await (const chunk of mjpeg) {
+ *         for (const data of splitter.push(chunk)) {
+ *             yield { data, timestampMs: Date.now() - start };
+ *         }
  *     }
+ * }
+ *
+ * for await (const reply of streamVideo(socket, framesFrom(mjpeg), { live: true })) {
+ *     console.log(reply.timestampMs, reply.result?.faces.length ?? reply.error?.code);
  * }
  */
 export class JpegSplitter {
-    // Starts at the current image's start marker once one is found.
+    // Starts at the current image's start marker once one is found. It is either the end of the
+    // used part of `storage` or an array of its own.
     private buffer: Uint8Array = EMPTY_BYTES;
+    // Holds `buffer` with room to grow, so that a push copies only its own chunk. The bytes after
+    // `buffer` are free.
+    private storage: Uint8Array = EMPTY_BYTES;
     // Where parsing resumes in `buffer`. It can pass the end of `buffer` while a segment that
     // need not be read is still arriving.
     private offset = 0;
@@ -46,14 +57,29 @@ export class JpegSplitter {
 
     public push(chunk: Uint8Array): Uint8Array[] {
         if (chunk.length > 0) {
-            const data = new Uint8Array(this.buffer.length + chunk.length);
-            data.set(this.buffer);
-            data.set(chunk, this.buffer.length);
-            this.buffer = data;
+            this.append(chunk);
         }
         const images: Uint8Array[] = [];
         while (this.step(images)) {}
         return images;
+    }
+
+    private append(chunk: Uint8Array): void {
+        const held = this.buffer;
+        const start = held.buffer === this.storage.buffer ? held.byteOffset - this.storage.byteOffset : -1;
+        const end = start + held.length;
+        if (start >= 0 && end + chunk.length <= this.storage.length) {
+            this.storage.set(chunk, end);
+            this.buffer = this.storage.subarray(start, end + chunk.length);
+            return;
+        }
+        // Doubling the room keeps the total copying in proportion to the bytes pushed, however
+        // small the chunks are.
+        const storage = new Uint8Array(Math.max(held.length + chunk.length, 2 * held.length));
+        storage.set(held);
+        storage.set(chunk, held.length);
+        this.storage = storage;
+        this.buffer = storage.subarray(0, held.length + chunk.length);
     }
 
     // Advances the parse once, returning false when more input is needed.

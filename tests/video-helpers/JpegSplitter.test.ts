@@ -86,6 +86,27 @@ describe("JpegSplitter", () => {
         expect(split(stream)).toEqual([WITH_EXIF, PROGRESSIVE]);
     });
 
+    // Copying everything held back on each push takes about a second here, and grows with
+    // the square of the number of chunks. Copying only each new chunk takes a few milliseconds.
+    it("splits an image near the 2 MB message limit from small chunks in time proportional to its size", () => {
+        const empty = jpeg({ scans: [[]] });
+        const image = new Uint8Array(empty.length + 2_000_000).fill(0x12);
+        image.set(empty.subarray(0, empty.length - EOI.length));
+        image.set(EOI, image.length - EOI.length);
+        const splitter = new JpegSplitter();
+        const images: Uint8Array[] = [];
+
+        const start = performance.now();
+        for (let at = 0; at < image.length; at += 256) {
+            images.push(...splitter.push(image.subarray(at, at + 256)));
+        }
+        const elapsedMs = performance.now() - start;
+
+        expect(images).toHaveLength(1);
+        expect(Buffer.compare(images[0], image)).toBe(0);
+        expect(elapsedMs).toBeLessThan(100);
+    });
+
     it("holds back a partial image until the rest arrives", () => {
         const splitter = new JpegSplitter();
         const cut = PROGRESSIVE.length - 1;
