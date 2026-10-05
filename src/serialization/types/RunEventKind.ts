@@ -9,7 +9,6 @@ export const RunEventKind: core.serialization.Schema<serializers.RunEventKind.Ra
         "invalid_audio_frame",
         "invalid_image_frame",
         "rate_limited",
-        "overloaded",
         "inference_failed",
         "message_too_large",
         "video_recording_abandoned",
@@ -20,7 +19,6 @@ export declare namespace RunEventKind {
         | "invalid_audio_frame"
         | "invalid_image_frame"
         | "rate_limited"
-        | "overloaded"
         | "inference_failed"
         | "message_too_large"
         | "video_recording_abandoned";

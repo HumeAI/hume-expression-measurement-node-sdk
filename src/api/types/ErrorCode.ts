@@ -9,7 +9,6 @@
  * - `invalid_image_frame`: the frame was empty, was not a JPEG, or exceeded the pixel limit. Check the image and keep sending. Video only.
  * - `message_invalid`: a text message was not valid JSON, had no `type`, or had an unrecognized `type`. Correct the message and keep sending.
  * - `rate_limited`: media arrived faster than the send rate and was not processed. Audio: wait briefly and send the same frame again, so that the stream stays continuous. Video: from a live camera, drop the frame and send the next; from a recording, wait briefly and send the same frame again.
- * - `overloaded`: the server is at capacity and did not process the frame. From a live camera, drop the frame and send the next; from a recording, wait briefly and send the same frame again. Video only.
  *
  * **Depends on the endpoint.**
  *
@@ -25,7 +24,6 @@ export const ErrorCode = {
     InvalidImageFrame: "invalid_image_frame",
     MessageInvalid: "message_invalid",
     RateLimited: "rate_limited",
-    Overloaded: "overloaded",
     ConfigInvalid: "config_invalid",
     MessageTooLarge: "message_too_large",
     InternalError: "internal_error",

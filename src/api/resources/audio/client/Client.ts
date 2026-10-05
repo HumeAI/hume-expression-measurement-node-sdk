@@ -77,7 +77,6 @@ export class AudioClient {
      * @throws {@link ExpressionMeasurement.ContentTooLargeError}
      * @throws {@link ExpressionMeasurement.UnsupportedMediaTypeError}
      * @throws {@link ExpressionMeasurement.InternalServerError}
-     * @throws {@link ExpressionMeasurement.ServiceUnavailableError}
      * @throws {@link errors.ExpressionMeasurementError}
      * @throws {@link errors.ExpressionMeasurementTimeoutError}
      *
@@ -216,17 +215,6 @@ export class AudioClient {
                     );
                 case 500:
                     throw new ExpressionMeasurement.InternalServerError(
-                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
-                            unrecognizedObjectKeys: "passthrough",
-                            allowUnrecognizedUnionMembers: true,
-                            allowUnrecognizedEnumValues: true,
-                            skipValidation: true,
-                            breadcrumbsPrefix: ["response"],
-                        }),
-                        _response.rawResponse,
-                    );
-                case 503:
-                    throw new ExpressionMeasurement.ServiceUnavailableError(
                         serializers.ErrorBody.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,

@@ -37,10 +37,6 @@
  * **`500 Internal Server Error`**
  *
  * - `internal_error`: the server failed while serving the request. Retry it; if it keeps failing, contact support, quoting the `request_id`.
- *
- * **`503 Service Unavailable`**
- *
- * - `overloaded`: the service is at capacity and turned the request away. Wait for the interval in `Retry-After`, then retry.
  */
 export const RequestErrorCode = {
     MessageInvalid: "message_invalid",
@@ -55,6 +51,5 @@ export const RequestErrorCode = {
     ImageTooLarge: "image_too_large",
     UnsupportedMediaType: "unsupported_media_type",
     InternalError: "internal_error",
-    Overloaded: "overloaded",
 } as const;
 export type RequestErrorCode = (typeof RequestErrorCode)[keyof typeof RequestErrorCode];
