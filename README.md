@@ -107,8 +107,7 @@ import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node
 
 const client = new ExpressionMeasurementClient();
 
-// A session cannot be resumed, so a reconnect would start a new one with the default configuration.
-const socket = await client.audio.connect({ reconnectAttempts: 0 });
+const socket = await client.audio.connect();
 
 socket.on("message", (message) => {
     switch (message.type) {
@@ -125,7 +124,6 @@ socket.on("message", (message) => {
             break;
         case "session.closed":
             console.log(`closed after ${message.produced.measurements} measurements`);
-            socket.close();
             break;
     }
 });
@@ -153,7 +151,7 @@ import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node
 
 const client = new ExpressionMeasurementClient();
 
-const socket = await client.video.connect({ reconnectAttempts: 0 });
+const socket = await client.video.connect();
 
 socket.on("message", (message) => {
     switch (message.type) {
@@ -168,9 +166,6 @@ socket.on("message", (message) => {
             break;
         case "error":
             console.error(`${message.code}: ${message.message}`);
-            break;
-        case "session.closed":
-            socket.close();
             break;
     }
 });
@@ -220,7 +215,7 @@ decibri is licensed under the Apache License 2.0. Its platform packages include 
 `Microphone.open()` records from the default input device, or the one you pass as `device`, and yields 100 ms frames ready to send. This example records for 10 seconds while printing measurements as they arrive, then closes the session.
 
 ```typescript
-import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
+import { ExpressionMeasurementClient, ReadyState } from "@humeai/expression-measurement-node";
 import { Microphone } from "@humeai/expression-measurement-node/audio-helpers";
 
 const client = new ExpressionMeasurementClient();
@@ -228,7 +223,7 @@ const client = new ExpressionMeasurementClient();
 // Opening the microphone first means a missing or busy device fails before a session starts.
 const microphone = await Microphone.open();
 try {
-    const socket = await client.audio.connect({ reconnectAttempts: 0 });
+    const socket = await client.audio.connect();
     socket.on("message", (message) => {
         switch (message.type) {
             case "measurement.result": {
@@ -242,24 +237,29 @@ try {
             case "error":
                 console.error(`${message.code}: ${message.message}`);
                 break;
-            case "session.closed":
-                socket.close();
-                break;
         }
     });
     await socket.waitForOpen();
 
     console.log(`Recording from ${microphone.deviceName} for 10 seconds`);
-    let framesSent = 0;
+    let framesRecorded = 0;
     for await (const frame of microphone) {
-        socket.sendAudioFrame(frame);
-        framesSent++;
+        // The socket is not open while it reconnects, so frames recorded meanwhile are skipped.
+        if (socket.readyState === ReadyState.OPEN) {
+            socket.sendAudioFrame(frame);
+        }
+        framesRecorded++;
         // 100 frames of 100 ms is 10 seconds.
-        if (framesSent === 100) {
+        if (framesRecorded === 100) {
             break;
         }
     }
-    socket.sendAudioSessionClose({ type: "session.close" });
+    if (socket.readyState === ReadyState.OPEN) {
+        socket.sendAudioSessionClose({ type: "session.close" });
+    } else {
+        // Stops a reconnect that is still under way.
+        socket.close();
+    }
 } finally {
     await microphone.close();
 }
@@ -287,7 +287,7 @@ Frames are produced as fast as the file is read, so pace the sends for a file lo
 
 `Resampler` converts a stream you already have, block by block. Pass each block to `process`, then call `flush` after the last one. Blocks can be bytes, as an `ArrayBuffer`, `Uint8Array`, or `Buffer`, which are read as little-endian and may end partway through a sample frame, or an `Int16Array`, `Float32Array`, or `Float64Array` that matches `sampleFormat`. Channels are averaged to mono.
 
-At input rates other than 16 kHz, the resampler holds back a little audio as filter history, 4 ms at input rates above 16 kHz and up to 64 ms at 1 kHz, so `process` can return an empty result for a short block. The endpoint rejects empty frames, so check before sending. It also rejects frames longer than 10 seconds, so pass a long recording in blocks of about 100 ms rather than in one call, and pace the sends for a recording longer than 30 seconds.
+At input rates other than 16 kHz, the resampler holds back a little audio as filter history, 4 ms at input rates above 16 kHz and up to 64 ms at 1 kHz, so `process` can return an empty result for a short block. The endpoint rejects empty frames, so check before sending. It also rejects frames longer than 10 seconds, so pass a long recording in blocks of about 100 ms rather than in one call, and pace the sends for a recording longer than 30 seconds. From a live stream, skip sending while the socket reconnects, as [Reconnecting](#reconnecting) describes.
 
 ```typescript
 import { Resampler } from "@humeai/expression-measurement-node/audio-helpers";
@@ -318,7 +318,7 @@ import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node
 import { iterVideoFrames, streamVideo } from "@humeai/expression-measurement-node/video-helpers";
 
 const client = new ExpressionMeasurementClient();
-const socket = await client.video.connect({ reconnectAttempts: 0 });
+const socket = await client.video.connect();
 
 const stream = streamVideo(socket, iterVideoFrames("interview.mp4", { fps: 2 }));
 for await (const reply of stream) {
@@ -344,7 +344,7 @@ The server accepts the first 8 frames immediately and then 4 per second. `stream
 
 A frame over the 2 MB message limit would end the session, so it is never sent and is yielded as a `message_too_large` error. Frames that are not valid JPEGs or that exceed 8,294,400 pixels are rejected by the server with `invalid_image_frame`, and the session continues.
 
-When the frames run out, `streamVideo` closes the session, yields the remaining replies, and closes the socket. `stream.closed` then holds the `session.closed` message with the session's totals. If the session ends before the frames do, because of a session-ending error, an idle timeout, or a dropped connection, the loop throws a `SessionEndedError`. Its `closed` holds the `session.closed` message when one arrived, and its `code` names the error that ended the session, if there was one. Leaving the loop early also closes the socket.
+When the frames run out, `streamVideo` closes the session, yields the remaining replies, and closes the socket. `stream.closed` then holds the `session.closed` message with the session's totals. If the session ends before the frames do, because of a session-ending error, an idle timeout, a server shutdown, or a dropped connection, the loop throws a `SessionEndedError`. Its `closed` holds the `session.closed` message when one arrived, and its `code` names the error that ended the session, if there was one. Leaving the loop early also closes the socket.
 
 `streamVideo` takes over the socket's `message` handler, so read messages from the replies instead. The configuration locks at the first frame, so send any `session.update` before streaming. Frames are sent only while the loop asks for the next reply, so keep the loop body short.
 
@@ -422,13 +422,33 @@ socket.sendVideoSessionUpdate({ type: "session.update", face: { threshold: 0.8, 
 
 | Option | Default | Purpose |
 |---|---|---|
-| `reconnectAttempts` | 30 | Automatic reconnects after an unexpected close. Set to 0 for session-based streaming, since a new connection is a new session. |
-| `shouldReconnect` | reconnect on any close code other than 1000 | Decides whether a close triggers a reconnect. Return false to treat the close as final. |
-| `connectionTimeoutInSeconds` | none | Fails the handshake after this long. |
+| `reconnectAttempts` | 30 | Reconnect attempts allowed before the socket stays closed. The count restarts once a connection has stayed open for 5 seconds. Set to 0 to never reconnect. |
+| `shouldReconnect` | see [Reconnecting](#reconnecting) | Decides whether a close triggers a reconnect. Return false to treat the close as final. Not called for connection errors. |
+| `connectionTimeoutInSeconds` | 4 | Fails a connection attempt that has not opened in this time. |
 | `headers`, `queryParams` | none | Extra values sent with the handshake. |
 | `abortSignal` | none | Aborts the connection from outside. |
 
 `connect()` resolves before the handshake completes. Call `waitForOpen()` before sending, or send from the `open` handler. Sending on a socket that is not open throws.
+
+## Reconnecting
+
+When a realtime connection ends unexpectedly, the socket connects again, which starts a new session. It reconnects after:
+
+1. A `session.closed` with `reason` set to `server_shutdown`, which the server sends when it shuts down, as during a deployment.
+2. The connection closing with code 1001, 1011, 1012, or 1013, or failing, as when it drops without a close frame.
+3. An audio `internal_error`, after which the API asks for a new connection.
+
+Any other close is final, and so is a close after you send `session.close` or call `close()`. A failed first connection is not retried either, since a wrong URL or API key would fail the same way again: `waitForOpen()` rejects with the cause, and the socket closes.
+
+The first attempt waits 1 to 5 seconds, and later attempts wait longer, up to 10 seconds. An attempt that fails with a network error, a timeout, or a 408, 429, or 5xx status is retried, up to `reconnectAttempts` times. An attempt refused with any other 4xx status, such as 401 for an API key that is no longer valid, closes the socket. The socket does not report when it stops trying: each failed attempt fires the `error` event, and after the last one the socket stays closed. Nor does the `close` event mean the socket has stopped. It fires each time a connection ends before a reconnect, and with code 1000 just before the `error` event of each failed attempt.
+
+A new session does not continue the previous one. It has a new session ID, and so a new run, `session.created` arrives again, and IDs and times in its results start again from 0. Results for media that the previous session had received but not yet measured never arrive. The socket sends your latest `session.update` to the new session before your `open` handler runs again, so the session runs with your configuration, and the server confirms it with `session.updated` as usual.
+
+While the socket reconnects it is not open, and sending throws. A live source should skip frames until `socket.readyState` is `ReadyState.OPEN` again, as the [microphone example](#microphone) does. A recording loses whatever the previous session had not measured, so rather than skip frames, let the send's error end the loop and call `close()`, which stops the reconnect. Then send the recording again on a new connection or [upload](#quickstart-upload) it.
+
+`streamVideo` does not reconnect. When the session or the connection ends before the frames do, it closes the socket and throws a `SessionEndedError`.
+
+To turn reconnecting off, pass `reconnectAttempts: 0`. To choose which closes reconnect, pass `shouldReconnect`, which receives the close event and replaces the rules above for closes, except that a close after you send `session.close` is always final. Connection errors are handled as described either way.
 
 ## Runs
 
