@@ -350,7 +350,7 @@ When the frames run out, `streamVideo` closes the session, yields the remaining 
 
 ### Video files
 
-`iterVideoFrames` runs [ffmpeg](https://ffmpeg.org), which must be installed: `brew install ffmpeg` on macOS, `sudo apt install ffmpeg` on Debian or Ubuntu, or `winget install Gyan.FFmpeg` on Windows. It reads any format ffmpeg can decode and yields frames whose `timestampMs` is their position in the video. If ffmpeg is not on `PATH` or at `ffmpegPath`, iteration throws an `FfmpegNotFoundError` whose message says how to install it, and if ffmpeg fails, the error includes its output.
+`iterVideoFrames` runs [ffmpeg](https://ffmpeg.org), which must be installed: `brew install ffmpeg` on macOS, `sudo apt install ffmpeg` on Debian or Ubuntu, or `winget install Gyan.FFmpeg` on Windows. It reads any format ffmpeg can decode and yields frames whose `timestampMs` is their position in the video. If ffmpeg is not on `PATH` or at `ffmpegPath`, iteration throws an `FfmpegNotFoundError` whose message says how to install it, and if ffmpeg fails, the error includes its output. ffmpeg starts when the first frame is requested, which `streamVideo` does once the connection is open, so these errors are thrown from the loop after a session has started. `streamVideo` closes the socket before throwing them.
 
 | Option | Default | Purpose |
 |---|---|---|
