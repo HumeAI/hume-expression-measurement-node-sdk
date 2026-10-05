@@ -70,18 +70,20 @@ interface Entry {
  * reason, including leaving the loop early. Send any `session.update` before streaming, because
  * the configuration locks at the first frame.
  *
- * @param socket A socket from `client.video.connect()`, open or still opening.
+ * @param socket A socket from `client.video.connect()`, open or still opening. A socket serves one
+ * stream, because a new connection is a new session.
  * @param frames The frames to send, such as from `iterVideoFrames`.
  *
+ * @throws {TypeError} If `frames` is not an async iterable.
  * @throws {SessionEndedError} From iteration, if the session ends before the frames do, or the
  * connection closes without the session closing first.
  * @throws {Error} From iteration, if the connection does not open, for example because the API key
- * is not valid. Errors from `frames` are thrown as they are.
+ * is not valid or the socket is already closed. Errors from `frames` are thrown as they are.
  *
  * @example
  * import { iterVideoFrames, streamVideo } from "@humeai/expression-measurement-node/video-helpers";
  *
- * const socket = await client.video.connect();
+ * const socket = await client.video.connect({ reconnectAttempts: 0 });
  * const stream = streamVideo(socket, iterVideoFrames("interview.mp4"));
  * for await (const reply of stream) {
  *     if (reply.result) {
@@ -97,6 +99,9 @@ export function streamVideo(
     frames: AsyncIterable<VideoFrame>,
     { live = false }: streamVideo.Options = {},
 ): VideoStream {
+    if (typeof (frames as Partial<AsyncIterable<VideoFrame>> | undefined)?.[Symbol.asyncIterator] !== "function") {
+        throw new TypeError("frames must be an async iterable of frames, such as from iterVideoFrames.");
+    }
     return new VideoStream(socket, frames, live);
 }
 
@@ -138,6 +143,7 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
         const socket = this.socket;
         const messages: VideoSocket.Response[] = [];
         let closeCode: number | undefined;
+        let closeDetail: string | undefined;
         let socketClosed = false;
         const closeSocket = () => {
             if (!socketClosed) {
@@ -145,7 +151,7 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
                 socket.close();
             }
         };
-        socket.on("message", (message) => {
+        const onMessage = (message: VideoSocket.Response) => {
             messages.push(message);
             // Closed at once, because the socket would otherwise reconnect after a session-ending
             // error closes the connection with code 1008, and a new connection is a new session.
@@ -153,14 +159,32 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
                 closeSocket();
             }
             this.wake();
-        });
+        };
+        const onOpen = () => this.wake();
         const onClose = (event: core.CloseEvent) => {
             closeCode ??= event.code;
+            closeDetail ??= event.reason || undefined;
+            // Closed at once, because the socket would otherwise reconnect when the connection drops
+            // while the caller's loop is busy with a reply, and a new connection is a new session.
+            closeSocket();
             this.wake();
         };
-        socket.socket.addEventListener("close", onClose);
+        // On a connection error, the socket reports a close with code 1000 and then the error, so
+        // the error is the better explanation.
+        const onError = (event: core.ErrorEvent) => {
+            closeDetail = event.message;
+            this.wake();
+        };
+        const waitForWake = (ms?: number) =>
+            new Promise<void>((resolve) => {
+                const timer = ms === undefined ? undefined : setTimeout(resolve, ms);
+                this.wake = () => {
+                    clearTimeout(timer);
+                    resolve();
+                };
+            });
 
-        const input = this.frames[Symbol.asyncIterator]();
+        let input: AsyncIterator<VideoFrame> | undefined;
         let pulling = false;
         let pulled: IteratorResult<VideoFrame> | undefined;
         let inputFailure: { error: unknown } | undefined;
@@ -197,7 +221,7 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
             } else if (!this.live) {
                 waiting.push({ index: nextIndex++, frame, sendNumber: 0, resent: false });
             } else {
-                const sendNumber = allowance.take(Date.now());
+                const sendNumber = allowance.take(performance.now());
                 if (sendNumber === undefined) {
                     this.dropped++;
                 } else {
@@ -214,7 +238,7 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
                 const entry = inFlight.shift();
                 if (entry !== undefined) {
                     replies.set(entry.index, { timestampMs: entry.frame.timestampMs, result: message });
-                    allowance.speedUp(entry.sendNumber, Date.now());
+                    allowance.speedUp(entry.sendNumber, performance.now());
                 }
                 return;
             }
@@ -231,7 +255,7 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
             }
             const limited = message.code === "rate_limited";
             if (limited) {
-                allowance.slowDown(entry.sendNumber, Date.now());
+                allowance.slowDown(entry.sendNumber, performance.now());
             }
             if (!this.live && limited) {
                 sendLater(entry);
@@ -243,13 +267,26 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
             }
         };
 
+        const ReadyState = core.ReconnectingWebSocket.ReadyState;
         try {
-            if (socket.readyState !== core.ReconnectingWebSocket.ReadyState.OPEN) {
-                await socket.waitForOpen().catch((event: unknown) => {
-                    // The socket rejects with its error event, which is not an Error.
-                    const detail = (event as { message?: unknown } | undefined)?.message;
-                    throw new Error(`The connection did not open${typeof detail === "string" ? `: ${detail}` : "."}`);
-                });
+            socket.on("message", onMessage);
+            socket.socket.addEventListener("open", onOpen);
+            socket.socket.addEventListener("close", onClose);
+            socket.socket.addEventListener("error", onError);
+            input = this.frames[Symbol.asyncIterator]();
+
+            if (socket.readyState === ReadyState.CLOSING || socket.readyState === ReadyState.CLOSED) {
+                throw new Error("The connection did not open, because the socket is already closed.");
+            }
+            // The socket's own wait for an open does not end when the connection closes instead,
+            // for example when the abort signal fires.
+            while (socket.readyState !== ReadyState.OPEN) {
+                if (closeCode !== undefined) {
+                    throw new Error(
+                        `The connection did not open${closeDetail === undefined ? "." : `: ${closeDetail}`}`,
+                    );
+                }
+                await waitForWake();
             }
             while (true) {
                 for (const message of messages.splice(0)) {
@@ -272,13 +309,19 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
                 }
                 if (closeCode !== undefined) {
                     throw new SessionEndedError(
-                        `The connection closed with code ${closeCode} before the session ended.`,
+                        `The connection closed with code ${closeCode} before the session ended${closeDetail === undefined ? "." : `: ${closeDetail}`}`,
                         undefined,
                         undefined,
                     );
                 }
                 if (inputFailure !== undefined) {
                     throw inputFailure.error;
+                }
+                // After the server's close frame arrives, the socket is closing for about one round
+                // trip before its close event, and sending in that time throws.
+                if (socket.readyState !== ReadyState.OPEN) {
+                    await waitForWake();
+                    continue;
                 }
 
                 if (pulled !== undefined) {
@@ -293,7 +336,7 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
 
                 let waitMs: number | undefined;
                 if (waiting.length > 0) {
-                    const now = Date.now();
+                    const now = performance.now();
                     waitMs = allowance.delay(now);
                     const entry = waiting[0];
                     const sendNumber = waitMs <= 0 ? allowance.take(now) : undefined;
@@ -321,19 +364,15 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
                     closeSent = true;
                 }
 
-                await new Promise<void>((resolve) => {
-                    const timer = waitMs === undefined ? undefined : setTimeout(resolve, waitMs);
-                    this.wake = () => {
-                        clearTimeout(timer);
-                        resolve();
-                    };
-                });
+                await waitForWake(waitMs);
             }
         } finally {
             this.wake = () => {};
+            socket.socket.removeEventListener("open", onOpen);
             socket.socket.removeEventListener("close", onClose);
+            socket.socket.removeEventListener("error", onError);
             closeSocket();
-            if (!inputDone && inputFailure === undefined) {
+            if (input !== undefined && !inputDone && inputFailure === undefined) {
                 // Not awaited, because an async generator returns only after a pending `next`
                 // settles, and a live source can take a while to produce its next frame.
                 input.return?.().catch(() => {});
@@ -349,7 +388,8 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
 class Allowance {
     private rate = FRAMES_PER_SECOND;
     private frames = BURST_FRAMES;
-    private updatedAt = Date.now();
+    // A monotonic clock, so that a change to the system clock cannot stall sending.
+    private updatedAt = performance.now();
     private sends = 0;
     // The number of sends before the last slowdown. Replies to those frames say nothing about the
     // rate since then. Send numbers are used rather than times, which can tie.

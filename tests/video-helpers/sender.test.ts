@@ -1,6 +1,6 @@
 // Maintained by hand and listed in .fernignore, so SDK regeneration leaves it in place.
 
-import type { AddressInfo } from "net";
+import type { AddressInfo, Socket } from "net";
 import { type WebSocket, WebSocketServer } from "ws";
 import { ExpressionMeasurementClient } from "../../src/index";
 import { SessionEndedError, streamVideo, type VideoFrame } from "../../src/video-helpers/index";
@@ -10,7 +10,8 @@ type Reply = Record<string, unknown>;
 // Plays the server's side of a realtime video session. `respond` returns the messages to send for
 // each frame received, given the frame's first byte and how many times that frame has arrived.
 // A `session.close` is answered with `session.closed` and a normal close. With `refuse`, every
-// connection is refused with a 401, as for an invalid API key.
+// connection is refused with a 401, as for an invalid API key. `onAttempt` runs as each connection
+// request arrives, while the client is still opening.
 class FakeServer {
     public readonly received: number[] = [];
     public readonly arrivals: number[] = [];
@@ -22,13 +23,14 @@ class FakeServer {
 
     constructor(
         private readonly respond: (frame: number, attempt: number, client: WebSocket) => Reply[],
-        refuse = false,
+        { refuse = false, onAttempt }: { refuse?: boolean; onAttempt?: () => void } = {},
     ) {
         this.server = new WebSocketServer({
             host: "127.0.0.1",
             port: 0,
             verifyClient: () => {
                 this.attempts++;
+                onAttempt?.();
                 return !refuse;
             },
         });
@@ -130,6 +132,16 @@ function limitedTo(perSecond: number, burst: number): () => Reply[] {
     };
 }
 
+// Writes a close frame with `code` to the client without closing the connection, as when the
+// server's close is still on its way. The server stops reading, so it never answers the client's
+// own close frame.
+function sendCloseFrame(client: WebSocket, code: number): Socket {
+    const socket = (client as unknown as { _socket: Socket })._socket;
+    socket.pause();
+    socket.write(Buffer.from([0x88, 0x02, code >> 8, code & 0xff]));
+    return socket;
+}
+
 async function* liveFrames(count: number, intervalMs: number): AsyncGenerator<VideoFrame> {
     for (let id = 0; id < count; id++) {
         yield frame(id);
@@ -146,10 +158,14 @@ describe("streamVideo", () => {
         server = undefined;
     });
 
-    async function connect(respond: (frame: number, attempt: number, client: WebSocket) => Reply[], refuse = false) {
-        server = new FakeServer(respond, refuse);
+    async function connect(
+        respond: (frame: number, attempt: number, client: WebSocket) => Reply[],
+        serverOptions: ConstructorParameters<typeof FakeServer>[1] = {},
+        connectArgs: Parameters<ExpressionMeasurementClient["video"]["connect"]>[0] = {},
+    ) {
+        server = new FakeServer(respond, serverOptions);
         const client = new ExpressionMeasurementClient({ apiKey: "test-key", baseUrl: await server.url });
-        return client.video.connect();
+        return client.video.connect(connectArgs);
     }
 
     async function collect(stream: AsyncIterable<unknown>): Promise<string[]> {
@@ -262,16 +278,18 @@ describe("streamVideo", () => {
         expect(server?.received).toEqual([0, 1, 2]);
     });
 
-    it("never sends a frame over 2 MB, which would end the session", async () => {
+    it("sends a frame of 2,000,000 bytes but never a larger one, which would end the session", async () => {
         const socket = await connect(() => [RESULT]);
 
-        const replies = await collect(streamVideo(socket, framesOf(frame(0), frame(1, 2_000_001), frame(2))));
+        const replies = await collect(
+            streamVideo(socket, framesOf(frame(0, 2_000_000), frame(1, 2_000_001), frame(2))),
+        );
 
         expect(replies).toEqual(["0 result", "100 message_too_large", "200 result"]);
         expect(server?.received).toEqual([0, 2]);
     });
 
-    it("throws the code of a session-ending error after the replies before it, without reconnecting", async () => {
+    it("throws the code of a session-ending error after the replies before it", async () => {
         const socket = await connect((id, _attempt, client) => {
             if (id === 1) {
                 client.send(JSON.stringify(error("config_invalid", false)));
@@ -291,8 +309,31 @@ describe("streamVideo", () => {
         expect(replies).toEqual(["0 result"]);
         expect(thrown).toBeInstanceOf(SessionEndedError);
         expect(thrown).toMatchObject({ code: "config_invalid", closed: { reason: "error" } });
-        await sleep(200);
-        expect(server?.connections).toBe(1);
+    });
+
+    it.each([
+        "idle_timeout",
+        "server_shutdown",
+    ])("throws when the session ends with %s before the frames do", async (reason) => {
+        const socket = await connect((_id, _attempt, client) => {
+            setTimeout(() => server?.closeSession(client, reason, 1000), 50);
+            return [RESULT];
+        });
+        async function* frames(): AsyncGenerator<VideoFrame> {
+            yield frame(0);
+            await new Promise(() => {});
+        }
+        const replies: string[] = [];
+
+        const thrown = await (async () => {
+            for await (const reply of streamVideo(socket, frames())) {
+                replies.push(...describeReplies([reply]));
+            }
+        })().catch((e: unknown) => e);
+
+        expect(replies).toEqual(["0 result"]);
+        expect(thrown).toBeInstanceOf(SessionEndedError);
+        expect(thrown).toMatchObject({ code: undefined, closed: { reason } });
     });
 
     // The socket reconnects after a 1008 close, starting a new session, unless it is closed first.
@@ -315,7 +356,9 @@ describe("streamVideo", () => {
         await expect(replies.next()).rejects.toBeInstanceOf(SessionEndedError);
     });
 
-    it("throws when the connection closes without the session closing, without reconnecting", async () => {
+    // The socket reconnects after an unexpected close, starting a new session, unless it is closed
+    // first. Its first reconnect waits at least a second, so this checks the close itself.
+    it("closes the socket as soon as the connection drops, while the caller still holds a reply", async () => {
         const socket = await connect((id, _attempt, client) => {
             if (id === 1) {
                 client.close(1011);
@@ -323,32 +366,116 @@ describe("streamVideo", () => {
             }
             return [RESULT];
         });
+        const close = vi.spyOn(socket, "close");
+        const replies = streamVideo(socket, framesOf(frame(0), frame(1)))[Symbol.asyncIterator]();
 
-        const thrown = await collect(streamVideo(socket, framesOf(frame(0), frame(1), frame(2)))).catch(
-            (e: unknown) => e,
-        );
+        await replies.next();
 
+        await vi.waitFor(() => expect(close).toHaveBeenCalled());
+        const thrown = await replies.next().catch((e: unknown) => e);
         expect(thrown).toBeInstanceOf(SessionEndedError);
-        expect(thrown).toMatchObject({ closed: undefined, message: expect.stringContaining("code 1011") });
-        await sleep(200);
-        expect(server?.connections).toBe(1);
+        expect(thrown).toMatchObject({
+            closed: undefined,
+            message: "The connection closed with code 1011 before the session ended.",
+        });
     });
 
-    it("throws an Error when the connection does not open, without retrying", async () => {
-        const socket = await connect(() => [RESULT], true);
+    it("throws the cause of a connection error rather than the close it reports", async () => {
+        const socket = await connect((_id, _attempt, client) => {
+            client.send(Buffer.from([0xff]), { binary: false });
+            return [];
+        });
+
+        const thrown = await collect(streamVideo(socket, framesOf(frame(0)))).catch((e: unknown) => e);
+
+        expect(thrown).toBeInstanceOf(SessionEndedError);
+        expect((thrown as Error).message).toBe(
+            "The connection closed with code 1000 before the session ended: Invalid WebSocket frame: invalid UTF-8 sequence",
+        );
+    });
+
+    it("waits for the close rather than sending while the connection is closing", async () => {
+        const socket = await connect((id, _attempt, client) => {
+            if (id === 0) {
+                const raw = sendCloseFrame(client, 1011);
+                setTimeout(() => raw.destroy(), 400);
+            }
+            return [];
+        });
+        const frames = Array.from({ length: 9 }, (_, id) => frame(id));
+
+        const thrown = await collect(streamVideo(socket, framesOf(...frames))).catch((e: unknown) => e);
+
+        expect(thrown).toBeInstanceOf(SessionEndedError);
+        expect((thrown as Error).message).toContain("code 1011");
+    });
+
+    it("throws an Error when the connection does not open", async () => {
+        const socket = await connect(() => [RESULT], { refuse: true });
 
         const thrown = await collect(streamVideo(socket, framesOf(frame(0)))).catch((e: unknown) => e);
 
         expect(thrown).toBeInstanceOf(Error);
         expect((thrown as Error).message).toBe("The connection did not open: Unexpected server response: 401");
-        await sleep(200);
-        expect(server?.attempts).toBe(1);
+    });
+
+    it("throws an Error when the connection is aborted while opening", async () => {
+        const controller = new AbortController();
+        const socket = await connect(
+            () => [RESULT],
+            { onAttempt: () => controller.abort() },
+            { abortSignal: controller.signal },
+        );
+
+        const thrown = await collect(streamVideo(socket, framesOf(frame(0)))).catch((e: unknown) => e);
+
+        expect(thrown).toBeInstanceOf(Error);
+        expect((thrown as Error).message).toBe("The connection did not open: aborted");
+    });
+
+    it("throws an Error when the socket was closed by an earlier stream", async () => {
+        const socket = await connect(() => [RESULT]);
+        await collect(streamVideo(socket, framesOf(frame(0))));
+
+        const thrown = await collect(streamVideo(socket, framesOf(frame(1)))).catch((e: unknown) => e);
+
+        expect(thrown).toBeInstanceOf(Error);
+        expect((thrown as Error).message).toBe("The connection did not open, because the socket is already closed.");
+    });
+
+    it("throws a TypeError when called with frames that are not an async iterable", async () => {
+        const socket = await connect(() => [RESULT]);
+
+        expect(() => streamVideo(socket, [frame(0)] as unknown as AsyncIterable<VideoFrame>)).toThrow(TypeError);
+    });
+
+    it("can be iterated only once", async () => {
+        const socket = await connect(() => [RESULT]);
+        const stream = streamVideo(socket, framesOf(frame(0)));
+
+        await collect(stream);
+
+        expect(() => stream[Symbol.asyncIterator]()).toThrow("A video stream can be iterated only once.");
+    });
+
+    it("throws an error from the frames unchanged and closes the socket", async () => {
+        const socket = await connect(() => [RESULT]);
+        const failure = new Error("The camera disconnected.");
+        async function* frames(): AsyncGenerator<VideoFrame> {
+            yield frame(0);
+            throw failure;
+        }
+
+        const thrown = await collect(streamVideo(socket, frames())).catch((e: unknown) => e);
+
+        expect(thrown).toBe(failure);
+        await vi.waitFor(() => expect(server?.closeCodes).toEqual([1000]));
     });
 
     it("drops live frames that arrive with no send allowance left", async () => {
         const socket = await connect(() => [RESULT]);
         await socket.waitForOpen();
-        vi.useFakeTimers({ toFake: ["Date"] });
+        vi.useFakeTimers({ toFake: ["performance"] });
         const frames = Array.from({ length: 10 }, (_, id) => frame(id));
 
         const stream = streamVideo(socket, framesOf(...frames), { live: true });
@@ -369,6 +496,21 @@ describe("streamVideo", () => {
         const arrivals = server?.arrivals ?? [];
         expect(arrivals[6] - arrivals[0]).toBeLessThan(100);
         expect(arrivals[8] - arrivals[0]).toBeGreaterThanOrEqual(450);
+    });
+
+    it("keeps pacing frames when the system clock is set back", async () => {
+        const socket = await connect(() => [RESULT]);
+        vi.useFakeTimers({ toFake: ["Date"] });
+        const frames = Array.from({ length: 9 }, (_, id) => frame(id));
+        const replies: unknown[] = [];
+
+        for await (const reply of streamVideo(socket, framesOf(...frames))) {
+            if (replies.push(reply) === 1) {
+                vi.setSystemTime(Date.now() - 10 * 60 * 1000);
+            }
+        }
+
+        expect(replies).toHaveLength(9);
     });
 
     it("closes the socket and stops the frames when the loop ends early", async () => {
