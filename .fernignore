@@ -8,3 +8,5 @@ tests/audio-helpers
 src/video-helpers
 tests/video-helpers
 tests/__mocks__/decibri.ts
+src/reconnect
+tests/reconnect

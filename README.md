@@ -422,13 +422,45 @@ socket.sendVideoSessionUpdate({ type: "session.update", face: { threshold: 0.8, 
 
 | Option | Default | Purpose |
 |---|---|---|
-| `reconnectAttempts` | 30 | Automatic reconnects after an unexpected close. Set to 0 for session-based streaming, since a new connection is a new session. |
+| `reconnectAttempts` | 30 | Automatic reconnects after an unexpected close. Set to 0 for session-based streaming, since a new connection is a new session, or use `connectAudio` and `connectVideo` (see [Reconnecting](#reconnecting)). |
 | `shouldReconnect` | reconnect on any close code other than 1000 | Decides whether a close triggers a reconnect. Return false to treat the close as final. |
 | `connectionTimeoutInSeconds` | none | Fails the handshake after this long. |
 | `headers`, `queryParams` | none | Extra values sent with the handshake. |
 | `abortSignal` | none | Aborts the connection from outside. |
 
 `connect()` resolves before the handshake completes. Call `waitForOpen()` before sending, or send from the `open` handler. Sending on a socket that is not open throws.
+
+## Reconnecting
+
+A session cannot be resumed: a new connection is a new server session, with a new session ID (and run ID) and the default configuration. `connectAudio` from `@humeai/expression-measurement-node/audio-helpers` and `connectVideo` from `@humeai/expression-measurement-node/video-helpers` open a session that reconnects when the server restarts or the connection drops, and send each new session the last `session.update`.
+
+```typescript
+import { connectAudio } from "@humeai/expression-measurement-node/audio-helpers";
+
+const session = await connectAudio(client.audio, {
+    sessionUpdate: { type: "session.update", measurementTimerMs: 5000 },
+    onMessage: (message) => console.log(message.type),
+    onReconnect: ({ previousSessionId, sessionId, code }) =>
+        console.log(`session ${previousSessionId} ended with ${code}; continuing in ${sessionId}`),
+    onClose: ({ code, gaveUp }) => console.log(`ended with ${code}${gaveUp ? " after retrying" : ""}`),
+});
+session.sendAudioFrame(pcm);
+session.sendSessionClose();
+```
+
+| How the connection ended | What happens |
+|---|---|
+| Close code 1012, or `session.closed` with `reason` `server_shutdown` | Reconnects within 250 ms. |
+| No close frame (1006), or close code 1001 | Reconnects within 250 ms. |
+| Close code 1013, 1011 or 1014, or a handshake rejected with HTTP 503, 502, 504 or 429 | Reconnects after a backoff that starts at `initialDelayMs` (1000) and doubles each attempt, up to `maxDelayMs` (30000), with jitter. |
+| Close code 1000 (`session.close`, idle timeout), 1008 (a session-ending error), any 4000 to 4999 code, or a handshake rejected with HTTP 401, 403 or another 4xx | Ends the session. |
+| After `sendSessionClose()` or `close()` | Ends the session, whatever the code. |
+
+- **Attempts:** after `maxAttempts` (6) consecutive failed attempts the session ends, and `onClose` reports `gaveUp`. The count starts again once a session has stayed up for 10 seconds.
+- **Before the new session:** `sendAudioFrame` and `sendImageFrame` queue media instead of sending it, up to 30 seconds of audio or 8 frames, and drop the oldest beyond that. The new session gets the last `session.update`, then the queued media.
+- **Lost results:** media the old session had received but not yet answered gets no result. Video replies pair with frames by position, so clear any queue of sent frames in `onReconnect`. Utterance, frame and face IDs restart in the new session.
+- **Events:** `onReconnecting` reports each wait before an attempt, and `onReconnect` reports each new session, before its `session.created` reaches `onMessage`.
+- `streamVideo` does not reconnect: it ends with `SessionEndedError` when the session does.
 
 ## Runs
 

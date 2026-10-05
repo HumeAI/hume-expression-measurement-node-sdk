@@ -3,6 +3,7 @@
 // Helpers that turn video into frames for the realtime video endpoint, which accepts one complete
 // JPEG image per message.
 
+export { connectVideo, ReconnectingVideoSession } from "./connectVideo.js";
 export { FfmpegNotFoundError } from "./FfmpegNotFoundError.js";
 export { iterVideoFrames } from "./file.js";
 export { JpegSplitter } from "./JpegSplitter.js";
