@@ -83,7 +83,7 @@ interface Entry {
  * @example
  * import { iterVideoFrames, streamVideo } from "@humeai/expression-measurement-node/video-helpers";
  *
- * const socket = await client.video.connect({ reconnectAttempts: 0 });
+ * const socket = await client.video.connect();
  * const stream = streamVideo(socket, iterVideoFrames("interview.mp4"));
  * for await (const reply of stream) {
  *     if (reply.result) {
@@ -157,8 +157,8 @@ export class VideoStream implements AsyncIterable<streamVideo.Reply> {
         };
         const onMessage = (message: VideoSocket.Response) => {
             messages.push(message);
-            // Closed at once, because the socket would otherwise reconnect after a session-ending
-            // error closes the connection with code 1008, and a new connection is a new session.
+            // Closed at once, because the socket would otherwise reconnect after a server shutdown,
+            // and a new connection is a new session.
             if (message.type === "session.closed") {
                 closeSocket();
             }

@@ -336,13 +336,12 @@ describe("streamVideo", () => {
         expect(thrown).toMatchObject({ code: undefined, closed: { reason } });
     });
 
-    // The socket reconnects after a 1008 close, starting a new session, unless it is closed first.
-    // Its first reconnect waits at least a second, so this checks the close itself.
+    // The socket reconnects after a server shutdown, starting a new session, unless it is closed
+    // first. Its first reconnect waits at least a second, so this checks the close itself.
     it("closes the socket as soon as the session ends, while the caller still holds a reply", async () => {
         const socket = await connect((id, _attempt, client) => {
             if (id === 1) {
-                client.send(JSON.stringify(error("config_invalid", false)));
-                server?.closeSession(client, "error", 1008);
+                server?.closeSession(client, "server_shutdown", 1000);
                 return [];
             }
             return [RESULT];
