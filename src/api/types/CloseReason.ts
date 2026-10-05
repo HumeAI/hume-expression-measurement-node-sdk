@@ -4,7 +4,7 @@
  * Why the session ended. `session.closed` is the last message, and the WebSocket close code that follows it depends on the reason.
  *
  * - `client_request`: you sent `session.close`. Close code 1000.
- * - `server_shutdown`: the server is shutting down; reconnect to start a new session. Close code 1000.
+ * - `server_shutdown`: the server is restarting; reconnect at once to start a new session. Close code 1012.
  * - `idle_timeout`: the server received no media frame it could use for 30 seconds; open a new session to continue. Close code 1000.
  * - `error`: a session-ending error, reported in the preceding `error` message. Close code 1008.
  */
