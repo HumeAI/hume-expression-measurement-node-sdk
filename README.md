@@ -92,7 +92,7 @@ for (const result of response.measurements) {
 }
 ```
 
-`file` is a list, so one request can carry several JPEG images. `measurements` holds one result per image, in the order sent, and `frameId` is the image's position in the list. The server lists every face it detects but measures only the largest, 2 by default. A face it did not measure has `faceId`, `expressions`, and `descriptions` set to `null`, so the example skips it. The [video upload guide](https://dev.hume.ai/expression-measurement/docs/video/upload) covers image limits, detection settings, and tracking faces across requests.
+`file` is a list, so one request can carry several JPEG images. `measurements` holds one result per image, in the order sent, and `frameId` is the image's position in the list. The server lists up to 32 detected faces and measures only the largest, 2 by default. A face it did not measure has `faceId`, `expressions`, and `descriptions` set to `null`, so the example skips it. The [video upload guide](https://dev.hume.ai/expression-measurement/docs/video/upload) covers image limits, detection settings, and tracking faces across requests.
 
 ## Quickstart: realtime
 
@@ -146,7 +146,7 @@ The server detects speech, groups it into utterances, and sends a `measurement.r
 
 ### Video
 
-The video endpoint accepts one complete JPEG image per frame and answers each accepted frame with one `measurement.result` listing every face it detected.
+The video endpoint accepts one complete JPEG image per frame and answers each accepted frame with one `measurement.result` listing up to 32 detected faces.
 
 ```typescript
 import { readFile } from "node:fs/promises";
@@ -372,7 +372,7 @@ Ending the loop early stops ffmpeg.
 
 ### Live sources
 
-`streamVideo` measures frames from any source you can turn into an async iterable, such as a camera your application already captures. Encode each frame as a JPEG, give it a `timestampMs`, and pass `{ live: true }`. A camera usually produces more frames than the 3 per second the endpoint accepts; `streamVideo` sends what the send rate allows and counts the rest in `stream.droppedFrames`, so capturing no more than 3 frames per second saves encoding work. Keep frames around 1280 pixels wide.
+`streamVideo` measures frames from any source you can turn into an async iterable, such as a camera your application already captures. Encode each frame as a JPEG, give it a `timestampMs`, and pass `{ live: true }`. A camera usually produces more frames than the 3 per second the endpoint accepts; `streamVideo` sends what the send rate allows and counts the rest in `stream.droppedFrames`, so capturing no more than 3 frames per second saves encoding work. A source that keeps to exactly 3 frames per second can still have one frame dropped: the first that arrives early before any has arrived late to leave room for it. Keep frames around 1280 pixels wide.
 
 `JpegSplitter` turns a byte stream of concatenated JPEG images, such as ffmpeg's `image2pipe` output or the body of an MJPEG stream, into single images. Pass each chunk to `push`, which returns the images completed so far and holds back a partial one. This generator yields frames from such a stream, timed from when it starts:
 
