@@ -132,14 +132,20 @@ generations:
     cli_version: unknown
     generator_versions:
       fernapi/fern-typescript-sdk: 3.98.5
-current_generation: 73f5e0fad7f4b3ae126079733acb127eab626da4
+  - commit_sha: c44ade5d9c87048ec33e2cb584a7a4cfffa83faa
+    tree_hash: db345a5d7f2c337ffd60796162397df3d2142061
+    timestamp: 2026-10-06T13:02:14.606Z
+    cli_version: unknown
+    generator_versions:
+      fernapi/fern-typescript-sdk: 3.98.5
+current_generation: c44ade5d9c87048ec33e2cb584a7a4cfffa83faa
 patches:
   - id: patch-7b83e5d0
     content_hash: sha256:9e94d68bd5ebed738b80abcb5f82972b0ef50692f7576714a98432d0ec7525b0
     original_commit: 7b83e5d072933ebbc8693aa9ffa8d7bda16fa944
     original_message: reconnect realtime sockets only when a new session can succeed, and send the caller's last session.update to each new session
     original_author: zach <zachary.greathouse@hume.ai>
-    base_generation: 73f5e0fad7f4b3ae126079733acb127eab626da4
+    base_generation: c44ade5d9c87048ec33e2cb584a7a4cfffa83faa
     files:
       - src/api/resources/audio/client/Client.ts
       - src/api/resources/video/client/Client.ts
@@ -804,7 +810,7 @@ patches:
     original_commit: 01108bc15d96bba763293e6cc14ece33e711f576
     original_message: export ReadyState from the package root so send loops can check a realtime socket's readyState without reaching into the underlying socket
     original_author: zach <zachary.greathouse@hume.ai>
-    base_generation: 73f5e0fad7f4b3ae126079733acb127eab626da4
+    base_generation: c44ade5d9c87048ec33e2cb584a7a4cfffa83faa
     files:
       - src/core/websocket/exports.ts
     patch_content: |
@@ -847,6 +853,157 @@ patches:
         export type ReadyState = ws.ReconnectingWebSocket.ReadyState;
         export const ReadyState: typeof ws.ReconnectingWebSocket.ReadyState = ws.ReconnectingWebSocket.ReadyState;
     user_owned: true
+  - id: patch-a40da410
+    content_hash: sha256:3809fb01bb0688c0277094feb1c8b332d1ab0afd401c011777381de306d91627
+    original_commit: a40da410b1d03e760eb0eb0efd2125e634e9b017
+    original_message: Pace realtime streaming at the documented send rates (#31)
+    original_author: Zachary Greathouse <26175515+zgreathouse@users.noreply.github.com>
+    base_generation: c44ade5d9c87048ec33e2cb584a7a4cfffa83faa
+    files:
+      - .github/workflows/ci.yml
+    patch_content: |+
+      diff --git a/.github/workflows/ci.yml b/.github/workflows/ci.yml
+      index 935ef8c..6ebae67 100644
+      --- a/.github/workflows/ci.yml
+      +++ b/.github/workflows/ci.yml
+      @@ -47,8 +47,13 @@ jobs:
+       
+         publish:
+           needs: [ compile, test ]
+      -    if: github.event_name == 'push' && contains(github.ref, 'refs/tags/')
+      +    # Only version tags publish. Fern pushes a tag of its own to this repository, and that tag must
+      +    # not release the package.
+      +    if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+           runs-on: ubuntu-latest
+      +    environment:
+      +      name: npm
+      +      url: https://www.npmjs.com/package/@humeai/expression-measurement-node
+           permissions:
+             contents: read   # Required for checkout
+             id-token: write  # Required for OIDC
+      @@ -61,6 +66,16 @@ jobs:
+               with:
+                 node-version: "lts/Krypton"
+       
+      +      # A published version can never be published again, so a tag on the wrong commit must fail
+      +      # here rather than release whatever version that commit holds.
+      +      - name: Check the tag matches the package version
+      +        run: |
+      +          PKG_VERSION=$(node -p "require('./package.json').version")
+      +          if [[ "${GITHUB_REF_NAME}" != "v${PKG_VERSION}" ]]; then
+      +            echo "::error::Tag ${GITHUB_REF_NAME} does not match package version ${PKG_VERSION}."
+      +            exit 1
+      +          fi
+      +
+             - name: Install pnpm
+               uses: pnpm/action-setup@v4
+       
+    theirs_snapshot:
+      .github/workflows/ci.yml: |-
+        name: ci
+
+        on: [push]
+
+        concurrency:
+          group: ${{ github.workflow }}-${{ github.ref }}
+          cancel-in-progress: false
+
+        jobs:
+          compile:
+            runs-on: ubuntu-latest
+
+            steps:
+              - name: Checkout repo
+                uses: actions/checkout@v6
+
+              - name: Set up node
+                uses: actions/setup-node@v6
+
+              - name: Install pnpm
+                uses: pnpm/action-setup@v4
+
+              - name: Install dependencies
+                run: pnpm install --frozen-lockfile
+
+              - name: Compile
+                run: pnpm build
+
+          test:
+            runs-on: ubuntu-latest
+
+            steps:
+              - name: Checkout repo
+                uses: actions/checkout@v6
+
+              - name: Set up node
+                uses: actions/setup-node@v6
+                        
+              - name: Install pnpm
+                uses: pnpm/action-setup@v4
+
+              - name: Install dependencies
+                run: pnpm install --frozen-lockfile
+
+              - name: Test
+                run: pnpm test
+
+          publish:
+            needs: [ compile, test ]
+            # Only version tags publish. Fern pushes a tag of its own to this repository, and that tag must
+            # not release the package.
+            if: github.event_name == 'push' && startsWith(github.ref, 'refs/tags/v')
+            runs-on: ubuntu-latest
+            environment:
+              name: npm
+              url: https://www.npmjs.com/package/@humeai/expression-measurement-node
+            permissions:
+              contents: read   # Required for checkout
+              id-token: write  # Required for OIDC
+            steps:
+              - name: Checkout repo
+                uses: actions/checkout@v6
+
+              - name: Set up node
+                uses: actions/setup-node@v6
+                with:
+                  node-version: "lts/Krypton"
+
+              # A published version can never be published again, so a tag on the wrong commit must fail
+              # here rather than release whatever version that commit holds.
+              - name: Check the tag matches the package version
+                run: |
+                  PKG_VERSION=$(node -p "require('./package.json').version")
+                  if [[ "${GITHUB_REF_NAME}" != "v${PKG_VERSION}" ]]; then
+                    echo "::error::Tag ${GITHUB_REF_NAME} does not match package version ${PKG_VERSION}."
+                    exit 1
+                  fi
+
+              - name: Install pnpm
+                uses: pnpm/action-setup@v4
+
+              - name: Install dependencies
+                run: pnpm install --frozen-lockfile
+
+              - name: Build
+                run: pnpm build
+
+              - name: Publish to npm
+                run: |
+                  if [[ ${GITHUB_REF} == *alpha* ]]; then
+                    npm publish --access public --tag alpha
+                  elif [[ ${GITHUB_REF} == *beta* ]]; then
+                    npm publish --access public --tag beta
+                  else
+                    PKG_NAME=$(node -p "require('./package.json').name")
+                    PKG_VERSION=$(node -p "require('./package.json').version")
+                    CURRENT_LATEST=$(npm view "${PKG_NAME}" dist-tags.latest 2>/dev/null || echo "0.0.0")
+                    if npx -y semver@7.8.1 "${PKG_VERSION}" -r "<${CURRENT_LATEST}" > /dev/null 2>&1; then
+                      echo "Publishing ${PKG_VERSION} with --tag backport (current latest is ${CURRENT_LATEST})"
+                      npm publish --access public --tag backport
+                    else
+                      npm publish --access public
+                    fi
+                  fi
 dismissals:
   - patch_id: patch-62342be9
     original_commit: 62342be9abcd1d674f31509854cd6ff37a0b8477
