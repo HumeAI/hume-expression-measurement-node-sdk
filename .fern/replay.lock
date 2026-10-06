@@ -120,20 +120,26 @@ generations:
     cli_version: unknown
     generator_versions:
       fernapi/fern-typescript-sdk: 3.98.5
-current_generation: 32aa745cb760c692e68892fe32ca6e66ccb64fac
+  - commit_sha: 450ac6e07dfc9d381d17f154cdbb57f2505624bc
+    tree_hash: 367e1519c43f9297e64f39f09dce5276a3efd5dc
+    timestamp: 2026-10-06T08:40:04.349Z
+    cli_version: unknown
+    generator_versions:
+      fernapi/fern-typescript-sdk: 3.98.5
+current_generation: 450ac6e07dfc9d381d17f154cdbb57f2505624bc
 patches:
   - id: patch-7b83e5d0
-    content_hash: sha256:e80ad6355ba46df6394cd9d896ed2acb36f497ae350e05011be4aef800d9315a
+    content_hash: sha256:9e94d68bd5ebed738b80abcb5f82972b0ef50692f7576714a98432d0ec7525b0
     original_commit: 7b83e5d072933ebbc8693aa9ffa8d7bda16fa944
     original_message: reconnect realtime sockets only when a new session can succeed, and send the caller's last session.update to each new session
     original_author: zach <zachary.greathouse@hume.ai>
-    base_generation: 32aa745cb760c692e68892fe32ca6e66ccb64fac
+    base_generation: 450ac6e07dfc9d381d17f154cdbb57f2505624bc
     files:
       - src/api/resources/audio/client/Client.ts
       - src/api/resources/video/client/Client.ts
     patch_content: |
       diff --git a/src/api/resources/audio/client/Client.ts b/src/api/resources/audio/client/Client.ts
-      index 63fed68..84c505c 100644
+      index 8a3018c..f85c568 100644
       --- a/src/api/resources/audio/client/Client.ts
       +++ b/src/api/resources/audio/client/Client.ts
       @@ -8,6 +8,7 @@ import { toJson } from "../../../../core/json.js";
@@ -153,7 +159,7 @@ patches:
                shouldReconnect?: (event: core.CloseEvent) => boolean;
            }
        }
-      @@ -254,7 +255,7 @@ export class AudioClient {
+      @@ -266,7 +267,7 @@ export class AudioClient {
                } = args;
                const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
                const _headers: Record<string, unknown> = mergeHeaders(_authRequest.headers, this._options?.headers, headers);
@@ -163,7 +169,7 @@ patches:
                        (await core.Supplier.get(this._options.baseUrl)) ??
                            (
       diff --git a/src/api/resources/video/client/Client.ts b/src/api/resources/video/client/Client.ts
-      index ba0379e..e363cdd 100644
+      index 472ea98..de2da0b 100644
       --- a/src/api/resources/video/client/Client.ts
       +++ b/src/api/resources/video/client/Client.ts
       @@ -8,6 +8,7 @@ import { toJson } from "../../../../core/json.js";
@@ -183,7 +189,7 @@ patches:
                shouldReconnect?: (event: core.CloseEvent) => boolean;
            }
        }
-      @@ -261,7 +262,7 @@ export class VideoClient {
+      @@ -273,7 +274,7 @@ export class VideoClient {
                } = args;
                const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
                const _headers: Record<string, unknown> = mergeHeaders(_authRequest.headers, this._options?.headers, headers);
@@ -279,6 +285,7 @@ patches:
              * @throws {@link ExpressionMeasurement.ContentTooLargeError}
              * @throws {@link ExpressionMeasurement.UnsupportedMediaTypeError}
              * @throws {@link ExpressionMeasurement.InternalServerError}
+             * @throws {@link ExpressionMeasurement.ServiceUnavailableError}
              * @throws {@link errors.ExpressionMeasurementError}
              * @throws {@link errors.ExpressionMeasurementTimeoutError}
              *
@@ -426,6 +433,17 @@ patches:
                                 }),
                                 _response.rawResponse,
                             );
+                        case 503:
+                            throw new ExpressionMeasurement.ServiceUnavailableError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
                         default:
                             throw new errors.ExpressionMeasurementError({
                                 statusCode: _response.error.statusCode,
@@ -564,6 +582,7 @@ patches:
              * @throws {@link ExpressionMeasurement.ContentTooLargeError}
              * @throws {@link ExpressionMeasurement.UnsupportedMediaTypeError}
              * @throws {@link ExpressionMeasurement.InternalServerError}
+             * @throws {@link ExpressionMeasurement.ServiceUnavailableError}
              * @throws {@link errors.ExpressionMeasurementError}
              * @throws {@link errors.ExpressionMeasurementTimeoutError}
              *
@@ -714,6 +733,17 @@ patches:
                                 }),
                                 _response.rawResponse,
                             );
+                        case 503:
+                            throw new ExpressionMeasurement.ServiceUnavailableError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
                         default:
                             throw new errors.ExpressionMeasurementError({
                                 statusCode: _response.error.statusCode,
@@ -762,12 +792,13 @@ patches:
                 return new VideoSocket({ socket });
             }
         }
+    user_owned: true
   - id: patch-01108bc1
     content_hash: sha256:395b1998e413074820a530aa0ab6dbda78b03b52ce38c6516d8f00f3c6ce909a
     original_commit: 01108bc15d96bba763293e6cc14ece33e711f576
     original_message: export ReadyState from the package root so send loops can check a realtime socket's readyState without reaching into the underlying socket
     original_author: zach <zachary.greathouse@hume.ai>
-    base_generation: 32aa745cb760c692e68892fe32ca6e66ccb64fac
+    base_generation: 450ac6e07dfc9d381d17f154cdbb57f2505624bc
     files:
       - src/core/websocket/exports.ts
     patch_content: |
@@ -809,6 +840,7 @@ patches:
          */
         export type ReadyState = ws.ReconnectingWebSocket.ReadyState;
         export const ReadyState: typeof ws.ReconnectingWebSocket.ReadyState = ws.ReconnectingWebSocket.ReadyState;
+    user_owned: true
 dismissals:
   - patch_id: patch-62342be9
     original_commit: 62342be9abcd1d674f31509854cd6ff37a0b8477

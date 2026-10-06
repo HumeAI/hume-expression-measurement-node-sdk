@@ -37,6 +37,10 @@
  * **`500 Internal Server Error`**
  *
  * - `internal_error`: the server failed while serving the request. Retry it; if it keeps failing, contact support, quoting the `request_id`.
+ *
+ * **`503 Service Unavailable`**
+ *
+ * - `server_busy`: the service is too busy to serve the request now. Retry it after the number of seconds in the `Retry-After` header.
  */
 export const RequestErrorCode = {
     MessageInvalid: "message_invalid",
@@ -51,5 +55,6 @@ export const RequestErrorCode = {
     ImageTooLarge: "image_too_large",
     UnsupportedMediaType: "unsupported_media_type",
     InternalError: "internal_error",
+    ServerBusy: "server_busy",
 } as const;
 export type RequestErrorCode = (typeof RequestErrorCode)[keyof typeof RequestErrorCode];
