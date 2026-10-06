@@ -5,7 +5,7 @@ import type { VideoFrame } from "./VideoFrame.js";
 
 export declare namespace iterVideoFrames {
     export interface Options {
-        /** Frames per second to take from the video, above 0 and at most 4. 3 by default. */
+        /** Frames per second to take from the video, above 0 and at most 3. 3 by default. */
         fps?: number;
         /** Frames wider than this many pixels are scaled down to it, keeping their shape. 1280 by default. */
         maxWidth?: number;

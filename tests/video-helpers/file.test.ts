@@ -66,12 +66,12 @@ describe("iterVideoFrames", () => {
         const images = [jpeg(1), jpeg(2), jpeg(3)];
         const ffmpegPath = fakeFfmpeg("process.stdout.write(images);", images);
 
-        const frames = await collect(iterVideoFrames("interview.mp4", { fps: 4, ffmpegPath }));
+        const frames = await collect(iterVideoFrames("interview.mp4", { fps: 2, ffmpegPath }));
 
         expect(frames).toEqual([
             { data: images[0], timestampMs: 0 },
-            { data: images[1], timestampMs: 250 },
-            { data: images[2], timestampMs: 500 },
+            { data: images[1], timestampMs: 500 },
+            { data: images[2], timestampMs: 1000 },
         ]);
     });
 
@@ -140,7 +140,7 @@ describe("iterVideoFrames", () => {
         expect(isRunning(Number(readFileSync(join(dir, "pid"), "utf8")))).toBe(false);
     });
 
-    it.each([0, -1, 4.5, Number.NaN])("rejects an fps of %s when called", (fps) => {
+    it.each([0, -1, 3.5, Number.NaN])("rejects an fps of %s when called", (fps) => {
         expect(() => iterVideoFrames("interview.mp4", { fps })).toThrow(RangeError);
     });
 
