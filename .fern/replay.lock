@@ -114,8 +114,701 @@ generations:
     cli_version: unknown
     generator_versions:
       fernapi/fern-typescript-sdk: 3.98.5
-current_generation: ef6829bd11de0a597dbb78b53bbfb49a00d4fdf3
-patches: []
+  - commit_sha: 32aa745cb760c692e68892fe32ca6e66ccb64fac
+    tree_hash: 9d4f176ac813e94744e0e901dac715434dfc55c4
+    timestamp: 2026-10-06T02:36:15.477Z
+    cli_version: unknown
+    generator_versions:
+      fernapi/fern-typescript-sdk: 3.98.5
+current_generation: 32aa745cb760c692e68892fe32ca6e66ccb64fac
+patches:
+  - id: patch-7b83e5d0
+    content_hash: sha256:e80ad6355ba46df6394cd9d896ed2acb36f497ae350e05011be4aef800d9315a
+    original_commit: 7b83e5d072933ebbc8693aa9ffa8d7bda16fa944
+    original_message: reconnect realtime sockets only when a new session can succeed, and send the caller's last session.update to each new session
+    original_author: zach <zachary.greathouse@hume.ai>
+    base_generation: 32aa745cb760c692e68892fe32ca6e66ccb64fac
+    files:
+      - src/api/resources/audio/client/Client.ts
+      - src/api/resources/video/client/Client.ts
+    patch_content: |
+      diff --git a/src/api/resources/audio/client/Client.ts b/src/api/resources/audio/client/Client.ts
+      index 63fed68..84c505c 100644
+      --- a/src/api/resources/audio/client/Client.ts
+      +++ b/src/api/resources/audio/client/Client.ts
+      @@ -8,6 +8,7 @@ import { toJson } from "../../../../core/json.js";
+       import * as environments from "../../../../environments.js";
+       import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
+       import * as errors from "../../../../errors/index.js";
+      +import { RealtimeWebSocket } from "../../../../reconnect/RealtimeWebSocket.js";
+       import * as serializers from "../../../../serialization/index.js";
+       import * as ExpressionMeasurement from "../../../index.js";
+       import { AudioSocket } from "./Socket.js";
+      @@ -32,7 +33,7 @@ export declare namespace AudioClient {
+               connectionTimeoutInSeconds?: number;
+               /** A signal to abort the WebSocket connection. */
+               abortSignal?: AbortSignal;
+      -        /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. Defaults to reconnecting on any server close code other than 1000. */
+      +        /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. A close after `session.close` was sent never reconnects. Defaults to reconnecting after a `session.closed` with reason `server_shutdown`, after close codes 1001, 1006, 1011, 1012 and 1013, and after close code 1008 that follows an `internal_error`. */
+               shouldReconnect?: (event: core.CloseEvent) => boolean;
+           }
+       }
+      @@ -254,7 +255,7 @@ export class AudioClient {
+               } = args;
+               const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+               const _headers: Record<string, unknown> = mergeHeaders(_authRequest.headers, this._options?.headers, headers);
+      -        const socket = new core.ReconnectingWebSocket({
+      +        const socket = new RealtimeWebSocket("audio", {
+                   url: core.url.join(
+                       (await core.Supplier.get(this._options.baseUrl)) ??
+                           (
+      diff --git a/src/api/resources/video/client/Client.ts b/src/api/resources/video/client/Client.ts
+      index ba0379e..e363cdd 100644
+      --- a/src/api/resources/video/client/Client.ts
+      +++ b/src/api/resources/video/client/Client.ts
+      @@ -8,6 +8,7 @@ import { toJson } from "../../../../core/json.js";
+       import * as environments from "../../../../environments.js";
+       import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
+       import * as errors from "../../../../errors/index.js";
+      +import { RealtimeWebSocket } from "../../../../reconnect/RealtimeWebSocket.js";
+       import * as serializers from "../../../../serialization/index.js";
+       import * as ExpressionMeasurement from "../../../index.js";
+       import { VideoSocket } from "./Socket.js";
+      @@ -32,7 +33,7 @@ export declare namespace VideoClient {
+               connectionTimeoutInSeconds?: number;
+               /** A signal to abort the WebSocket connection. */
+               abortSignal?: AbortSignal;
+      -        /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. Defaults to reconnecting on any server close code other than 1000. */
+      +        /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. A close after `session.close` was sent never reconnects. Defaults to reconnecting after a `session.closed` with reason `server_shutdown`, and after close codes 1001, 1006, 1011, 1012 and 1013. */
+               shouldReconnect?: (event: core.CloseEvent) => boolean;
+           }
+       }
+      @@ -261,7 +262,7 @@ export class VideoClient {
+               } = args;
+               const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+               const _headers: Record<string, unknown> = mergeHeaders(_authRequest.headers, this._options?.headers, headers);
+      -        const socket = new core.ReconnectingWebSocket({
+      +        const socket = new RealtimeWebSocket("video", {
+                   url: core.url.join(
+                       (await core.Supplier.get(this._options.baseUrl)) ??
+                           (
+    theirs_snapshot:
+      src/api/resources/audio/client/Client.ts: |
+        // This file was auto-generated by Fern from our API Definition.
+
+        import type { BaseClientOptions, BaseRequestOptions } from "../../../../BaseClient.js";
+        import { type NormalizedClientOptionsWithAuth, normalizeClientOptionsWithAuth } from "../../../../BaseClient.js";
+        import { mergeHeaders, mergeOnlyDefinedHeaders } from "../../../../core/headers.js";
+        import * as core from "../../../../core/index.js";
+        import { toJson } from "../../../../core/json.js";
+        import * as environments from "../../../../environments.js";
+        import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
+        import * as errors from "../../../../errors/index.js";
+        import { RealtimeWebSocket } from "../../../../reconnect/RealtimeWebSocket.js";
+        import * as serializers from "../../../../serialization/index.js";
+        import * as ExpressionMeasurement from "../../../index.js";
+        import { AudioSocket } from "./Socket.js";
+
+        export declare namespace AudioClient {
+            export type Options = BaseClientOptions;
+
+            export interface RequestOptions extends BaseRequestOptions {}
+
+            export interface ConnectArgs {
+                /** WebSocket subprotocols to use for the connection. */
+                protocols?: string | string[];
+                /** Additional query parameters to send with the websocket connect request. */
+                queryParams?: Record<string, unknown>;
+                /** Arbitrary headers to send with the websocket connect request. */
+                headers?: Record<string, string>;
+                /** Enable debug mode on the websocket. Defaults to false. */
+                debug?: boolean;
+                /** Maximum number of times to automatically reconnect after the connection closes unexpectedly. Defaults to 30. Set to 0 to disable reconnecting. */
+                reconnectAttempts?: number;
+                /** The timeout for establishing the WebSocket connection in seconds. */
+                connectionTimeoutInSeconds?: number;
+                /** A signal to abort the WebSocket connection. */
+                abortSignal?: AbortSignal;
+                /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. A close after `session.close` was sent never reconnects. Defaults to reconnecting after a `session.closed` with reason `server_shutdown`, after close codes 1001, 1006, 1011, 1012 and 1013, and after close code 1008 that follows an `internal_error`. */
+                shouldReconnect?: (event: core.CloseEvent) => boolean;
+            }
+        }
+
+        /**
+         * Measure expression in an audio file.
+         */
+        export class AudioClient {
+            protected readonly _options: NormalizedClientOptionsWithAuth<AudioClient.Options>;
+
+            constructor(options: AudioClient.Options = {}) {
+                this._options = normalizeClientOptionsWithAuth(options);
+            }
+
+            /**
+             * Send the audio as the `file` part and, to change the defaults, settings as a JSON `config` part. The response holds every utterance found in the audio and every measurement taken, the same results a realtime session would stream for the same audio.
+             *
+             * ## How measurements are produced
+             *
+             * The server detects when speech starts and stops. Each continuous stretch of speech is an **utterance**, listed in `utterances` with its span in the audio.
+             *
+             * - **During speech:** a measurement is taken every `measurement_timer_ms` milliseconds of speech, with `trigger` set to `interval`.
+             * - **When speech ends:** a final measurement is taken with `trigger` set to `speech_ended`, unless the previous measurement ended less than one second earlier. Every utterance gets at least one measurement, and audio that ends during speech ends the utterance.
+             * - **Span:** each measurement covers the most recent 10 seconds of the utterance, or the whole utterance if it is shorter, so consecutive measurements can overlap. `audio_start_ms` and `audio_end_ms` give the span, counted from the start of the audio.
+             *
+             * ## Limits
+             *
+             * | Limit | Value |
+             * |---|---|
+             * | Request size | 25MB, the whole multipart body |
+             * | Audio format | 16-bit PCM, 16 kHz, mono, as a WAV file or headerless samples |
+             *
+             * The server does not convert audio, so send it in the format above.
+             *
+             * - **Too large:** a request over the size limit is rejected with `audio_too_long`.
+             * - **Unsupported formats:** MP3, FLAC, Ogg, MP4 or M4A, and RIFF files other than WAV, are rejected with `unsupported_media_type`. Convert them before sending.
+             * - **Wrong WAV format:** a WAV file at another sample rate, channel count or sample format, one that uses the extensible WAV header, or one that is truncated or malformed is rejected with `audio_decode_failed`.
+             * - **Anything else** is read as headerless samples rather than rejected, so check the format before sending. An empty file, or one with an odd number of bytes, is rejected with `audio_decode_failed`.
+             *
+             * @param {ExpressionMeasurement.AudioFileUpload} request
+             * @param {AudioClient.RequestOptions} requestOptions - Request-specific configuration.
+             *
+             * @throws {@link ExpressionMeasurement.BadRequestError}
+             * @throws {@link ExpressionMeasurement.UnauthorizedError}
+             * @throws {@link ExpressionMeasurement.ForbiddenError}
+             * @throws {@link ExpressionMeasurement.MethodNotAllowedError}
+             * @throws {@link ExpressionMeasurement.ContentTooLargeError}
+             * @throws {@link ExpressionMeasurement.UnsupportedMediaTypeError}
+             * @throws {@link ExpressionMeasurement.InternalServerError}
+             * @throws {@link errors.ExpressionMeasurementError}
+             * @throws {@link errors.ExpressionMeasurementTimeoutError}
+             *
+             * @example
+             *     import { createReadStream } from "fs";
+             *     await client.audio.measure({
+             *         file: fs.createReadStream("/path/to/your/file")
+             *     })
+             */
+            public measure(
+                request: ExpressionMeasurement.AudioFileUpload,
+                requestOptions?: AudioClient.RequestOptions,
+            ): core.HttpResponsePromise<ExpressionMeasurement.AudioFileResponse> {
+                return core.HttpResponsePromise.fromPromise(this.__measure(request, requestOptions));
+            }
+
+            private async __measure(
+                request: ExpressionMeasurement.AudioFileUpload,
+                requestOptions?: AudioClient.RequestOptions,
+            ): Promise<core.WithRawResponse<ExpressionMeasurement.AudioFileResponse>> {
+                const _body = await core.newFormData();
+                if (request.config != null) {
+                    _body.append("config", toJson(request.config));
+                }
+
+                await _body.appendFile("file", request.file);
+                const _maybeEncodedRequest = await _body.getRequest();
+                const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+                const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+                    _authRequest.headers,
+                    this._options?.headers,
+                    mergeOnlyDefinedHeaders({ ..._maybeEncodedRequest.headers }),
+                    requestOptions?.headers,
+                );
+                const _response = await core.fetcher({
+                    url: core.url.join(
+                        (await core.Supplier.get(this._options.baseUrl)) ??
+                            (
+                                (await core.Supplier.get(this._options.environment)) ??
+                                environments.ExpressionMeasurementEnvironment.Production
+                            ).base,
+                        "v1/expression/audio/file",
+                    ),
+                    method: "POST",
+                    headers: _headers,
+                    queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+                    requestType: "file",
+                    duplex: _maybeEncodedRequest.duplex,
+                    body: _maybeEncodedRequest.body,
+                    timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+                    maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+                    abortSignal: requestOptions?.abortSignal,
+                    fetchFn: this._options?.fetch,
+                    logging: this._options.logging,
+                });
+                if (_response.ok) {
+                    return {
+                        data: serializers.AudioFileResponse.parseOrThrow(_response.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        rawResponse: _response.rawResponse,
+                    };
+                }
+
+                if (_response.error.reason === "status-code") {
+                    switch (_response.error.statusCode) {
+                        case 400:
+                            throw new ExpressionMeasurement.BadRequestError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 401:
+                            throw new ExpressionMeasurement.UnauthorizedError(
+                                serializers.AuthenticationError.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 403:
+                            throw new ExpressionMeasurement.ForbiddenError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 405:
+                            throw new ExpressionMeasurement.MethodNotAllowedError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 413:
+                            throw new ExpressionMeasurement.ContentTooLargeError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 415:
+                            throw new ExpressionMeasurement.UnsupportedMediaTypeError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 500:
+                            throw new ExpressionMeasurement.InternalServerError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        default:
+                            throw new errors.ExpressionMeasurementError({
+                                statusCode: _response.error.statusCode,
+                                body: _response.error.body,
+                                rawResponse: _response.rawResponse,
+                            });
+                    }
+                }
+
+                return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/expression/audio/file");
+            }
+
+            public async connect(args: AudioClient.ConnectArgs = {}): Promise<AudioSocket> {
+                const {
+                    protocols,
+                    queryParams,
+                    headers,
+                    debug,
+                    reconnectAttempts,
+                    connectionTimeoutInSeconds,
+                    abortSignal,
+                    shouldReconnect,
+                } = args;
+                const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+                const _headers: Record<string, unknown> = mergeHeaders(_authRequest.headers, this._options?.headers, headers);
+                const socket = new RealtimeWebSocket("audio", {
+                    url: core.url.join(
+                        (await core.Supplier.get(this._options.baseUrl)) ??
+                            (
+                                (await core.Supplier.get(this._options.environment)) ??
+                                environments.ExpressionMeasurementEnvironment.Production
+                            ).production,
+                        "/v1/expression/audio/realtime",
+                    ),
+                    protocols: protocols ?? [],
+                    queryParameters: queryParams ?? {},
+                    headers: _headers,
+                    options: {
+                        debug: debug ?? false,
+                        maxRetries: reconnectAttempts ?? 30,
+                        connectionTimeout: connectionTimeoutInSeconds != null ? connectionTimeoutInSeconds * 1000 : undefined,
+                        shouldReconnect,
+                    },
+                    abortSignal: abortSignal,
+                });
+                return new AudioSocket({ socket });
+            }
+        }
+      src/api/resources/video/client/Client.ts: |
+        // This file was auto-generated by Fern from our API Definition.
+
+        import type { BaseClientOptions, BaseRequestOptions } from "../../../../BaseClient.js";
+        import { type NormalizedClientOptionsWithAuth, normalizeClientOptionsWithAuth } from "../../../../BaseClient.js";
+        import { mergeHeaders, mergeOnlyDefinedHeaders } from "../../../../core/headers.js";
+        import * as core from "../../../../core/index.js";
+        import { toJson } from "../../../../core/json.js";
+        import * as environments from "../../../../environments.js";
+        import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
+        import * as errors from "../../../../errors/index.js";
+        import { RealtimeWebSocket } from "../../../../reconnect/RealtimeWebSocket.js";
+        import * as serializers from "../../../../serialization/index.js";
+        import * as ExpressionMeasurement from "../../../index.js";
+        import { VideoSocket } from "./Socket.js";
+
+        export declare namespace VideoClient {
+            export type Options = BaseClientOptions;
+
+            export interface RequestOptions extends BaseRequestOptions {}
+
+            export interface ConnectArgs {
+                /** WebSocket subprotocols to use for the connection. */
+                protocols?: string | string[];
+                /** Additional query parameters to send with the websocket connect request. */
+                queryParams?: Record<string, unknown>;
+                /** Arbitrary headers to send with the websocket connect request. */
+                headers?: Record<string, string>;
+                /** Enable debug mode on the websocket. Defaults to false. */
+                debug?: boolean;
+                /** Maximum number of times to automatically reconnect after the connection closes unexpectedly. Defaults to 30. Set to 0 to disable reconnecting. */
+                reconnectAttempts?: number;
+                /** The timeout for establishing the WebSocket connection in seconds. */
+                connectionTimeoutInSeconds?: number;
+                /** A signal to abort the WebSocket connection. */
+                abortSignal?: AbortSignal;
+                /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. A close after `session.close` was sent never reconnects. Defaults to reconnecting after a `session.closed` with reason `server_shutdown`, and after close codes 1001, 1006, 1011, 1012 and 1013. */
+                shouldReconnect?: (event: core.CloseEvent) => boolean;
+            }
+        }
+
+        /**
+         * Measure expression in JPEG images.
+         */
+        export class VideoClient {
+            protected readonly _options: NormalizedClientOptionsWithAuth<VideoClient.Options>;
+
+            constructor(options: VideoClient.Options = {}) {
+                this._options = normalizeClientOptionsWithAuth(options);
+            }
+
+            /**
+             * Send one or more images, each as a `file` part, and, to change the defaults, settings as a JSON `config` part. The response holds one result per image, in the order the parts were sent. An image with no faces is a normal result with an empty `faces` array.
+             *
+             * ## Detection and measurement
+             *
+             * The server detects the faces in each image and lists them in `faces`. It measures the largest of them, up to the limit below, and lists those first, largest first.
+             *
+             * - A face is skipped, and is not listed, if its detection confidence is below `face.threshold` or its bounding box is under `face.min_size` pixels on its shorter side.
+             * - Each measured face carries its bounding box, its detection confidence, a `face_id`, and two sets of scores: `expressions` for emotional expressions such as amusement or interest, and `descriptions` for visible facial actions such as a smile or a jaw drop.
+             * - The faces that were not measured follow, most confident first, up to 32 faces in all. Each carries its bounding box and detection confidence, with `face_id`, `expressions` and `descriptions` null.
+             * - `face_id` tracks a face across the images of one request. A face normally keeps its ID while it is measured, and can get it back after it leaves the view or is no longer among the largest faces. IDs do not identify a person.
+             * - **Across requests:** IDs start again from 0 in every request. To keep them consistent, set `return_face_state` and pass the returned `face_state` as `face_state` in the next request.
+             *
+             * ## Limits
+             *
+             * | Limit | Value |
+             * |---|---|
+             * | Request size | 25MB, the whole multipart body |
+             * | Image size | 2MB |
+             * | Pixels per image | 8,294,400 (the area of a 3840x2160 image) |
+             * | Faces measured per image | 2 by default, the largest; contact support to raise it |
+             * | Faces listed per image | 32 |
+             *
+             * Every image is checked before any is measured. One bad image fails the whole request, which then returns no results:
+             *
+             * - **Not a JPEG:** rejected with `unsupported_media_type`.
+             * - **Over the image size or pixel limit:** rejected with `image_too_large`.
+             * - **Cannot be decoded:** rejected with `image_decode_failed`, possibly after earlier images were measured.
+             *
+             * @param {ExpressionMeasurement.VideoFileUpload} request
+             * @param {VideoClient.RequestOptions} requestOptions - Request-specific configuration.
+             *
+             * @throws {@link ExpressionMeasurement.BadRequestError}
+             * @throws {@link ExpressionMeasurement.UnauthorizedError}
+             * @throws {@link ExpressionMeasurement.ForbiddenError}
+             * @throws {@link ExpressionMeasurement.MethodNotAllowedError}
+             * @throws {@link ExpressionMeasurement.ContentTooLargeError}
+             * @throws {@link ExpressionMeasurement.UnsupportedMediaTypeError}
+             * @throws {@link ExpressionMeasurement.InternalServerError}
+             * @throws {@link errors.ExpressionMeasurementError}
+             * @throws {@link errors.ExpressionMeasurementTimeoutError}
+             *
+             * @example
+             *     import { createReadStream } from "fs";
+             *     await client.video.measure({
+             *         file: [fs.createReadStream("/path/to/your/file")]
+             *     })
+             */
+            public measure(
+                request: ExpressionMeasurement.VideoFileUpload,
+                requestOptions?: VideoClient.RequestOptions,
+            ): core.HttpResponsePromise<ExpressionMeasurement.VideoFileResponse> {
+                return core.HttpResponsePromise.fromPromise(this.__measure(request, requestOptions));
+            }
+
+            private async __measure(
+                request: ExpressionMeasurement.VideoFileUpload,
+                requestOptions?: VideoClient.RequestOptions,
+            ): Promise<core.WithRawResponse<ExpressionMeasurement.VideoFileResponse>> {
+                const _body = await core.newFormData();
+                if (request.config != null) {
+                    _body.append("config", toJson(request.config));
+                }
+
+                for (const _file of request.file) {
+                    await _body.appendFile("file", _file);
+                }
+
+                const _maybeEncodedRequest = await _body.getRequest();
+                const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+                const _headers: core.Fetcher.Args["headers"] = mergeHeaders(
+                    _authRequest.headers,
+                    this._options?.headers,
+                    mergeOnlyDefinedHeaders({ ..._maybeEncodedRequest.headers }),
+                    requestOptions?.headers,
+                );
+                const _response = await core.fetcher({
+                    url: core.url.join(
+                        (await core.Supplier.get(this._options.baseUrl)) ??
+                            (
+                                (await core.Supplier.get(this._options.environment)) ??
+                                environments.ExpressionMeasurementEnvironment.Production
+                            ).base,
+                        "v1/expression/video/file",
+                    ),
+                    method: "POST",
+                    headers: _headers,
+                    queryString: core.url.queryBuilder().mergeAdditional(requestOptions?.queryParams).build(),
+                    requestType: "file",
+                    duplex: _maybeEncodedRequest.duplex,
+                    body: _maybeEncodedRequest.body,
+                    timeoutMs: (requestOptions?.timeoutInSeconds ?? this._options?.timeoutInSeconds ?? 60) * 1000,
+                    maxRetries: requestOptions?.maxRetries ?? this._options?.maxRetries,
+                    abortSignal: requestOptions?.abortSignal,
+                    fetchFn: this._options?.fetch,
+                    logging: this._options.logging,
+                });
+                if (_response.ok) {
+                    return {
+                        data: serializers.VideoFileResponse.parseOrThrow(_response.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        rawResponse: _response.rawResponse,
+                    };
+                }
+
+                if (_response.error.reason === "status-code") {
+                    switch (_response.error.statusCode) {
+                        case 400:
+                            throw new ExpressionMeasurement.BadRequestError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 401:
+                            throw new ExpressionMeasurement.UnauthorizedError(
+                                serializers.AuthenticationError.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 403:
+                            throw new ExpressionMeasurement.ForbiddenError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 405:
+                            throw new ExpressionMeasurement.MethodNotAllowedError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 413:
+                            throw new ExpressionMeasurement.ContentTooLargeError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 415:
+                            throw new ExpressionMeasurement.UnsupportedMediaTypeError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        case 500:
+                            throw new ExpressionMeasurement.InternalServerError(
+                                serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                                    unrecognizedObjectKeys: "passthrough",
+                                    allowUnrecognizedUnionMembers: true,
+                                    allowUnrecognizedEnumValues: true,
+                                    skipValidation: true,
+                                    breadcrumbsPrefix: ["response"],
+                                }),
+                                _response.rawResponse,
+                            );
+                        default:
+                            throw new errors.ExpressionMeasurementError({
+                                statusCode: _response.error.statusCode,
+                                body: _response.error.body,
+                                rawResponse: _response.rawResponse,
+                            });
+                    }
+                }
+
+                return handleNonStatusCodeError(_response.error, _response.rawResponse, "POST", "/v1/expression/video/file");
+            }
+
+            public async connect(args: VideoClient.ConnectArgs = {}): Promise<VideoSocket> {
+                const {
+                    protocols,
+                    queryParams,
+                    headers,
+                    debug,
+                    reconnectAttempts,
+                    connectionTimeoutInSeconds,
+                    abortSignal,
+                    shouldReconnect,
+                } = args;
+                const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
+                const _headers: Record<string, unknown> = mergeHeaders(_authRequest.headers, this._options?.headers, headers);
+                const socket = new RealtimeWebSocket("video", {
+                    url: core.url.join(
+                        (await core.Supplier.get(this._options.baseUrl)) ??
+                            (
+                                (await core.Supplier.get(this._options.environment)) ??
+                                environments.ExpressionMeasurementEnvironment.Production
+                            ).production,
+                        "/v1/expression/video/realtime",
+                    ),
+                    protocols: protocols ?? [],
+                    queryParameters: queryParams ?? {},
+                    headers: _headers,
+                    options: {
+                        debug: debug ?? false,
+                        maxRetries: reconnectAttempts ?? 30,
+                        connectionTimeout: connectionTimeoutInSeconds != null ? connectionTimeoutInSeconds * 1000 : undefined,
+                        shouldReconnect,
+                    },
+                    abortSignal: abortSignal,
+                });
+                return new VideoSocket({ socket });
+            }
+        }
+  - id: patch-01108bc1
+    content_hash: sha256:395b1998e413074820a530aa0ab6dbda78b03b52ce38c6516d8f00f3c6ce909a
+    original_commit: 01108bc15d96bba763293e6cc14ece33e711f576
+    original_message: export ReadyState from the package root so send loops can check a realtime socket's readyState without reaching into the underlying socket
+    original_author: zach <zachary.greathouse@hume.ai>
+    base_generation: 32aa745cb760c692e68892fe32ca6e66ccb64fac
+    files:
+      - src/core/websocket/exports.ts
+    patch_content: |
+      diff --git a/src/core/websocket/exports.ts b/src/core/websocket/exports.ts
+      index 9127165..fa40c89 100644
+      --- a/src/core/websocket/exports.ts
+      +++ b/src/core/websocket/exports.ts
+      @@ -1,5 +1,5 @@
+       import type * as events from "./events.js";
+      -import type * as ws from "./ws.js";
+      +import * as ws from "./ws.js";
+       
+       export type ReconnectingWebSocket = typeof ws.ReconnectingWebSocket;
+       export declare namespace ReconnectingWebSocket {
+      @@ -7,3 +7,9 @@ export declare namespace ReconnectingWebSocket {
+           export type CloseEvent = events.CloseEvent;
+           export type ErrorEvent = events.ErrorEvent;
+       }
+      +
+      +/**
+      + * The values of a realtime socket's `readyState`. Sending throws unless it is `OPEN`.
+      + */
+      +export type ReadyState = ws.ReconnectingWebSocket.ReadyState;
+      +export const ReadyState: typeof ws.ReconnectingWebSocket.ReadyState = ws.ReconnectingWebSocket.ReadyState;
+    theirs_snapshot:
+      src/core/websocket/exports.ts: |
+        import type * as events from "./events.js";
+        import * as ws from "./ws.js";
+
+        export type ReconnectingWebSocket = typeof ws.ReconnectingWebSocket;
+        export declare namespace ReconnectingWebSocket {
+            export type Event = events.Event;
+            export type CloseEvent = events.CloseEvent;
+            export type ErrorEvent = events.ErrorEvent;
+        }
+
+        /**
+         * The values of a realtime socket's `readyState`. Sending throws unless it is `OPEN`.
+         */
+        export type ReadyState = ws.ReconnectingWebSocket.ReadyState;
+        export const ReadyState: typeof ws.ReconnectingWebSocket.ReadyState = ws.ReconnectingWebSocket.ReadyState;
 dismissals:
   - patch_id: patch-62342be9
     original_commit: 62342be9abcd1d674f31509854cd6ff37a0b8477
