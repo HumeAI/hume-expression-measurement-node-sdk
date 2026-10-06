@@ -29,7 +29,7 @@ const EMPTY_BYTES = new Uint8Array(0);
 
 /**
  * Converts PCM audio at any sample rate from 1 kHz and any channel count to the format the
- * realtime voice endpoint accepts: signed 16-bit little-endian PCM, mono, 16 kHz.
+ * realtime audio endpoint accepts: signed 16-bit little-endian PCM, mono, 16 kHz.
  *
  * Pass successive blocks of one stream to `process`, then call `flush` once after the last block.
  * Filter state carries over between calls, so a stream converts to the same bytes whether it
@@ -98,11 +98,10 @@ export class Resampler {
      * @returns Signed 16-bit little-endian PCM, mono, 16 kHz. At input rates other than 16 kHz, the
      * resampler holds back 64 samples at the lower of the input rate and 16 kHz as filter history:
      * 4 ms at input rates above 16 kHz, 8 ms at 8 kHz, and 64 ms at 1 kHz. Audio at 16 kHz is not
-     * held back. The result can therefore be shorter than the input or empty. The realtime voice
+     * held back. The result can therefore be shorter than the input or empty. The realtime audio
      * endpoint rejects empty frames and frames longer than 10 seconds, so check the result before
-     * sending it, and pass a long recording in blocks of about 100 ms rather than in one call. The
-     * endpoint accepts the first 30 seconds of audio at once and then 2 seconds of audio per
-     * second, so pace the sends for a longer recording.
+     * sending it, and pass a long recording in blocks of about 100 ms rather than in one call.
+     * Stream the audio in close to real time, no faster than 1 second of audio per second.
      *
      * @throws {TypeError} audio is not one of the accepted types, or is an array that does not
      * match `sampleFormat`.

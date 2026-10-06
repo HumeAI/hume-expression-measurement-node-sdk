@@ -3,7 +3,7 @@
 export const SAMPLE_RATE = 16000;
 const BYTES_PER_MS = (SAMPLE_RATE * 2) / 1000;
 
-// The realtime voice endpoint rejects a frame holding more than 10 seconds of audio.
+// The realtime audio endpoint rejects a frame holding more than 10 seconds of audio.
 const MAX_FRAME_MS = 10_000;
 
 // Every input sample becomes 16000 / rate output samples, so a small WAV file declaring a rate of

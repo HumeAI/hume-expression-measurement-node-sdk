@@ -82,6 +82,7 @@ const response = await client.video.measure({
 
 for (const result of response.measurements) {
     for (const face of result.faces) {
+        if (!face.expressions) continue;
         const top = face.expressions
             .slice(0, 3)
             .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
@@ -91,7 +92,7 @@ for (const result of response.measurements) {
 }
 ```
 
-`file` is a list, so one request can carry several JPEG images. `measurements` holds one result per image, in the order sent, and `frameId` is the image's position in the list. The [video upload guide](https://dev.hume.ai/expression-measurement/docs/video/upload) covers image limits, detection settings, and tracking faces across requests.
+`file` is a list, so one request can carry several JPEG images. `measurements` holds one result per image, in the order sent, and `frameId` is the image's position in the list. The server lists up to 32 detected faces and measures only the largest, 2 by default. A face it did not measure has `faceId`, `expressions`, and `descriptions` set to `null`, so the example skips it. The [video upload guide](https://dev.hume.ai/expression-measurement/docs/video/upload) covers image limits, detection settings, and tracking faces across requests.
 
 ## Quickstart: realtime
 
@@ -99,10 +100,11 @@ The realtime endpoints take media that is still arriving, such as audio from a l
 
 ### Audio
 
-Open a session, register a message handler, stream the file in frames, and close.
+Open a session, register a message handler, stream the file in frames at the rate it plays, and close.
 
 ```typescript
 import { readFile } from "node:fs/promises";
+import { setTimeout } from "node:timers/promises";
 import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
 
 const client = new ExpressionMeasurementClient();
@@ -135,15 +137,16 @@ const FRAME_SIZE = 3200;
 const audio = await readFile("speech.pcm");
 for (let offset = 0; offset < audio.length; offset += FRAME_SIZE) {
     socket.sendAudioFrame(audio.subarray(offset, offset + FRAME_SIZE));
+    await setTimeout(100);
 }
 socket.sendAudioSessionClose({ type: "session.close" });
 ```
 
-The server detects speech, groups it into utterances, and sends a `measurement.result` every 3 seconds of speech while an utterance continues. It accepts the first 30 seconds of audio immediately and then twice real time, so a long recording must be paced. The [audio realtime guide](https://dev.hume.ai/expression-measurement/docs/audio/realtime) covers the send rate, utterances, and the message flow.
+The server detects speech, groups it into utterances, and sends a `measurement.result` every 3 seconds of speech while an utterance continues. It takes audio in close to real time, no faster than 1 second of audio per second, so the example waits 100 ms after each 100 ms frame. To measure a recording faster than it plays, upload it instead. The [audio realtime guide](https://dev.hume.ai/expression-measurement/docs/audio/realtime) covers the send rate, utterances, and the message flow.
 
 ### Video
 
-The video endpoint accepts one complete JPEG image per frame and answers each accepted frame with one `measurement.result` listing every face it detected.
+The video endpoint accepts one complete JPEG image per frame and answers each accepted frame with one `measurement.result` listing up to 32 detected faces.
 
 ```typescript
 import { readFile } from "node:fs/promises";
@@ -157,6 +160,7 @@ socket.on("message", (message) => {
     switch (message.type) {
         case "measurement.result":
             for (const face of message.faces) {
+                if (!face.expressions) continue;
                 const top = face.expressions
                     .slice(0, 3)
                     .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
@@ -272,22 +276,24 @@ The device records at its own sample rate, and the SDK converts its audio to 16 
 `iterWavFrames` reads 8, 16, 24, or 32-bit integer and 32 or 64-bit floating-point WAV at any sample rate from 1 kHz and any channel count and yields 100 ms frames. It replaces the file loop in the [realtime quickstart](#quickstart-realtime):
 
 ```typescript
+import { setTimeout } from "node:timers/promises";
 import { iterWavFrames } from "@humeai/expression-measurement-node/audio-helpers";
 
 await socket.waitForOpen();
 for await (const frame of iterWavFrames("recording.wav")) {
     socket.sendAudioFrame(frame);
+    await setTimeout(100);
 }
 socket.sendAudioSessionClose({ type: "session.close" });
 ```
 
-Frames are produced as fast as the file is read, so pace the sends for a file longer than 30 seconds. Compressed WAV files make iteration throw an error with an ffmpeg command that converts them.
+Frames are produced as fast as the file is read, so the loop waits 100 ms after each one to stream the audio in close to real time. Compressed WAV files make iteration throw an error with an ffmpeg command that converts them.
 
 ### Other sources
 
 `Resampler` converts a stream you already have, block by block. Pass each block to `process`, then call `flush` after the last one. Blocks can be bytes, as an `ArrayBuffer`, `Uint8Array`, or `Buffer`, which are read as little-endian and may end partway through a sample frame, or an `Int16Array`, `Float32Array`, or `Float64Array` that matches `sampleFormat`. Channels are averaged to mono.
 
-At input rates other than 16 kHz, the resampler holds back a little audio as filter history, 4 ms at input rates above 16 kHz and up to 64 ms at 1 kHz, so `process` can return an empty result for a short block. The endpoint rejects empty frames, so check before sending. It also rejects frames longer than 10 seconds, so pass a long recording in blocks of about 100 ms rather than in one call, and pace the sends for a recording longer than 30 seconds. From a live stream, skip sending while the socket reconnects, as [Reconnecting](#reconnecting) describes.
+At input rates other than 16 kHz, the resampler holds back a little audio as filter history, 4 ms at input rates above 16 kHz and up to 64 ms at 1 kHz, so `process` can return an empty result for a short block. The endpoint rejects empty frames, so check before sending. It also rejects frames longer than 10 seconds, so pass a long recording in blocks of about 100 ms rather than in one call, and stream the audio in close to real time, no faster than 1 second of audio per second. From a live stream, skip sending while the socket reconnects, as [Reconnecting](#reconnecting) describes.
 
 ```typescript
 import { Resampler } from "@humeai/expression-measurement-node/audio-helpers";
@@ -311,7 +317,7 @@ if (rest.length > 0) {
 
 ### Streaming frames
 
-`streamVideo` takes a socket and any async iterable of frames, each a JPEG image as `data` with its time in milliseconds as `timestampMs`, and yields one reply per frame, in the order of the frames. A reply holds the frame's `timestampMs` and either the `result` that measured it or the `error` that rejected it. This example measures a video file:
+`streamVideo` takes a socket and any async iterable of frames, each a JPEG image as `data` with its time in milliseconds as `timestampMs`, and yields one reply per frame, in the order of the frames. A reply holds the frame's `timestampMs` and either the `result` that measured it or the `error` that rejected it. This example measures a video file as it plays:
 
 ```typescript
 import { ExpressionMeasurementClient } from "@humeai/expression-measurement-node";
@@ -320,10 +326,11 @@ import { iterVideoFrames, streamVideo } from "@humeai/expression-measurement-nod
 const client = new ExpressionMeasurementClient();
 const socket = await client.video.connect();
 
-const stream = streamVideo(socket, iterVideoFrames("interview.mp4", { fps: 2 }));
+const stream = streamVideo(socket, iterVideoFrames("interview.mp4", { fps: 2, realtime: true }));
 for await (const reply of stream) {
     if (reply.result) {
         for (const face of reply.result.faces) {
+            if (!face.expressions) continue;
             const top = face.expressions
                 .slice(0, 3)
                 .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
@@ -337,7 +344,9 @@ for await (const reply of stream) {
 console.log(`${stream.closed?.produced.measurements} faces measured`);
 ```
 
-The server accepts the first 8 frames immediately and then 4 per second. `streamVideo` sends the first 7 at once, keeping one in reserve for uneven network timing, and paces the rest. When the server rejects a frame with `rate_limited`, `streamVideo` halves its send rate, down to one frame every 2 seconds, and raises it again gradually while frames are accepted, so a tighter limit than expected costs only a few rejected frames. What happens to the rejected frame depends on the source:
+`realtime: true` produces the frames as the video plays, as the endpoint expects. Without it, `streamVideo` would send these frames, taken at 2 per second, at its full rate of 3 per second, faster than the video plays.
+
+`streamVideo` sends frames no faster than 3 per second, the endpoint's send rate, counted from when streaming starts. A frame that arrives late leaves room for the next one to arrive early by as much, up to a third of a second, and still be sent rather than held back or dropped. When the server rejects a frame with `rate_limited`, `streamVideo` halves its send rate, down to one frame every 2 seconds, and raises it again gradually while frames are accepted, so a tighter limit than expected costs only a few rejected frames. What happens to the rejected frame depends on the source:
 
 1. From a recording, the default, it sends the frame again once the lower rate allows, so every frame is measured. It also sends a frame once more after a retryable `internal_error`.
 2. From a live source, with `{ live: true }`, it yields the rejection and moves on, so results keep up with the source. A live frame that arrives when the send rate has no room is not sent at all, and `stream.droppedFrames` counts it.
@@ -354,7 +363,7 @@ When the frames run out, `streamVideo` closes the session, yields the remaining 
 
 | Option | Default | Purpose |
 |---|---|---|
-| `fps` | 3 | Frames taken per second of video, above 0 and at most 4. |
+| `fps` | 3 | Frames taken per second of video, above 0 and at most 3. |
 | `maxWidth` | 1280 | Wider frames are scaled down to this width, keeping their shape. Narrower frames are left as they are. |
 | `realtime` | false | Produce frames no faster than the video plays, as a live source would. By default they are produced as fast as they are sent. |
 | `ffmpegPath` | `ffmpeg` on `PATH` | The ffmpeg executable to run. |
@@ -363,7 +372,7 @@ Ending the loop early stops ffmpeg.
 
 ### Live sources
 
-`streamVideo` measures frames from any source you can turn into an async iterable, such as a camera your application already captures. Encode each frame as a JPEG, give it a `timestampMs`, and pass `{ live: true }`. A camera usually produces more frames than the 4 per second the endpoint accepts; `streamVideo` sends what the send rate allows and counts the rest in `stream.droppedFrames`, so capturing fewer frames saves encoding work. Keep frames around 1280 pixels wide.
+`streamVideo` measures frames from any source you can turn into an async iterable, such as a camera your application already captures. Encode each frame as a JPEG, give it a `timestampMs`, and pass `{ live: true }`. A camera usually produces more frames than the 3 per second the endpoint accepts; `streamVideo` sends what the send rate allows and counts the rest in `stream.droppedFrames`, so capturing no more than 3 frames per second saves encoding work. A source that keeps to exactly 3 frames per second can still have one frame dropped: the first that arrives early before any has arrived late to leave room for it. Keep frames around 1280 pixels wide.
 
 `JpegSplitter` turns a byte stream of concatenated JPEG images, such as ffmpeg's `image2pipe` output or the body of an MJPEG stream, into single images. Pass each chunk to `push`, which returns the images completed so far and holds back a partial one. This generator yields frames from such a stream, timed from when it starts:
 

@@ -49,9 +49,9 @@ interface Format {
  * ends partway through one, and to the end of the file if its header still declares an empty
  * file, as libsndfile leaves a recording it never closed.
  *
- * Frames are produced as fast as the file can be read. The realtime voice endpoint accepts the
- * first 30 seconds of audio at once and then 2 seconds of audio per second, so pace the sends
- * for a longer file.
+ * Frames are produced as fast as the file can be read. Stream them to the realtime audio endpoint
+ * in close to real time, no faster than 1 second of audio per second, by waiting each frame's
+ * length between sends.
  *
  * The file is opened when iteration starts, so errors about the file itself are thrown by the
  * first `next()` rather than by this call.
@@ -65,10 +65,12 @@ interface Format {
  * `ffmpeg -i input.wav -ac 1 -ar 16000 -sample_fmt s16 output.wav`.
  *
  * @example
+ * import { setTimeout } from "node:timers/promises";
  * import { iterWavFrames } from "@humeai/expression-measurement-node/audio-helpers";
  *
  * for await (const frame of iterWavFrames("speech.wav")) {
  *     socket.sendAudioFrame(frame);
+ *     await setTimeout(100);
  * }
  */
 export function iterWavFrames(
