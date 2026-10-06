@@ -335,10 +335,10 @@ for await (const reply of stream) {
                 .slice(0, 3)
                 .map((score) => `${score.name} ${score.probability.toFixed(2)}`)
                 .join(", ");
-            console.log(`${reply.timestampMs.toFixed(0)} ms, face ${face.faceId}: ${top}`);
+            console.log(`${reply.timestampMs} ms, face ${face.faceId}: ${top}`);
         }
     } else {
-        console.error(`${reply.timestampMs.toFixed(0)} ms: ${reply.error.code}`);
+        console.error(`${reply.timestampMs} ms: ${reply.error.code}`);
     }
 }
 console.log(`${stream.closed?.produced.measurements} faces measured`);

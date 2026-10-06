@@ -24,8 +24,8 @@ export declare namespace iterVideoFrames {
  * `sendImageFrame`.
  *
  * Frames are taken `fps` times per second of video, and each frame's `timestampMs` is its position
- * in the video. Any format ffmpeg can decode works. ffmpeg must be installed; it is found on `PATH`
- * unless `ffmpegPath` is given.
+ * in the video, to the nearest millisecond. Any format ffmpeg can decode works. ffmpeg must be
+ * installed; it is found on `PATH` unless `ffmpegPath` is given.
  *
  * ffmpeg starts when iteration starts, so errors about the file are thrown by the first `next()`
  * rather than by this call. Ending iteration early stops ffmpeg.
@@ -60,7 +60,7 @@ async function* readFrames(
 ): AsyncGenerator<VideoFrame, void, undefined> {
     let index = 0;
     for await (const data of readImages(ffmpegPath, args)) {
-        yield { data, timestampMs: (index * 1000) / fps };
+        yield { data, timestampMs: Math.round((index * 1000) / fps) };
         index++;
     }
 }

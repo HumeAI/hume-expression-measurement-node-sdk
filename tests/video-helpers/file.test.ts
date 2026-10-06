@@ -62,16 +62,17 @@ describe("iterVideoFrames", () => {
         return JSON.parse(readFileSync(join(dir, "args.json"), "utf8"));
     }
 
-    it("yields each image ffmpeg writes with its time in the video", async () => {
-        const images = [jpeg(1), jpeg(2), jpeg(3)];
+    it("yields each image ffmpeg writes with its time in the video to the nearest millisecond", async () => {
+        const images = [jpeg(1), jpeg(2), jpeg(3), jpeg(4)];
         const ffmpegPath = fakeFfmpeg("process.stdout.write(images);", images);
 
-        const frames = await collect(iterVideoFrames("interview.mp4", { fps: 2, ffmpegPath }));
+        const frames = await collect(iterVideoFrames("interview.mp4", { fps: 3, ffmpegPath }));
 
         expect(frames).toEqual([
             { data: images[0], timestampMs: 0 },
-            { data: images[1], timestampMs: 500 },
-            { data: images[2], timestampMs: 1000 },
+            { data: images[1], timestampMs: 333 },
+            { data: images[2], timestampMs: 667 },
+            { data: images[3], timestampMs: 1000 },
         ]);
     });
 
