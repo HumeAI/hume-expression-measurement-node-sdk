@@ -9,19 +9,19 @@ import { VideoExpressionScore } from "./VideoExpressionScore.js";
 
 export const Face: core.serialization.ObjectSchema<serializers.Face.Raw, ExpressionMeasurement.Face> =
     core.serialization.object({
-        faceId: core.serialization.property("face_id", core.serialization.number()),
+        faceId: core.serialization.property("face_id", core.serialization.number().nullable()),
         bbox: BoundingBox,
         confidence: core.serialization.number(),
-        expressions: core.serialization.list(VideoExpressionScore),
-        descriptions: core.serialization.list(VideoDescriptionScore),
+        expressions: core.serialization.list(VideoExpressionScore).nullable(),
+        descriptions: core.serialization.list(VideoDescriptionScore).nullable(),
     });
 
 export declare namespace Face {
     export interface Raw {
-        face_id: number;
+        face_id?: number | null;
         bbox: BoundingBox.Raw;
         confidence: number;
-        expressions: VideoExpressionScore.Raw[];
-        descriptions: VideoDescriptionScore.Raw[];
+        expressions?: VideoExpressionScore.Raw[] | null;
+        descriptions?: VideoDescriptionScore.Raw[] | null;
     }
 }

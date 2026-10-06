@@ -9,6 +9,6 @@ export interface VideoMeasurementResult {
     type: ExpressionMeasurement.VideoMeasurementResultType;
     /** Sequential identifier of the frame within the session, starting at 0. Only frames answered with a `measurement.result` receive an ID, so the Nth result is for the Nth frame that was not answered with an `error`. */
     frameId: number;
-    /** The faces detected in the frame, in descending order of confidence. */
+    /** The faces detected in the frame: the measured faces first, largest first, then the faces that were not measured, in descending order of confidence. */
     faces: ExpressionMeasurement.Face[];
 }
