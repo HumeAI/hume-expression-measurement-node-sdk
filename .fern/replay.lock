@@ -126,14 +126,20 @@ generations:
     cli_version: unknown
     generator_versions:
       fernapi/fern-typescript-sdk: 3.98.5
-current_generation: 450ac6e07dfc9d381d17f154cdbb57f2505624bc
+  - commit_sha: 73f5e0fad7f4b3ae126079733acb127eab626da4
+    tree_hash: e2cd65b7a2653d6ba94205684b8490bfbe1ba95c
+    timestamp: 2026-10-06T09:00:36.255Z
+    cli_version: unknown
+    generator_versions:
+      fernapi/fern-typescript-sdk: 3.98.5
+current_generation: 73f5e0fad7f4b3ae126079733acb127eab626da4
 patches:
   - id: patch-7b83e5d0
     content_hash: sha256:9e94d68bd5ebed738b80abcb5f82972b0ef50692f7576714a98432d0ec7525b0
     original_commit: 7b83e5d072933ebbc8693aa9ffa8d7bda16fa944
     original_message: reconnect realtime sockets only when a new session can succeed, and send the caller's last session.update to each new session
     original_author: zach <zachary.greathouse@hume.ai>
-    base_generation: 450ac6e07dfc9d381d17f154cdbb57f2505624bc
+    base_generation: 73f5e0fad7f4b3ae126079733acb127eab626da4
     files:
       - src/api/resources/audio/client/Client.ts
       - src/api/resources/video/client/Client.ts
@@ -798,7 +804,7 @@ patches:
     original_commit: 01108bc15d96bba763293e6cc14ece33e711f576
     original_message: export ReadyState from the package root so send loops can check a realtime socket's readyState without reaching into the underlying socket
     original_author: zach <zachary.greathouse@hume.ai>
-    base_generation: 450ac6e07dfc9d381d17f154cdbb57f2505624bc
+    base_generation: 73f5e0fad7f4b3ae126079733acb127eab626da4
     files:
       - src/core/websocket/exports.ts
     patch_content: |
