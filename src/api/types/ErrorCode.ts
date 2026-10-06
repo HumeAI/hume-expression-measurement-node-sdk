@@ -17,7 +17,7 @@
  * **Session-ending.** `error` is followed by `session.closed` with `reason` `error`, and the connection closes with code 1008.
  *
  * - `config_invalid`: a `session.update` contained an unrecognized field or an unsupported value, or arrived after you started sending media. Correct the message and open a new connection.
- * - `message_too_large`: a message exceeded the size limit. Reduce the frame size and open a new connection. Video only.
+ * - `message_too_large`: a message exceeded the size limit. Reduce the frame size and open a new connection.
  */
 export const ErrorCode = {
     InvalidAudioFrame: "invalid_audio_frame",

@@ -20,6 +20,7 @@ export const RequestErrorCode: core.serialization.Schema<
     "image_too_large",
     "unsupported_media_type",
     "internal_error",
+    "server_busy",
 ]);
 
 export declare namespace RequestErrorCode {
@@ -35,5 +36,6 @@ export declare namespace RequestErrorCode {
         | "audio_too_long"
         | "image_too_large"
         | "unsupported_media_type"
-        | "internal_error";
+        | "internal_error"
+        | "server_busy";
 }

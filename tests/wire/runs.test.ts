@@ -208,6 +208,28 @@ describe("RunsClient", () => {
         }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
     });
 
+    test("list (6)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ExpressionMeasurementClient({
+            maxRetries: 0,
+            apiKey: "test",
+            environment: { base: server.baseUrl, production: server.baseUrl },
+        });
+
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
+
+        server.mockEndpoint().get("/v1/expression/run").respondWith().statusCode(503).jsonBody(rawResponseBody).build();
+
+        await expect(async () => {
+            return await client.runs.list();
+        }).rejects.toThrow(ExpressionMeasurement.ServiceUnavailableError);
+    });
+
     test("get (1)", async () => {
         const server = mockServerPool.createServer();
         const client = new ExpressionMeasurementClient({
@@ -386,6 +408,36 @@ describe("RunsClient", () => {
                 runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
+    });
+
+    test("get (6)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ExpressionMeasurementClient({
+            maxRetries: 0,
+            apiKey: "test",
+            environment: { base: server.baseUrl, production: server.baseUrl },
+        });
+
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
+
+        server
+            .mockEndpoint()
+            .get("/v1/expression/run/run_id")
+            .respondWith()
+            .statusCode(503)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.runs.get({
+                runId: "run_id",
+            });
+        }).rejects.toThrow(ExpressionMeasurement.ServiceUnavailableError);
     });
 
     test("list-events (1)", async () => {
@@ -592,5 +644,35 @@ describe("RunsClient", () => {
                 runId: "run_id",
             });
         }).rejects.toThrow(ExpressionMeasurement.InternalServerError);
+    });
+
+    test("list-events (7)", async () => {
+        const server = mockServerPool.createServer();
+        const client = new ExpressionMeasurementClient({
+            maxRetries: 0,
+            apiKey: "test",
+            environment: { base: server.baseUrl, production: server.baseUrl },
+        });
+
+        const rawResponseBody = {
+            type: "error",
+            code: "message_invalid",
+            message: "message",
+            request_id: "request_id",
+        };
+
+        server
+            .mockEndpoint()
+            .get("/v1/expression/run/run_id/events")
+            .respondWith()
+            .statusCode(503)
+            .jsonBody(rawResponseBody)
+            .build();
+
+        await expect(async () => {
+            return await client.runs.listEvents({
+                runId: "run_id",
+            });
+        }).rejects.toThrow(ExpressionMeasurement.ServiceUnavailableError);
     });
 });

@@ -36,6 +36,7 @@ export class RunsClient {
      * @throws {@link ExpressionMeasurement.UnauthorizedError}
      * @throws {@link ExpressionMeasurement.MethodNotAllowedError}
      * @throws {@link ExpressionMeasurement.InternalServerError}
+     * @throws {@link ExpressionMeasurement.ServiceUnavailableError}
      * @throws {@link errors.ExpressionMeasurementError}
      * @throws {@link errors.ExpressionMeasurementTimeoutError}
      *
@@ -166,6 +167,17 @@ export class RunsClient {
                         }),
                         _response.rawResponse,
                     );
+                case 503:
+                    throw new ExpressionMeasurement.ServiceUnavailableError(
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        _response.rawResponse,
+                    );
                 default:
                     throw new errors.ExpressionMeasurementError({
                         statusCode: _response.error.statusCode,
@@ -188,6 +200,7 @@ export class RunsClient {
      * @throws {@link ExpressionMeasurement.NotFoundError}
      * @throws {@link ExpressionMeasurement.MethodNotAllowedError}
      * @throws {@link ExpressionMeasurement.InternalServerError}
+     * @throws {@link ExpressionMeasurement.ServiceUnavailableError}
      * @throws {@link errors.ExpressionMeasurementError}
      * @throws {@link errors.ExpressionMeasurementTimeoutError}
      *
@@ -291,6 +304,17 @@ export class RunsClient {
                         }),
                         _response.rawResponse,
                     );
+                case 503:
+                    throw new ExpressionMeasurement.ServiceUnavailableError(
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        _response.rawResponse,
+                    );
                 default:
                     throw new errors.ExpressionMeasurementError({
                         statusCode: _response.error.statusCode,
@@ -304,7 +328,7 @@ export class RunsClient {
     }
 
     /**
-     * The problems the run reported, in order: frames it rejected and failures it hit. A run that went well has none. Only realtime sessions record them, except `video_recording_abandoned`, which a video file run can also record.
+     * The problems the run reported, in order: frames it rejected and failures it hit. A run that went well has none. Only realtime sessions record them.
      *
      * @param {ExpressionMeasurement.ListEventsRunsRequest} request
      * @param {RunsClient.RequestOptions} requestOptions - Request-specific configuration.
@@ -314,6 +338,7 @@ export class RunsClient {
      * @throws {@link ExpressionMeasurement.NotFoundError}
      * @throws {@link ExpressionMeasurement.MethodNotAllowedError}
      * @throws {@link ExpressionMeasurement.InternalServerError}
+     * @throws {@link ExpressionMeasurement.ServiceUnavailableError}
      * @throws {@link errors.ExpressionMeasurementError}
      * @throws {@link errors.ExpressionMeasurementTimeoutError}
      *
@@ -427,6 +452,17 @@ export class RunsClient {
                     );
                 case 500:
                     throw new ExpressionMeasurement.InternalServerError(
+                        serializers.ErrorBody.parseOrThrow(_response.error.body, {
+                            unrecognizedObjectKeys: "passthrough",
+                            allowUnrecognizedUnionMembers: true,
+                            allowUnrecognizedEnumValues: true,
+                            skipValidation: true,
+                            breadcrumbsPrefix: ["response"],
+                        }),
+                        _response.rawResponse,
+                    );
+                case 503:
+                    throw new ExpressionMeasurement.ServiceUnavailableError(
                         serializers.ErrorBody.parseOrThrow(_response.error.body, {
                             unrecognizedObjectKeys: "passthrough",
                             allowUnrecognizedUnionMembers: true,
