@@ -138,14 +138,20 @@ generations:
     cli_version: unknown
     generator_versions:
       fernapi/fern-typescript-sdk: 3.98.5
-current_generation: c44ade5d9c87048ec33e2cb584a7a4cfffa83faa
+  - commit_sha: 210e489d0e6bc6bdc6ebaa79fe036aa236aed1bc
+    tree_hash: 5136f5a1c1d4e339daee17e06888effd9d7214a4
+    timestamp: 2026-10-06T13:40:35.358Z
+    cli_version: unknown
+    generator_versions:
+      fernapi/fern-typescript-sdk: 3.98.5
+current_generation: 210e489d0e6bc6bdc6ebaa79fe036aa236aed1bc
 patches:
   - id: patch-7b83e5d0
     content_hash: sha256:9e94d68bd5ebed738b80abcb5f82972b0ef50692f7576714a98432d0ec7525b0
     original_commit: 7b83e5d072933ebbc8693aa9ffa8d7bda16fa944
     original_message: reconnect realtime sockets only when a new session can succeed, and send the caller's last session.update to each new session
     original_author: zach <zachary.greathouse@hume.ai>
-    base_generation: c44ade5d9c87048ec33e2cb584a7a4cfffa83faa
+    base_generation: 210e489d0e6bc6bdc6ebaa79fe036aa236aed1bc
     files:
       - src/api/resources/audio/client/Client.ts
       - src/api/resources/video/client/Client.ts
@@ -810,7 +816,7 @@ patches:
     original_commit: 01108bc15d96bba763293e6cc14ece33e711f576
     original_message: export ReadyState from the package root so send loops can check a realtime socket's readyState without reaching into the underlying socket
     original_author: zach <zachary.greathouse@hume.ai>
-    base_generation: c44ade5d9c87048ec33e2cb584a7a4cfffa83faa
+    base_generation: 210e489d0e6bc6bdc6ebaa79fe036aa236aed1bc
     files:
       - src/core/websocket/exports.ts
     patch_content: |
@@ -858,7 +864,7 @@ patches:
     original_commit: a40da410b1d03e760eb0eb0efd2125e634e9b017
     original_message: Pace realtime streaming at the documented send rates (#31)
     original_author: Zachary Greathouse <26175515+zgreathouse@users.noreply.github.com>
-    base_generation: c44ade5d9c87048ec33e2cb584a7a4cfffa83faa
+    base_generation: 210e489d0e6bc6bdc6ebaa79fe036aa236aed1bc
     files:
       - .github/workflows/ci.yml
     patch_content: |+
@@ -1004,6 +1010,7 @@ patches:
                       npm publish --access public
                     fi
                   fi
+    user_owned: true
 dismissals:
   - patch_id: patch-62342be9
     original_commit: 62342be9abcd1d674f31509854cd6ff37a0b8477
