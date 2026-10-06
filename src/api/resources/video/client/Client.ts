@@ -8,7 +8,6 @@ import { toJson } from "../../../../core/json.js";
 import * as environments from "../../../../environments.js";
 import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
 import * as errors from "../../../../errors/index.js";
-import { RealtimeWebSocket } from "../../../../reconnect/RealtimeWebSocket.js";
 import * as serializers from "../../../../serialization/index.js";
 import * as ExpressionMeasurement from "../../../index.js";
 import { VideoSocket } from "./Socket.js";
@@ -33,7 +32,7 @@ export declare namespace VideoClient {
         connectionTimeoutInSeconds?: number;
         /** A signal to abort the WebSocket connection. */
         abortSignal?: AbortSignal;
-        /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. A close after `session.close` was sent never reconnects. Defaults to reconnecting after a `session.closed` with reason `server_shutdown`, and after close codes 1001, 1006, 1011, 1012 and 1013. */
+        /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. Defaults to reconnecting on any server close code other than 1000. */
         shouldReconnect?: (event: core.CloseEvent) => boolean;
     }
 }
@@ -53,11 +52,12 @@ export class VideoClient {
      *
      * ## Detection and measurement
      *
-     * The server detects the faces in each image and measures up to 64 of them, most confident first, listed in `faces` in that order.
+     * The server detects the faces in each image and lists them in `faces`. It measures the largest of them, up to the limit below, and lists those first, largest first.
      *
-     * - A face is skipped, and does not count toward the 64, if its detection confidence is below `face.threshold` or its bounding box is under `face.min_size` pixels on its shorter side.
+     * - A face is skipped, and is not listed, if its detection confidence is below `face.threshold` or its bounding box is under `face.min_size` pixels on its shorter side.
      * - Each measured face carries its bounding box, its detection confidence, a `face_id`, and two sets of scores: `expressions` for emotional expressions such as amusement or interest, and `descriptions` for visible facial actions such as a smile or a jaw drop.
-     * - `face_id` tracks a face across the images of one request. A face normally keeps its ID while it stays in view, and may get a new one if it leaves and returns. IDs do not identify a person.
+     * - The faces that were not measured follow, most confident first, up to 32 faces in all. Each carries its bounding box and detection confidence, with `face_id`, `expressions` and `descriptions` null.
+     * - `face_id` tracks a face across the images of one request. A face normally keeps its ID while it is measured, and can get it back after it leaves the view or is no longer among the largest faces. IDs do not identify a person.
      * - **Across requests:** IDs start again from 0 in every request. To keep them consistent, set `return_face_state` and pass the returned `face_state` as `face_state` in the next request.
      *
      * ## Limits
@@ -67,7 +67,8 @@ export class VideoClient {
      * | Request size | 25MB, the whole multipart body |
      * | Image size | 2MB |
      * | Pixels per image | 8,294,400 (the area of a 3840x2160 image) |
-     * | Faces measured per image | 64 |
+     * | Faces measured per image | 2 by default, the largest; contact support to raise it |
+     * | Faces listed per image | 32 |
      *
      * Every image is checked before any is measured. One bad image fails the whole request, which then returns no results:
      *
@@ -260,7 +261,7 @@ export class VideoClient {
         } = args;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: Record<string, unknown> = mergeHeaders(_authRequest.headers, this._options?.headers, headers);
-        const socket = new RealtimeWebSocket("video", {
+        const socket = new core.ReconnectingWebSocket({
             url: core.url.join(
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (

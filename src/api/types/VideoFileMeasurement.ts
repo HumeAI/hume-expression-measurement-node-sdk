@@ -8,6 +8,6 @@ import type * as ExpressionMeasurement from "../index.js";
 export interface VideoFileMeasurement {
     /** Identifies the image within the run, counting from 0. A file request numbers its images by the order of the `file` parts; a realtime session numbers only the frames it answered with a measurement. */
     frameId: number;
-    /** The faces detected in the image, in descending order of confidence. */
+    /** The faces detected in the image: the measured faces first, largest first, then the faces that were not measured, in descending order of confidence. */
     faces: ExpressionMeasurement.Face[];
 }
