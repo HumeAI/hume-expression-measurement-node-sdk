@@ -8,6 +8,7 @@ import { toJson } from "../../../../core/json.js";
 import * as environments from "../../../../environments.js";
 import { handleNonStatusCodeError } from "../../../../errors/handleNonStatusCodeError.js";
 import * as errors from "../../../../errors/index.js";
+import { RealtimeWebSocket } from "../../../../reconnect/RealtimeWebSocket.js";
 import * as serializers from "../../../../serialization/index.js";
 import * as ExpressionMeasurement from "../../../index.js";
 import { AudioSocket } from "./Socket.js";
@@ -32,7 +33,7 @@ export declare namespace AudioClient {
         connectionTimeoutInSeconds?: number;
         /** A signal to abort the WebSocket connection. */
         abortSignal?: AbortSignal;
-        /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. Defaults to reconnecting on any server close code other than 1000. */
+        /** Decides whether a server close event should trigger a reconnect. Not consulted for connection errors, timeouts, or internal closes. Return false to treat the close as terminal. A close after `session.close` was sent never reconnects. Defaults to reconnecting after a `session.closed` with reason `server_shutdown`, after close codes 1001, 1006, 1011, 1012 and 1013, and after close code 1008 that follows an `internal_error`. */
         shouldReconnect?: (event: core.CloseEvent) => boolean;
     }
 }
@@ -266,7 +267,7 @@ export class AudioClient {
         } = args;
         const _authRequest: core.AuthRequest = await this._options.authProvider.getAuthRequest();
         const _headers: Record<string, unknown> = mergeHeaders(_authRequest.headers, this._options?.headers, headers);
-        const socket = new core.ReconnectingWebSocket({
+        const socket = new RealtimeWebSocket("audio", {
             url: core.url.join(
                 (await core.Supplier.get(this._options.baseUrl)) ??
                     (
